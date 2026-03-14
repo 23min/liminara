@@ -1,0 +1,30 @@
+# Elixir/Mix
+_build/
+deps/
+*.ez
+*.beam
+
+# Generated files
+cover/
+doc/
+
+# Env and secrets
+.env
+.env.*
+*.secret
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Claude Code local settings
+.claude/settings.local.json
+
+# Original brainstorm export (contents are in docs/brainstorm/)
+agent_runtime_specs.zip
