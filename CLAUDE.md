@@ -85,21 +85,22 @@ A phase contains multiple epics. An epic contains 2–5 milestones. If an epic n
 ### Status values (used in frontmatter)
 `draft` → `ready` → `active` → `review` → `done`
 
-### TDD two-agent workflow
-1. **Test agent** (Tab 1): reads milestone spec, writes ExUnit tests. Commits to feature branch.
-2. Human reviews tests, then triggers:
-3. **Impl agent** (Tab 2): reads milestone spec + tests, writes implementation until tests pass.
-4. Human reviews diff before any commit.
-5. Validation pipeline must pass before commit. Use the tools appropriate for the language/technology touched:
+### TDD workflow
+1. Each milestone is a single Claude session. Write failing tests first, get human approval, then implement.
+2. Within a session: read milestone spec → write tests (red) → human says "looks good" → implement until tests pass (green).
+3. Human reviews diff before any commit.
+4. Validation pipeline must pass before commit. Use the tools appropriate for the language/technology touched:
    - **Elixir**: `mix format`, `mix credo`, `mix dialyzer`, `mix test`
+   - **Python**: `uv run ruff check .`, `uv run ruff format --check .`, `uv run pytest`
    - **JavaScript/TypeScript**: `prettier`, `eslint`, test runner (jest/vitest)
    - **.NET/C#**: `dotnet format`, `dotnet build`, `dotnet test`
    - Add entries here as new languages are introduced to the project.
 
 ### Git workflow
-- Each agent works in its own git worktree on its own branch — no shared working directory.
+- One worktree per epic, not per milestone. All milestones in an epic share the same worktree and branch.
+- New Claude session per milestone, same worktree. Start each session by reading the milestone spec.
 - Agents never push. Human reviews and commits.
-- Merge strategy: squash per milestone.
+- Merge strategy: squash per milestone (or per epic if milestones are small).
 
 ### Commit message convention (Conventional Commits)
 
@@ -124,6 +125,19 @@ docs: initial project structure and architecture documents
 test(event-store): hash chain integrity verification
 refactor(core): extract scheduler loop into Run.Server
 ```
+
+### Milestone completion checklist
+
+Every milestone completion MUST include these steps — they are part of the work, not optional cleanup:
+
+- [ ] All acceptance criteria checked (`[x]`) in the milestone spec
+- [ ] Milestone frontmatter `status` → `done`
+- [ ] Epic milestone table updated (status column)
+- [ ] Roadmap updated (`work/roadmap.md`)
+- [ ] Session log entry appended to `M-{ABR}-{NN}-{slug}-log.md`
+- [ ] Validation pipeline passes (lint, format, tests)
+
+Do not declare a milestone done until all of these are complete.
 
 ### Session provenance
 After each significant work session on a milestone, append an entry to the milestone log file.
