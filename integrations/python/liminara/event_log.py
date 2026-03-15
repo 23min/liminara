@@ -1,7 +1,7 @@
 """JSONL append-only event log with hash chain."""
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from liminara.hash import canonical_json, hash_event
@@ -24,8 +24,8 @@ class EventLog:
     def append(self, event_type: str, payload: dict) -> None:
         """Append an event with auto-computed hash and timestamp."""
         timestamp = (
-            datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.")
-            + f"{datetime.now(timezone.utc).microsecond // 1000:03d}Z"
+            datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%S.")
+            + f"{datetime.now(UTC).microsecond // 1000:03d}Z"
         )
 
         event_hash = hash_event(

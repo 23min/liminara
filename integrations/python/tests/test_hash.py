@@ -78,7 +78,7 @@ class TestCanonicalJson:
         """Unicode characters are properly encoded as UTF-8."""
         data = {"name": "café"}
         result = canonical_json(data)
-        assert "café".encode("utf-8") in result
+        assert "café".encode() in result
 
     def test_null_value(self):
         """null values serialize correctly."""
@@ -124,13 +124,19 @@ class TestHashEvent:
 
     def test_hash_event_deterministic(self):
         """Same inputs produce same hash."""
-        kwargs = dict(
+        h1 = hash_event(
             event_type="op_started",
             payload={"node_id": "n1"},
             prev_hash=None,
             timestamp="2026-03-14T12:00:00.000Z",
         )
-        assert hash_event(**kwargs) == hash_event(**kwargs)
+        h2 = hash_event(
+            event_type="op_started",
+            payload={"node_id": "n1"},
+            prev_hash=None,
+            timestamp="2026-03-14T12:00:00.000Z",
+        )
+        assert h1 == h2
 
     def test_hash_event_matches_manual_computation(self):
         """hash_event matches manual canonical JSON + SHA-256."""
@@ -166,11 +172,16 @@ class TestHashEvent:
 
     def test_different_payloads_different_hashes(self):
         """Different payloads produce different hashes."""
-        common = dict(
+        h1 = hash_event(
             event_type="op_started",
+            payload={"node_id": "n1"},
             prev_hash=None,
             timestamp="2026-03-14T12:00:00.000Z",
         )
-        h1 = hash_event(payload={"node_id": "n1"}, **common)
-        h2 = hash_event(payload={"node_id": "n2"}, **common)
+        h2 = hash_event(
+            event_type="op_started",
+            payload={"node_id": "n2"},
+            prev_hash=None,
+            timestamp="2026-03-14T12:00:00.000Z",
+        )
         assert h1 != h2

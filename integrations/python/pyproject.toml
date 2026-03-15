@@ -20,7 +20,9 @@ langchain = [
 ]
 dev = [
     "pytest>=8.0",
+    "pytest-cov>=6.0",
     "ruff>=0.8",
+    "ty",
 ]
 
 [project.scripts]
@@ -35,7 +37,14 @@ target-version = "py312"
 line-length = 99
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "W"]
+select = ["B", "C4", "E", "F", "I", "PT", "RUF", "SIM", "UP", "W"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+addopts = "--cov=liminara --cov-report=term-missing"
+
+[tool.coverage.run]
+source = ["liminara"]
+
+[tool.coverage.report]
+show_missing = true

@@ -158,7 +158,7 @@ class TestVerifyChain:
         lines[0] = json.dumps(event, separators=(",", ":"), sort_keys=True)
         events_file.write_text("\n".join(lines) + "\n")
 
-        valid, error = event_log.verify()
+        valid, _error = event_log.verify()
         assert valid is False
 
     def test_empty_log_is_valid(self, event_log: EventLog):

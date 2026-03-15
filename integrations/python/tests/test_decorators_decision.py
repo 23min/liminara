@@ -38,7 +38,7 @@ class TestDecorationTime:
 
     def test_invalid_decision_type_raises(self):
         """@decision with invalid type raises ValueError at decoration time."""
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="Invalid decision_type"):
 
             @decision(decision_type="invalid")
             def fn():

@@ -91,10 +91,17 @@ A phase contains multiple epics. An epic contains 2–5 milestones. If an epic n
 3. Human reviews diff before any commit.
 4. Validation pipeline must pass before commit. Use the tools appropriate for the language/technology touched:
    - **Elixir**: `mix format`, `mix credo`, `mix dialyzer`, `mix test`
-   - **Python**: `uv run ruff check .`, `uv run ruff format --check .`, `uv run pytest`
+   - **Python**: `uv run ruff check .`, `uv run ruff format --check .`, `uv run ty check`, `uv run pytest`
    - **JavaScript/TypeScript**: `prettier`, `eslint`, test runner (jest/vitest)
    - **.NET/C#**: `dotnet format`, `dotnet build`, `dotnet test`
    - Add entries here as new languages are introduced to the project.
+
+### Python toolchain (standard for all Python projects)
+- **uv** — package manager, virtualenv, and script runner
+- **ruff** — linter (extended rules: B, C4, E, F, I, PT, RUF, SIM, UP, W) and formatter
+- **ty** — type checker (Astral, Rust-based)
+- **pytest + pytest-cov** — test runner with coverage reporting
+- All four are in the Astral ecosystem (uv, ruff, ty) for consistency and performance.
 
 ### Git workflow
 - One worktree per epic, not per milestone. All milestones in an epic share the same worktree and branch.

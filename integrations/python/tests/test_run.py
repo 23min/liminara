@@ -87,17 +87,21 @@ class TestRunFailed:
 
     def test_run_failed_is_last_event(self, config: LiminaraConfig):
         """run_failed is the last event when an exception occurs."""
-        with pytest.raises(ValueError):
-            with run("mypack", "1.0.0", config=config) as r:
-                raise ValueError("test error")
+        with (
+            pytest.raises(ValueError, match="test error"),
+            run("mypack", "1.0.0", config=config) as r,
+        ):
+            raise ValueError("test error")
         events = r.event_log.read_all()
         assert events[-1]["event_type"] == "run_failed"
 
     def test_run_failed_payload(self, config: LiminaraConfig):
         """run_failed payload contains error_type and error_message."""
-        with pytest.raises(ValueError):
-            with run("mypack", "1.0.0", config=config) as r:
-                raise ValueError("test error")
+        with (
+            pytest.raises(ValueError, match="test error"),
+            run("mypack", "1.0.0", config=config) as r,
+        ):
+            raise ValueError("test error")
         events = r.event_log.read_all()
         payload = events[-1]["payload"]
         assert payload["run_id"] == r.run_id
@@ -106,18 +110,16 @@ class TestRunFailed:
 
     def test_no_run_completed_on_exception(self, config: LiminaraConfig):
         """run_completed is NOT emitted when an exception occurs."""
-        with pytest.raises(ValueError):
-            with run("mypack", "1.0.0", config=config) as r:
-                raise ValueError("boom")
+        with pytest.raises(ValueError, match="boom"), run("mypack", "1.0.0", config=config) as r:
+            raise ValueError("boom")
         events = r.event_log.read_all()
         event_types = [e["event_type"] for e in events]
         assert "run_completed" not in event_types
 
     def test_exception_is_reraised(self, config: LiminaraConfig):
         """Exceptions are re-raised, not swallowed."""
-        with pytest.raises(RuntimeError, match="original"):
-            with run("mypack", "1.0.0", config=config):
-                raise RuntimeError("original")
+        with pytest.raises(RuntimeError, match="original"), run("mypack", "1.0.0", config=config):
+            raise RuntimeError("original")
 
 
 class TestSeal:
@@ -176,9 +178,8 @@ class TestSeal:
 
     def test_no_seal_on_failure(self, config: LiminaraConfig):
         """seal.json is NOT written when the run fails."""
-        with pytest.raises(ValueError):
-            with run("mypack", "1.0.0", config=config) as r:
-                raise ValueError("fail")
+        with pytest.raises(ValueError, match="fail"), run("mypack", "1.0.0", config=config) as r:
+            raise ValueError("fail")
         seal_path = config.runs_root / r.run_id / "seal.json"
         assert not seal_path.exists()
 

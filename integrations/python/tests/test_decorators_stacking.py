@@ -63,8 +63,8 @@ class TestNodeIdMatch:
             choose("test")
 
         events = r.event_log.read_all()
-        op_started = [e for e in events if e["event_type"] == "op_started"][0]
-        decision_recorded = [e for e in events if e["event_type"] == "decision_recorded"][0]
+        op_started = next(e for e in events if e["event_type"] == "op_started")
+        decision_recorded = next(e for e in events if e["event_type"] == "decision_recorded")
         assert op_started["payload"]["node_id"] == decision_recorded["payload"]["node_id"]
 
 
@@ -83,8 +83,8 @@ class TestArtifactsAndDecision:
             choose(5)
 
         events = r.event_log.read_all()
-        op_started = [e for e in events if e["event_type"] == "op_started"][0]
-        op_completed = [e for e in events if e["event_type"] == "op_completed"][0]
+        op_started = next(e for e in events if e["event_type"] == "op_started")
+        op_completed = next(e for e in events if e["event_type"] == "op_completed")
 
         # Input artifact exists
         input_hash = op_started["payload"]["input_hashes"][0]

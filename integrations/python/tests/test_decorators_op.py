@@ -37,7 +37,7 @@ class TestDecorationTime:
 
     def test_invalid_determinism_raises(self):
         """@op with invalid determinism raises ValueError at decoration time."""
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="Invalid determinism"):
 
             @op(name="test_op", version="1.0", determinism="invalid")
             def fn():
@@ -58,7 +58,7 @@ class TestNodeId:
             summarize("hello")
 
         events = r.event_log.read_all()
-        op_started = [e for e in events if e["event_type"] == "op_started"][0]
+        op_started = next(e for e in events if e["event_type"] == "op_started")
         assert op_started["payload"]["node_id"] == "summarize-001"
 
     def test_sequential_node_ids(self, config: LiminaraConfig):
@@ -107,7 +107,7 @@ class TestOpStarted:
             my_op("input")
 
         events = r.event_log.read_all()
-        payload = [e for e in events if e["event_type"] == "op_started"][0]["payload"]
+        payload = next(e for e in events if e["event_type"] == "op_started")["payload"]
         assert payload["node_id"] == "my_op-001"
         assert payload["op_id"] == "my_op"
         assert payload["op_version"] == "2.0"
@@ -126,7 +126,7 @@ class TestOpStarted:
             my_op("hello", y=3)
 
         events = r.event_log.read_all()
-        payload = [e for e in events if e["event_type"] == "op_started"][0]["payload"]
+        payload = next(e for e in events if e["event_type"] == "op_started")["payload"]
         input_hash = payload["input_hashes"][0]
 
         # Read the artifact back
@@ -166,7 +166,7 @@ class TestOpCompleted:
             my_op("hello")
 
         events = r.event_log.read_all()
-        payload = [e for e in events if e["event_type"] == "op_completed"][0]["payload"]
+        payload = next(e for e in events if e["event_type"] == "op_completed")["payload"]
         assert payload["node_id"] == "my_op-001"
         assert isinstance(payload["output_hashes"], list)
         assert len(payload["output_hashes"]) == 1
@@ -185,7 +185,7 @@ class TestOpCompleted:
             my_op("hello")
 
         events = r.event_log.read_all()
-        payload = [e for e in events if e["event_type"] == "op_completed"][0]["payload"]
+        payload = next(e for e in events if e["event_type"] == "op_completed")["payload"]
         output_hash = payload["output_hashes"][0]
 
         raw = r.artifact_store.read(output_hash)
@@ -219,7 +219,7 @@ class TestOpCompleted:
             my_op("hello")
 
         events = r.event_log.read_all()
-        payload = [e for e in events if e["event_type"] == "op_completed"][0]["payload"]
+        payload = next(e for e in events if e["event_type"] == "op_completed")["payload"]
         assert payload["duration_ms"] > 0
 
 
@@ -233,9 +233,8 @@ class TestOpFailed:
         def failing_op():
             raise RuntimeError("boom")
 
-        with pytest.raises(RuntimeError):
-            with run("mypack", "1.0.0", config=config) as r:
-                failing_op()
+        with pytest.raises(RuntimeError), run("mypack", "1.0.0", config=config) as r:
+            failing_op()
 
         events = r.event_log.read_all()
         op_failed = [e for e in events if e["event_type"] == "op_failed"]
@@ -252,6 +251,8 @@ class TestOpFailed:
         def failing_op():
             raise ValueError("original error")
 
-        with pytest.raises(ValueError, match="original error"):
-            with run("mypack", "1.0.0", config=config):
-                failing_op()
+        with (
+            pytest.raises(ValueError, match="original error"),
+            run("mypack", "1.0.0", config=config),
+        ):
+            failing_op()

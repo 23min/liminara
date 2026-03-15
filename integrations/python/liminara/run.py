@@ -3,7 +3,7 @@
 import contextvars
 import os
 from contextlib import contextmanager
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from liminara.artifact_store import ArtifactStore
 from liminara.config import LiminaraConfig
@@ -60,7 +60,7 @@ def run(pack_id: str, pack_version: str, config: LiminaraConfig | None = None):
         config = LiminaraConfig()
 
     # Generate run_id: {pack_id}-{YYYYMMDDTHHMMSS}-{8 hex random}
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     timestamp = now.strftime("%Y%m%dT%H%M%S")
     random_hex = os.urandom(4).hex()
     run_id = f"{pack_id}-{timestamp}-{random_hex}"
