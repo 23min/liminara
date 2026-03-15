@@ -78,6 +78,8 @@ class TestGenerateReport:
             "decisions",
             "hash_chain",
             "article_12",
+            "events",
+            "paths",
         }
         assert set(report.keys()) == expected_keys
 

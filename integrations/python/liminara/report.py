@@ -155,6 +155,23 @@ def generate_report(runs_root: Path, run_id: str, store_root: Path | None = None
             "run_seal": run_seal,
         },
         "article_12": article_12,
+        "events": [
+            {
+                "event_type": e["event_type"],
+                "event_hash": e["event_hash"],
+                "prev_hash": e["prev_hash"],
+                "timestamp": e["timestamp"],
+            }
+            for e in events
+        ],
+        "paths": {
+            "runs_root": str(runs_root),
+            "run_dir": str(run_dir),
+            "event_log": str(run_dir / "events.jsonl"),
+            "seal": str(run_dir / "seal.json"),
+            "decisions": str(run_dir / "decisions"),
+            "store_root": str(store_root) if store_root else None,
+        },
     }
 
 
@@ -252,14 +269,88 @@ def format_markdown(report: dict) -> str:
     lines.append("")
 
     a12 = report["article_12"]
+    ops = report["operations"]
+    decisions = report["decisions"]
+    hc = report["hash_chain"]
+    ec = report["event_count"]
+    ops_with_inputs = [o for o in ops if o["input_hashes"]]
+    ops_with_outputs = [o for o in ops if o["output_hashes"]]
+
     lines.append("## Article 12 Compliance")
     lines.append("")
-    lines.append(f"- [{_md_check(a12['logging_automatic'])}] Automatic event recording")
-    lines.append(f"- [{_md_check(a12['tamper_evident'])}] Tamper-evident log")
-    lines.append(f"- [{_md_check(a12['inputs_traceable'])}] Input traceability")
-    lines.append(f"- [{_md_check(a12['outputs_traceable'])}] Output traceability")
-    lines.append(f"- [{_md_check(a12['decisions_recorded'])}] Decisions recorded")
-    lines.append(f"- [{_md_check(a12['logs_retained'])}] Logs retained on disk")
+
+    # 1. Automatic event recording
+    lines.append(f"- [{_md_check(a12['logging_automatic'])}] **Automatic event recording**")
+    lines.append(f"  - {ec} events recorded automatically via SDK decorators")
+    lines.append("")
+
+    # 2. Tamper-evident log
+    lines.append(f"- [{_md_check(a12['tamper_evident'])}] **Tamper-evident log**")
+    if hc["verified"]:
+        lines.append(f"  - Hash chain of {ec} events verified intact")
+    else:
+        lines.append(f"  - Hash chain verification failed: {hc['error']}")
+    if hc["run_seal"]:
+        lines.append(f"  - Run seal: `{hc['run_seal']}`")
+    lines.append("")
+    events_list = report.get("events", [])
+    if events_list:
+        lines.append("  **Hash chain:**")
+        lines.append("")
+        lines.append("  | # | Event | Hash | Prev |")
+        lines.append("  |---|---|---|---|")
+        for i, evt in enumerate(events_list):
+            h = evt["event_hash"][:16] + "..."
+            p = evt["prev_hash"][:16] + "..." if evt["prev_hash"] else "null"
+            prev_matches = i == 0 or evt["prev_hash"] == events_list[i - 1]["event_hash"]
+            link = "\u2713" if prev_matches else "\u2717"
+            lines.append(f"  | {i + 1} {link} | {evt['event_type']} | `{h}` | `{p}` |")
+        lines.append("")
+
+    # 3. Input traceability
+    lines.append(f"- [{_md_check(a12['inputs_traceable'])}] **Input traceability**")
+    for o in ops_with_inputs:
+        hashes = ", ".join(f"`{h[:20]}...`" for h in o["input_hashes"])
+        lines.append(f"  - `{o['op_id']}`: {hashes}")
+    lines.append("")
+
+    # 4. Output traceability
+    lines.append(f"- [{_md_check(a12['outputs_traceable'])}] **Output traceability**")
+    for o in ops_with_outputs:
+        hashes = ", ".join(f"`{h[:20]}...`" for h in o["output_hashes"])
+        lines.append(f"  - `{o['op_id']}`: {hashes}")
+    lines.append("")
+
+    # 5. Decisions recorded
+    lines.append(f"- [{_md_check(a12['decisions_recorded'])}] **Decisions recorded**")
+    if decisions:
+        for d in decisions:
+            lines.append(
+                f"  - `{d['node_id']}`: {d['decision_type']}, hash `{d['decision_hash'][:20]}...`"
+            )
+    else:
+        lines.append("  - No nondeterministic decisions in this run")
+    lines.append("")
+
+    # 6. Logs retained
+    paths = report.get("paths", {})
+    lines.append(f"- [{_md_check(a12['logs_retained'])}] **Logs retained on disk**")
+    if paths:
+        lines.append(f"  - Event log: `{paths['event_log']}`")
+        lines.append(f"  - Seal: `{paths['seal']}`")
+        lines.append(f"  - Decisions: `{paths['decisions']}/`")
+        if paths.get("store_root"):
+            lines.append(f"  - Artifacts: `{paths['store_root']}/`")
+    else:
+        lines.append("  - Event log, artifacts, and decision records stored on filesystem")
+
+    lines.append("")
+    lines.append("---")
+    lines.append("")
+    lines.append(
+        f"*Report generated at {report['generated_at']} "
+        f"by Liminara SDK v{report['report_version']}*"
+    )
 
     return "\n".join(lines)
 

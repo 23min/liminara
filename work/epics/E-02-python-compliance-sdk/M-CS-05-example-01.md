@@ -1,7 +1,7 @@
 ---
 id: M-CS-05-example-01
 epic: E-02-python-compliance-sdk
-status: ready
+status: done
 ---
 
 # M-CS-05: Example 01 — Raw Python + Anthropic SDK
@@ -54,53 +54,53 @@ The demo script tells the compliance story:
 
 ### llm.py
 
-- [ ] `call_llm(prompt: str) -> str` calls Claude Haiku and returns the response text
-- [ ] Uses `anthropic.Anthropic()` client (reads `ANTHROPIC_API_KEY` from env)
-- [ ] Model is `claude-haiku-4-5-20251001`
-- [ ] Max tokens is 300
+- [x] `call_llm(prompt: str) -> str` calls Claude Haiku and returns the response text
+- [x] Uses `anthropic.Anthropic()` client (reads `ANTHROPIC_API_KEY` from env)
+- [x] Model is `claude-haiku-4-5-20251001`
+- [x] Max tokens is 300
 
 ### pipeline_raw.py
 
-- [ ] `DOCUMENTS` — a list of 3 short text strings (hardcoded, no file I/O)
-- [ ] `load_documents() -> list[str]` — returns `DOCUMENTS`
-- [ ] `summarize(docs: list[str]) -> str` — calls `call_llm` with a summarization prompt
-- [ ] `run_pipeline() -> str` — calls load, summarize, returns summary
-- [ ] No Liminara imports anywhere in this file
-- [ ] Runnable standalone: `if __name__ == "__main__": print(run_pipeline())`
+- [x] `DOCUMENTS` — a list of 3 short text strings (hardcoded, no file I/O)
+- [x] `load_documents() -> list[str]` — returns `DOCUMENTS`
+- [x] `summarize(docs: list[str]) -> str` — calls `call_llm` with a summarization prompt
+- [x] `run_pipeline() -> str` — calls load, summarize, returns summary
+- [x] No Liminara imports anywhere in this file
+- [x] Runnable standalone: `if __name__ == "__main__": print(run_pipeline())`
 
 ### pipeline_instrumented.py
 
-- [ ] Imports `op`, `decision`, `run` from `liminara` and `LiminaraConfig`
-- [ ] Same `DOCUMENTS` list as raw pipeline
-- [ ] `load_documents()` decorated with `@op(name="load_documents", version="1.0.0", determinism="pure")`
-- [ ] `summarize()` decorated with `@op(name="summarize", version="1.0.0", determinism="recordable")` and `@decision(decision_type="llm_response")`
-- [ ] `run_pipeline(config: LiminaraConfig | None = None) -> tuple[str, str]` — wraps execution in `with run("example-01", "1.0.0", config=config) as r:`, returns `(summary, r.run_id)`
-- [ ] Function bodies are identical to the raw pipeline — only decorators and the `run()` wrapper differ
-- [ ] Runnable standalone: `if __name__ == "__main__": ...` prints summary and run_id
+- [x] Imports `op`, `decision`, `run` from `liminara` and `LiminaraConfig`
+- [x] Same `DOCUMENTS` list as raw pipeline
+- [x] `load_documents()` decorated with `@op(name="load_documents", version="1.0.0", determinism="pure")`
+- [x] `summarize()` decorated with `@op(name="summarize", version="1.0.0", determinism="recordable")` and `@decision(decision_type="llm_response")`
+- [x] `run_pipeline(config: LiminaraConfig | None = None) -> tuple[str, str]` — wraps execution in `with run("example-01", "1.0.0", config=config) as r:`, returns `(summary, r.run_id)`
+- [x] Function bodies are identical to the raw pipeline — only decorators and the `run()` wrapper differ
+- [x] Runnable standalone: `if __name__ == "__main__": ...` prints summary and run_id
 
 ### demo.py
 
-- [ ] Runs `pipeline_raw.run_pipeline()` and prints the output with a header
-- [ ] Notes that no compliance artifacts were created
-- [ ] Runs `pipeline_instrumented.run_pipeline()` and prints the output with a header
-- [ ] Shows what was created: event count, decision count, seal hash
-- [ ] Runs `pipeline_instrumented.run_pipeline()` a second time — different output, also compliant
-- [ ] Lists all runs using `EventLog` or the report module
-- [ ] Generates and prints a human-readable Article 12 compliance report for the latest run
-- [ ] Requires `ANTHROPIC_API_KEY` — prints a clear error if not set
-- [ ] Runnable: `uv run python examples/01_raw_python/demo.py`
+- [x] Runs `pipeline_raw.run_pipeline()` and prints the output with a header
+- [x] Notes that no compliance artifacts were created
+- [x] Runs `pipeline_instrumented.run_pipeline()` and prints the output with a header
+- [x] Shows what was created: event count, decision count, seal hash
+- [x] Runs `pipeline_instrumented.run_pipeline()` a second time — different output, also compliant
+- [x] Lists all runs using `EventLog` or the report module
+- [x] Generates and prints a human-readable Article 12 compliance report for the latest run
+- [x] Requires `ANTHROPIC_API_KEY` — prints a clear error if not set
+- [x] Runnable: `uv run python examples/01_raw_python/demo.py`
 
 ### README.md
 
-- [ ] Explains what this example demonstrates (the compliance story)
-- [ ] Shows how to run: `uv sync --extra anthropic && ANTHROPIC_API_KEY=... uv run python examples/01_raw_python/demo.py`
-- [ ] Explains how to swap LLM providers by modifying `llm.py`
-- [ ] Notes that decisions are recorded for future replay (Elixir runtime)
+- [x] Explains what this example demonstrates (the compliance story)
+- [x] Shows how to run: `uv sync --extra anthropic && ANTHROPIC_API_KEY=... uv run python examples/01_raw_python/demo.py`
+- [x] Explains how to swap LLM providers by modifying `llm.py`
+- [x] Notes that decisions are recorded for future replay (Elixir runtime)
 
 ### anthropic dependency
 
-- [ ] `anthropic` remains an optional dependency in `pyproject.toml` (not forced on all SDK users)
-- [ ] Example README clearly states `uv sync --extra anthropic` is required
+- [x] `anthropic` remains an optional dependency in `pyproject.toml` (not forced on all SDK users)
+- [x] Example README clearly states `uv sync --extra anthropic` is required
 
 ## Tests
 
@@ -136,9 +136,9 @@ Integration tests that call the real Anthropic API. Marked with `@pytest.mark.in
 
 ### pytest configuration changes
 
-- [ ] Add `integration` marker to `pyproject.toml`: `markers = ["integration: requires ANTHROPIC_API_KEY and --run-integration flag"]`
-- [ ] Integration tests skipped by default: `addopts` includes `-m "not integration"`
-- [ ] Can be run with: `uv run pytest -m integration --run-integration`
+- [x] Add `integration` marker to `pyproject.toml`: `markers = ["integration: requires ANTHROPIC_API_KEY and --run-integration flag"]`
+- [x] Integration tests skipped by default: `addopts` includes `-m "not integration"`
+- [x] Can be run with: `uv run pytest -m integration --run-integration`
 
 ## TDD sequence
 

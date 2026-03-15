@@ -41,7 +41,11 @@ select = ["B", "C4", "E", "F", "I", "PT", "RUF", "SIM", "UP", "W"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "--cov=liminara --cov-report=term-missing"
+addopts = "--cov=liminara --cov-report=term-missing -m 'not integration'"
+markers = ["integration: requires ANTHROPIC_API_KEY and --run-integration flag"]
+
+[tool.ty.src]
+exclude = ["examples/", "tests/test_example_01*.py"]
 
 [tool.coverage.run]
 source = ["liminara"]
