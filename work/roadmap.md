@@ -9,7 +9,7 @@
 - [ ] E-02 Python Compliance SDK
   - [x] M-CS-01 Project setup
   - [x] M-CS-02 Hash and store
-  - [ ] M-CS-03 Decorators
+  - [x] M-CS-03 Decorators
   - [ ] M-CS-04 CLI and report
   - [ ] M-CS-05 Example 01
 - [ ] E-03 LangChain Integration
