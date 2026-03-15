@@ -69,7 +69,7 @@ Includes Example 01 (raw Python + Anthropic SDK) as the proof that it works.
 | M-CS-01-project-setup | Python project scaffolding, pyproject.toml, uv, directory layout | done |
 | M-CS-02-hash-and-store | SHA-256 hashing, canonical JSON, artifact store, event log with hash chain | done |
 | M-CS-03-decorators | @op and @decision decorators, run context manager, decision recording | done |
-| M-CS-04-cli-and-report | CLI (list, verify, report), Article 12 report generator (json/human/markdown) | draft |
+| M-CS-04-cli-and-report | CLI (list, verify, report), Article 12 report generator (json/human/markdown) | ready |
 | M-CS-05-example-01 | Raw Python + Anthropic SDK example (uninstrumented vs instrumented), test suite | draft |
 
 ## Success criteria
