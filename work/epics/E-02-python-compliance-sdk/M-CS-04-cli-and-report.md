@@ -10,6 +10,10 @@ status: ready
 
 Implement the CLI commands (`list`, `verify`, `report`) and the Article 12 compliance report generator so that recorded runs can be inspected, verified, and reported on from the terminal. The report answers six compliance questions derived from EU AI Act Article 12.
 
+## Included change to `decorators.py`
+
+As part of this milestone, add `"determinism": determinism` to the `op_started` event payload in `decorators.py`. This is a one-line additive change — existing M-CS-03 tests still pass (they check for specific keys, not exclusivity). `11_Data_Model_Spec.md` has been updated to include `determinism` in the `op_started` payload keys.
+
 ## Acceptance criteria
 
 ### Report generator (`report.py`)
@@ -23,7 +27,7 @@ Implement the CLI commands (`list`, `verify`, `report`) and the Article 12 compl
 - [ ] `completed_at` is timestamp of last event (read directly from the event's `timestamp` field — works for both `run_completed` and `run_failed`)
 - [ ] `outcome` is `"success"` or `"failed"` based on last event type
 - [ ] `event_count` is total number of events in the log
-- [ ] `operations` is a list of dicts, one per op (paired from `op_started`/`op_completed` events), each with: `node_id`, `op_id`, `op_version`, `duration_ms`, `cache_hit`, `input_hashes`, `output_hashes`, `has_decision` (true if a `decision_recorded` event exists for this `node_id`)
+- [ ] `operations` is a list of dicts, one per op (paired from `op_started`/`op_completed` events), each with: `node_id`, `op_id`, `op_version`, `determinism`, `duration_ms`, `cache_hit`, `input_hashes`, `output_hashes`, `has_decision` (true if a `decision_recorded` event exists for this `node_id`)
 - [ ] `artifacts` is a list of all unique artifact hashes collected from `input_hashes` in `op_started` events and `output_hashes` in `op_completed` events, each with: `artifact_hash`, `size_bytes` (read from store, or `null` if `store_root` not provided)
 - [ ] `decisions` is a list of dicts, one per decision, each with: `node_id`, `decision_type`, `decision_hash`
 - [ ] `hash_chain` dict with: `verified` (bool), `error` (str or null), `run_seal` (str from seal.json, or null if no seal)
@@ -61,7 +65,7 @@ Hash chain: {checkmark} intact
 Run seal: {run_seal or "none (run failed)"}
 
 Operations:
-  {op_id:<20} {cache_status:<10} {duration_ms}ms  {decision_note}
+  {op_id:<20} {determinism:<16} {cache_status:<10} {duration_ms}ms  {decision_note}
   ...
 
 Artifacts: {count} unique
@@ -83,7 +87,7 @@ Checkmarks: use unicode `\u2713` for pass, `\u2717` for fail.
 
 - H1: `# Compliance Report: {run_id}`
 - H2 sections: Run Metadata, Operations, Artifacts, Article 12 Compliance
-- Operations as a markdown table: `| Op | Cache | Duration | Decision |`
+- Operations as a markdown table: `| Op | Determinism | Cache | Duration | Decision |`
 - Article 12 as a checklist: `- [x] Automatic event recording` or `- [ ] ...`
 
 ### CLI commands (`cli.py`)
@@ -133,7 +137,7 @@ Tests use a helper that creates a run with known ops and decisions (using the `r
 - `outcome` is `"success"` for normal run
 - `outcome` is `"failed"` for run that raised
 - `operations` list has correct count and fields per op
-- `operations` entries include `has_decision` field
+- `operations` entries include `determinism` and `has_decision` fields
 - `decisions` list has correct count and fields
 - `hash_chain.verified` is `true` for untampered run
 - `hash_chain.run_seal` matches seal.json

@@ -187,7 +187,7 @@ Minimum set for v1:
 | Event type | Payload keys |
 |------------|-------------|
 | `run_started` | `run_id`, `pack_id`, `pack_version`, `plan_hash` |
-| `op_started` | `node_id`, `op_id`, `op_version`, `input_hashes` |
+| `op_started` | `node_id`, `op_id`, `op_version`, `determinism`, `input_hashes` |
 | `op_completed` | `node_id`, `output_hashes`, `cache_hit`, `duration_ms` |
 | `op_failed` | `node_id`, `error_type`, `error_message` |
 | `decision_recorded` | `node_id`, `decision_hash`, `decision_type` |
