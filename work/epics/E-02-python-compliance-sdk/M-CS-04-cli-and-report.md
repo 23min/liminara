@@ -1,7 +1,7 @@
 ---
 id: M-CS-04-cli-and-report
 epic: E-02-python-compliance-sdk
-status: ready
+status: done
 ---
 
 # M-CS-04: CLI and Article 12 Compliance Report
@@ -18,39 +18,39 @@ As part of this milestone, add `"determinism": determinism` to the `op_started` 
 
 ### Report generator (`report.py`)
 
-- [ ] `generate_report(runs_root, run_id, store_root=None)` returns a report dict
-- [ ] Report structure has top-level keys: `report_version`, `generated_at`, `run_id`, `pack_id`, `pack_version`, `started_at`, `completed_at`, `outcome`, `event_count`, `operations`, `artifacts`, `decisions`, `hash_chain`, `article_12`
-- [ ] `report_version` is `"1.0"`
-- [ ] `generated_at` is current UTC timestamp (ISO 8601, millisecond precision)
-- [ ] `run_id`, `pack_id`, `pack_version` extracted from `run_started` event payload
-- [ ] `started_at` is timestamp of `run_started` event
-- [ ] `completed_at` is timestamp of last event (read directly from the event's `timestamp` field — works for both `run_completed` and `run_failed`)
-- [ ] `outcome` is `"success"` or `"failed"` based on last event type
-- [ ] `event_count` is total number of events in the log
-- [ ] `operations` is a list of dicts, one per op (paired from `op_started`/`op_completed` events), each with: `node_id`, `op_id`, `op_version`, `determinism`, `duration_ms`, `cache_hit`, `input_hashes`, `output_hashes`, `has_decision` (true if a `decision_recorded` event exists for this `node_id`)
-- [ ] `artifacts` is a list of all unique artifact hashes collected from `input_hashes` in `op_started` events and `output_hashes` in `op_completed` events, each with: `artifact_hash`, `size_bytes` (read from store, or `null` if `store_root` not provided)
-- [ ] `decisions` is a list of dicts, one per decision, each with: `node_id`, `decision_type`, `decision_hash`
-- [ ] `hash_chain` dict with: `verified` (bool), `error` (str or null), `run_seal` (str from seal.json, or null if no seal)
-- [ ] `article_12` dict with six boolean/string fields answering compliance questions (see below)
-- [ ] Handles failed runs (no seal.json) — `hash_chain.run_seal` is `null`, report still generates
-- [ ] Raises `FileNotFoundError` if run directory does not exist
+- [x] `generate_report(runs_root, run_id, store_root=None)` returns a report dict
+- [x] Report structure has top-level keys: `report_version`, `generated_at`, `run_id`, `pack_id`, `pack_version`, `started_at`, `completed_at`, `outcome`, `event_count`, `operations`, `artifacts`, `decisions`, `hash_chain`, `article_12`
+- [x] `report_version` is `"1.0"`
+- [x] `generated_at` is current UTC timestamp (ISO 8601, millisecond precision)
+- [x] `run_id`, `pack_id`, `pack_version` extracted from `run_started` event payload
+- [x] `started_at` is timestamp of `run_started` event
+- [x] `completed_at` is timestamp of last event (read directly from the event's `timestamp` field — works for both `run_completed` and `run_failed`)
+- [x] `outcome` is `"success"` or `"failed"` based on last event type
+- [x] `event_count` is total number of events in the log
+- [x] `operations` is a list of dicts, one per op (paired from `op_started`/`op_completed` events), each with: `node_id`, `op_id`, `op_version`, `determinism`, `duration_ms`, `cache_hit`, `input_hashes`, `output_hashes`, `has_decision` (true if a `decision_recorded` event exists for this `node_id`)
+- [x] `artifacts` is a list of all unique artifact hashes collected from `input_hashes` in `op_started` events and `output_hashes` in `op_completed` events, each with: `artifact_hash`, `size_bytes` (read from store, or `null` if `store_root` not provided)
+- [x] `decisions` is a list of dicts, one per decision, each with: `node_id`, `decision_type`, `decision_hash`
+- [x] `hash_chain` dict with: `verified` (bool), `error` (str or null), `run_seal` (str from seal.json, or null if no seal)
+- [x] `article_12` dict with six boolean/string fields answering compliance questions (see below)
+- [x] Handles failed runs (no seal.json) — `hash_chain.run_seal` is `null`, report still generates
+- [x] Raises `FileNotFoundError` if run directory does not exist
 
 ### Article 12 compliance fields
 
 The `article_12` dict answers six questions from `docs/analysis/08_Article_12_Summary.md`:
 
-- [ ] `logging_automatic` (bool): true if events exist (the SDK records automatically)
-- [ ] `tamper_evident` (bool): true if `hash_chain.verified` is true
-- [ ] `inputs_traceable` (bool): true if all ops have `input_hashes` in their `op_started` events
-- [ ] `outputs_traceable` (bool): true if all completed ops have `output_hashes`
-- [ ] `decisions_recorded` (bool): true if every op that has a `decision_recorded` event has a valid `decision_hash` (i.e., all nondeterministic choices were captured). Note: actual model version strings are an M-CS-05 concern; this field checks that decisions exist, not their content.
-- [ ] `logs_retained` (bool): always true (files exist on disk; retention enforcement is deferred)
+- [x] `logging_automatic` (bool): true if events exist (the SDK records automatically)
+- [x] `tamper_evident` (bool): true if `hash_chain.verified` is true
+- [x] `inputs_traceable` (bool): true if all ops have `input_hashes` in their `op_started` events
+- [x] `outputs_traceable` (bool): true if all completed ops have `output_hashes`
+- [x] `decisions_recorded` (bool): true if every op that has a `decision_recorded` event has a valid `decision_hash` (i.e., all nondeterministic choices were captured). Note: actual model version strings are an M-CS-05 concern; this field checks that decisions exist, not their content.
+- [x] `logs_retained` (bool): always true (files exist on disk; retention enforcement is deferred)
 
 ### Report formatters
 
-- [ ] `format_json(report)` returns a JSON string (pretty-printed with 2-space indent, sorted keys)
-- [ ] `format_human(report)` returns a plain-text string with headers, checkmarks, and summary
-- [ ] `format_markdown(report)` returns a markdown string with headers, tables, and checklist
+- [x] `format_json(report)` returns a JSON string (pretty-printed with 2-space indent, sorted keys)
+- [x] `format_human(report)` returns a plain-text string with headers, checkmarks, and summary
+- [x] `format_markdown(report)` returns a markdown string with headers, tables, and checklist
 
 ### Human-readable format specification
 
@@ -88,41 +88,41 @@ Checkmarks: use unicode `\u2713` for pass, `\u2717` for fail.
 - H1: `# Compliance Report: {run_id}`
 - H2 sections: Run Metadata, Operations, Artifacts, Article 12 Compliance
 - Operations as a markdown table: `| Op | Determinism | Cache | Duration | Decision |`
-- Article 12 as a checklist: `- [x] Automatic event recording` or `- [ ] ...`
+- Article 12 as a checklist: `- [x] Automatic event recording` or `- [x] ...`
 
 ### CLI commands (`cli.py`)
 
-- [ ] Built on Click (already scaffolded)
-- [ ] `liminara --help` shows available commands
-- [ ] All commands accept `--runs-root` option (default: `.liminara/runs`)
-- [ ] `report` command also accepts `--store-root` option (default: `.liminara/store/artifacts`) for artifact size lookup
+- [x] Built on Click (already scaffolded)
+- [x] `liminara --help` shows available commands
+- [x] All commands accept `--runs-root` option (default: `.liminara/runs`)
+- [x] `report` command also accepts `--store-root` option (default: `.liminara/store/artifacts`) for artifact size lookup
 
 ### `liminara list`
 
-- [ ] Lists all recorded runs found in `{runs_root}/*/events.jsonl`
-- [ ] Sorted newest first (reverse alphabetical by run directory name, which is timestamp-sortable by design)
-- [ ] Columns: `run_id`, `started_at`, `events`, `status` (sealed/unsealed/failed)
-- [ ] `status` is `sealed` if `seal.json` exists, `failed` if last event is `run_failed`, `unsealed` otherwise
-- [ ] Empty store: prints `No runs found.` to stderr, exit code 0
-- [ ] Output is plain text, one line per run, columns aligned
+- [x] Lists all recorded runs found in `{runs_root}/*/events.jsonl`
+- [x] Sorted newest first (reverse alphabetical by run directory name, which is timestamp-sortable by design)
+- [x] Columns: `run_id`, `started_at`, `events`, `status` (sealed/unsealed/failed)
+- [x] `status` is `sealed` if `seal.json` exists, `failed` if last event is `run_failed`, `unsealed` otherwise
+- [x] Empty store: prints `No runs found.` to stderr, exit code 0
+- [x] Output is plain text, one line per run, columns aligned
 
 ### `liminara verify <run_id>`
 
-- [ ] Reads `events.jsonl` for the given run
-- [ ] Verifies hash chain using `EventLog.verify()`
-- [ ] If `seal.json` exists: also verifies `run_seal` matches `event_hash` of last event
-- [ ] On success: prints `Hash chain verified. {N} events, chain intact.` to stdout
-- [ ] On success with seal: also prints `Run seal: {run_seal}`
-- [ ] On failure: prints which event broke the chain and what was expected vs actual, to stderr
-- [ ] Exit code 0 on success, 1 on failure
-- [ ] Nonexistent run: prints `Run not found: {run_id}` to stderr, exit code 1
+- [x] Reads `events.jsonl` for the given run
+- [x] Verifies hash chain using `EventLog.verify()`
+- [x] If `seal.json` exists: also verifies `run_seal` matches `event_hash` of last event
+- [x] On success: prints `Hash chain verified. {N} events, chain intact.` to stdout
+- [x] On success with seal: also prints `Run seal: {run_seal}`
+- [x] On failure: prints which event broke the chain and what was expected vs actual, to stderr
+- [x] Exit code 0 on success, 1 on failure
+- [x] Nonexistent run: prints `Run not found: {run_id}` to stderr, exit code 1
 
 ### `liminara report <run_id>`
 
-- [ ] `--format json` (default): prints JSON report to stdout
-- [ ] `--format human`: prints human-readable report to stdout
-- [ ] `--format markdown`: prints markdown report to stdout
-- [ ] Nonexistent run: prints `Run not found: {run_id}` to stderr, exit code 1
+- [x] `--format json` (default): prints JSON report to stdout
+- [x] `--format human`: prints human-readable report to stdout
+- [x] `--format markdown`: prints markdown report to stdout
+- [x] Nonexistent run: prints `Run not found: {run_id}` to stderr, exit code 1
 
 ## Tests
 

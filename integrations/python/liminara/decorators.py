@@ -3,7 +3,7 @@
 import contextvars
 import functools
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from liminara.hash import canonical_json, hash_bytes
 
@@ -62,6 +62,7 @@ def op(name: str, version: str, determinism: str):
                         "node_id": node_id,
                         "op_id": name,
                         "op_version": version,
+                        "determinism": determinism,
                         "input_hashes": [input_hash],
                     },
                 )
@@ -146,8 +147,8 @@ def decision(decision_type: str):
             result_hash = hash_bytes(result_bytes)
 
             timestamp = (
-                datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.")
-                + f"{datetime.now(timezone.utc).microsecond // 1000:03d}Z"
+                datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%S.")
+                + f"{datetime.now(UTC).microsecond // 1000:03d}Z"
             )
 
             # Write decision record
