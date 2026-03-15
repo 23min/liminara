@@ -28,8 +28,12 @@ class TestAppendAndRead:
         """Appending one event and reading it back succeeds."""
         event_log.append(
             event_type="run_started",
-            payload={"run_id": "test-run-001", "pack_id": "test", "pack_version": "0.1.0",
-                      "plan_hash": "sha256:" + "00" * 32},
+            payload={
+                "run_id": "test-run-001",
+                "pack_id": "test",
+                "pack_version": "0.1.0",
+                "plan_hash": "sha256:" + "00" * 32,
+            },
         )
         events = event_log.read_all()
         assert len(events) == 1
@@ -53,8 +57,12 @@ class TestAppendAndRead:
 
     def test_payload_preserved(self, event_log: EventLog):
         """Payload is preserved exactly."""
-        payload = {"node_id": "n1", "op_id": "summarize", "op_version": "1.0",
-                   "input_hashes": ["sha256:" + "aa" * 32]}
+        payload = {
+            "node_id": "n1",
+            "op_id": "summarize",
+            "op_version": "1.0",
+            "input_hashes": ["sha256:" + "aa" * 32],
+        }
         event_log.append(event_type="op_started", payload=payload)
         events = event_log.read_all()
         assert events[0]["payload"] == payload

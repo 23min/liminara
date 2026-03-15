@@ -6,8 +6,6 @@ Spec reference: docs/analysis/11_Data_Model_Spec.md
 import hashlib
 import json
 
-import pytest
-
 from liminara.hash import canonical_json, hash_bytes, hash_event
 
 
@@ -142,12 +140,14 @@ class TestHashEvent:
         timestamp = "2026-03-14T12:00:00.000Z"
 
         # Manual computation
-        hash_input = canonical_json({
-            "event_type": event_type,
-            "payload": payload,
-            "prev_hash": prev_hash,
-            "timestamp": timestamp,
-        })
+        hash_input = canonical_json(
+            {
+                "event_type": event_type,
+                "payload": payload,
+                "prev_hash": prev_hash,
+                "timestamp": timestamp,
+            }
+        )
         expected = "sha256:" + hashlib.sha256(hash_input).hexdigest()
 
         result = hash_event(event_type, payload, prev_hash, timestamp)
