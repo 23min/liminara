@@ -34,7 +34,7 @@ Key methods:
 - [ ] `on_chain_start`: emits `op_started` event with chain name and input hashes
 - [ ] `on_chain_end`: emits `op_completed` event with output hashes
 - [ ] `on_chain_error`: emits `op_failed` event
-- [ ] Extracts model ID from LangChain's serialized model config (handles `ChatAnthropic`, `ChatOpenAI`, etc.)
+- [ ] Extracts model ID from LangChain's serialized model config (handles `ChatAnthropic` at minimum)
 - [ ] Extracts token usage from LangChain's response metadata
 
 ### Integration with Liminara run context

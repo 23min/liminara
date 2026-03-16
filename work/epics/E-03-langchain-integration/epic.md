@@ -8,21 +8,13 @@ status: draft
 
 ## Goal
 
-A working LangChain RAG application instrumented with the Liminara Python SDK. Demonstrates that adding Liminara compliance to an existing LangChain application is a one-line change. Serves as onboarding to LangChain concepts and as a compelling demo for the compliance pitch.
-
-## Context: What is LangChain?
-
-LangChain is a Python framework for building applications that use LLMs. Instead of calling the Claude API directly, you use LangChain's abstractions: chains connect LLMs to prompt templates, retrievers, parsers, and tools. The value proposition is composability — swap models, add RAG, add memory, add tool use by composing pre-built components.
-
-The canonical LangChain application is a **RAG (Retrieval-Augmented Generation) pipeline**: load documents → split into chunks → embed into a vector store → when a user asks a question, retrieve relevant chunks → stuff them into a prompt → ask the LLM → return the answer.
-
-LangChain has ~28M downloads/month and provides a `BaseCallbackHandler` interface that fires events on LLM start/end, chain start/end, and errors. The `LiminaraCallbackHandler` hooks into this interface to record events and decisions automatically.
+Prove that the Liminara Python SDK integrates with LangChain via a callback handler, and build a working RAG application as both a demo and a learning exercise. Introduces embeddings (fastembed), vector search (LanceDB), and LangChain's chain composition — all tools that transfer directly to the Radar pack later.
 
 ## Scope
 
 **In:**
 
-### LiminaraCallbackHandler (`integrations/python/liminara/integrations/langchain.py`)
+### LiminaraCallbackHandler (`liminara/integrations/langchain.py`)
 - Implements `BaseCallbackHandler` from `langchain_core`
 - Hooks:
   - `on_llm_start` → records `op_started` event with model ID and prompt hash
@@ -34,43 +26,34 @@ LangChain has ~28M downloads/month and provides a `BaseCallbackHandler` interfac
 
 ### Example 02: RAG pipeline (`integrations/python/examples/02_langchain/`)
 - **Corpus:** Three Liminara docs (08_Article_12_Summary.md, 10_Synthesis.md, 01_CORE.md)
-- **Embedding:** Local sentence-transformers (no API key needed, runs on CPU)
-- **Vector store:** ChromaDB (embedded, persists to disk, no server)
+- **Embedding:** fastembed (onnxruntime-based, lightweight, no PyTorch)
+- **Vector store:** LanceDB (file-based, embeddable — same store Radar will use)
 - **LLM:** Claude Haiku via `langchain-anthropic`
 - **Interface:** Interactive REPL + single-question mode via CLI argument
-- `run.py` — main entry point:
-  - Loads and chunks documents on first run (persists ChromaDB index)
-  - Subsequent runs reuse the index
-  - Each question is a separate Liminara run
-  - Prints answer + run metadata (run_id, event count, seal)
-  - On exit: shows how many runs recorded, reminds about `liminara list`
-- `setup_index.py` — separate script to rebuild the vector index if needed
+- `run.py` — main entry point
+- `setup_index.py` — separate script to rebuild the vector index
 
-### Tests (`integrations/python/tests/test_langchain.py`)
-- Callback handler records correct event types for a LangChain chain invocation
-- Decision records capture model ID, prompt hash, token usage
-- Hash chain is valid across a RAG pipeline run
-- `liminara report` works on a LangChain-instrumented run
+### Tests
+- Callback handler unit tests (event types, decision records, hash chain)
+- End-to-end integration test (RAG pipeline → events → CLI → report)
 
 ### Dependencies (additional to E-02)
 - `langchain-core`, `langchain-anthropic`, `langchain-community`
-- `langchain-chroma` (ChromaDB integration)
-- `sentence-transformers` (local embeddings)
-- `chromadb`
+- `fastembed` (onnxruntime-based embeddings, ~50-100MB, no PyTorch)
+- `lancedb` (file-based vector database)
 
 **Out:**
 - MCP server interface
 - Web UI (Streamlit/Gradio)
 - Production RAG features (reranking, hybrid search, conversation memory)
-- Voyage AI or other cloud embedding providers
+- PyTorch / sentence-transformers
 
 ## Milestones
 
 | ID | Milestone | Status |
 |----|-----------|--------|
 | M-LC-01-callback-handler | LiminaraCallbackHandler implementing BaseCallbackHandler, with tests | draft |
-| M-LC-02-rag-pipeline | RAG pipeline with ChromaDB + local embeddings + Claude Haiku, interactive REPL | draft |
-| M-LC-03-integration-test | End-to-end: ask questions, verify runs recorded, verify compliance reports | draft |
+| M-LC-02-rag-example | RAG pipeline with LanceDB + fastembed + Claude Haiku, interactive REPL, end-to-end validation | draft |
 
 ## Success criteria
 
@@ -78,15 +61,15 @@ LangChain has ~28M downloads/month and provides a `BaseCallbackHandler` interfac
 - [ ] User can ask questions about Liminara docs and get relevant answers
 - [ ] Each question produces a Liminara run with valid hash chain
 - [ ] `liminara list` shows all runs from the session
-- [ ] `liminara report <run_id> --format human` shows LLM model, tokens, and Article 12 checklist
+- [ ] `liminara report <run_id> --format human` shows LLM model, tokens, and provenance
 - [ ] Adding instrumentation to the RAG pipeline is a one-line change (adding the callback)
-- [ ] Works with only `ANTHROPIC_API_KEY` set (embeddings are local)
+- [ ] Works with only `ANTHROPIC_API_KEY` set (embeddings are local via fastembed)
 
 ## References
 
-- Depends on: E-02 (Python Compliance SDK)
+- Depends on: E-02 (Python SDK)
 - Demo tool design: `docs/analysis/09_Compliance_Demo_Tool.md` § LangChain integration
 - Compliance layer: `docs/analysis/07_Compliance_Layer.md` § Model A
 - LangChain callbacks: https://python.langchain.com/docs/how_to/custom_callbacks/
-- ChromaDB: https://docs.trychroma.com/
-- sentence-transformers: https://www.sbert.net/
+- LanceDB: https://lancedb.github.io/lancedb/
+- fastembed: https://github.com/qdrant/fastembed

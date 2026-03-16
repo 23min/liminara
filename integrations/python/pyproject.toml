@@ -1,7 +1,7 @@
 [project]
 name = "liminara"
 version = "0.1.0"
-description = "Python SDK for Liminara reproducible computation with EU AI Act compliance reporting"
+description = "Python SDK for Liminara — reproducible nondeterministic computation"
 requires-python = ">=3.12"
 dependencies = [
     "click>=8.0",
@@ -13,10 +13,9 @@ anthropic = ["anthropic>=0.40"]
 langchain = [
     "langchain-core>=0.3",
     "langchain-anthropic>=0.3",
-    "langchain-chroma>=0.2",
     "langchain-community>=0.3",
-    "sentence-transformers>=3.0",
-    "chromadb>=0.5",
+    "fastembed>=0.4",
+    "lancedb>=0.15",
 ]
 dev = [
     "pytest>=8.0",
