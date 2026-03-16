@@ -31,9 +31,11 @@
 
 ---
 
-### Phase 1: Python compliance demo tool
+### Phase 1: Python SDK / data model validation
 
-**Goal:** A standalone Python SDK that instruments any Python code with Liminara-format event logging, decision recording, and compliance reporting. No Elixir. Works with any Python code. Produces a fundable, demonstrable artifact for EIC/Vinnova applications.
+**Goal:** Validate the data model spec by implementing it in Python before the Elixir runtime exists. Changes to the format are cheap now, expensive later. Secondary goal: produce a runnable demo artifact for pitches and funding applications.
+
+**What this is NOT:** A product. The compliance reporting the SDK produces (Article 12 reports, tamper-evidence) is a consequence of Liminara's architecture — event sourcing, content-addressing, decision records. Anyone could build equivalent compliance-only tooling in a weekend. The value is in proving the data model works end-to-end.
 
 **Location:** `integrations/python/`
 
@@ -45,7 +47,7 @@
 - Docker: runnable in 5 minutes
 - Full test suite: output equivalence, completeness, correctness, tamper-evidence, Article 12 report, cache behavior
 
-**Done when:** A non-technical evaluator can run the Docker demo, see a non-compliant pipeline vs an instrumented one, and read a generated Article 12 compliance report.
+**Done when:** The data model spec is validated end-to-end in a running implementation. The Elixir runtime can target the same spec with confidence.
 
 **Design:** [09_Compliance_Demo_Tool.md](../analysis/09_Compliance_Demo_Tool.md)
 
@@ -200,15 +202,18 @@ Things that are deferred, and what would un-defer them:
 
 ---
 
-## Compliance as a parallel track
+## Python SDK as data model validation
 
-The Python compliance demo (Phase 1) runs in parallel with Elixir development. It's independently valuable:
-- Produces a fundable artifact for EIC/Vinnova applications
-- Validates the data model spec before the Elixir runtime implements it
-- Demonstrates Article 12 compliance to potential customers
-- The `LiminaraCallbackHandler` for LangChain is a real integration point (28M downloads/month)
+The Python SDK (Phase 1) validated the data model spec before the Elixir runtime exists. Its primary value was forcing concrete decisions about event format, artifact hashing, decision records, and hash chains when those decisions were cheap to change.
 
-See [07_Compliance_Layer.md](../analysis/07_Compliance_Layer.md) for the full architecture and [08_Article_12_Summary.md](../analysis/08_Article_12_Summary.md) for the regulatory context.
+The compliance reporting it produces (Article 12 reports, tamper-evidence) is a natural consequence of Liminara's architecture — not a standalone product. Liminara's actual value proposition is reproducibility, replay, caching, and decision recording; compliance falls out for free.
+
+The SDK remains useful as:
+- A runnable demo artifact for pitches and funding applications
+- A reference implementation of the data model the Elixir runtime must match
+- A proof that the decorator-based instrumentation model works
+
+See [07_Compliance_Layer.md](../analysis/07_Compliance_Layer.md) for the architecture and [08_Article_12_Summary.md](../analysis/08_Article_12_Summary.md) for the regulatory context.
 
 ---
 

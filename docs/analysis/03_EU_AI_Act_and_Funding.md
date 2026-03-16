@@ -146,20 +146,20 @@ The mapping is almost 1:1. Liminara's architecture was designed for reproducibil
 
 ### For Funding Applications
 
-> The EU AI Act (Article 12) requires automatic, tamper-resistant logging for all high-risk AI systems by August 2026. No open-source tool exists that provides content-addressed artifact provenance, decision recording, and deterministic replay for AI workflows. Liminara fills this gap.
+> Liminara is a provenance engine for nondeterministic computation. It makes AI-driven workflows reproducible, auditable, and cacheable by treating every nondeterministic choice — LLM responses, human approvals, stochastic selections — as a recorded decision. The combination of content-addressed artifacts, decision records, and determinism classes does not exist in any other tool. As a consequence of this architecture, Liminara naturally satisfies EU AI Act Article 12 requirements for automatic, tamper-resistant logging — compliance is built in, not bolted on.
 
 ### Key Angles
 
-1. **Compliance infrastructure** — not another AI framework, but the audit layer every AI system needs
-2. **Open-source sovereignty** — EU explicitly favors open-source for digital sovereignty
-3. **Timing** — August 2026 enforcement deadline creates urgent market demand
-4. **Technical differentiation** — decision recording + determinism classes + content-addressed artifacts = combination nobody else offers
+1. **Reproducibility** — the core value. No other tool can deterministically replay an AI workflow by injecting stored decisions. This is what makes Liminara worth building.
+2. **Compliance as consequence** — Liminara's event sourcing + content-addressing + decision records happen to satisfy Article 12. This gives regulatory urgency (August 2026 deadline) without being the whole story.
+3. **Technical differentiation** — decision recording + determinism classes + content-addressed artifacts = combination nobody else offers. Not Temporal, not Dagster, not LangGraph.
+4. **Open-source sovereignty** — EU explicitly favors open-source for digital sovereignty. Apache 2.0 licensed.
 
 ### Market Sizing Argument
 
-- Every company deploying high-risk AI in the EU needs Article 12 compliance
-- Temporal (durable execution, no AI-specific audit trails) is valued at $5B
-- The compliance tooling market for AI will be substantial — analogous to GDPR spawning a multi-billion-dollar compliance industry
+- Temporal (durable execution, no decision recording) is valued at $5B
+- The AI workflow orchestration market is bifurcating — nobody owns the "reproducible nondeterministic computation" layer
+- Article 12 enforcement (August 2026) creates urgency, but the market is broader: any organization running AI pipelines that need to answer "why did this produce that output last Tuesday?"
 
 ---
 

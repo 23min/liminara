@@ -1,7 +1,7 @@
 # Liminara Compliance Layer
 
-**Date:** 2026-03-14
-**Context:** Design of Liminara as a compliance add-on to existing AI pipelines, rather than (or in addition to) a full orchestrator replacement. Addresses EU AI Act Article 12 requirements without requiring existing systems to be replaced.
+**Date:** 2026-03-14 (updated 2026-03-16)
+**Context:** How Liminara's architecture (event sourcing, content-addressing, decision records) naturally satisfies EU AI Act Article 12 requirements. Compliance is a consequence of the design, not the product. The actual value proposition is reproducibility, replay, and caching of nondeterministic computation.
 
 ---
 
@@ -628,28 +628,16 @@ To be honest about scope:
 
 ---
 
-## 8. Adoption Path
+## 8. Relationship to the Full Runtime
 
-```
-1. Team adds @liminara.op decorators to existing LLM pipeline (Model A)
-   → 2 hours of work
-   → Article 12 compliance for instrumented steps
-   → No orchestrator change
+The compliance layer is not a standalone product — it's a natural byproduct of Liminara's architecture. Anyone could build equivalent compliance-only tooling (decorators writing JSONL with hash chains) in a weekend.
 
-2. Compliance reports generated → audit passed
-   → Customer sees the provenance graph for the first time
-   → "Wait, we can see exactly what the LLM decided and why?"
+Liminara's actual value is what the compliance layer *cannot* do alone:
+- **Replay**: inject stored decisions, re-run downstream with different assumptions
+- **Caching**: content-addressed memoization across runs
+- **Orchestration**: the scheduler loop, DAG execution, supervision
 
-3. Customer wants: cache expensive LLM calls across runs
-   → Migrate that pipeline to full Liminara orchestration
-   → Same decorators, now the scheduler controls execution
-
-4. Customer wants: replay a run with different assumptions
-   → Full Liminara: inject decisions, re-run downstream
-   → Platform adoption through product success
-```
-
-The compliance layer is the top of the funnel. Full orchestration is the destination.
+Compliance is a selling point in pitches and funding applications ("our architecture happens to satisfy Article 12"), but it is not the reason someone would choose Liminara over building their own logging.
 
 ---
 

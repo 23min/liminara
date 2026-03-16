@@ -119,9 +119,9 @@ Sources: [04_HashiCorp_Parallels.md](04_HashiCorp_Parallels.md)
 
 ## 5. EU AI Act Positioning — Settled
 
-**Framing:** "General-purpose provenance runtime. AI workflow compliance is the first market."
+**Framing:** "General-purpose provenance runtime. Compliance is a consequence of the architecture, not the product."
 
-Liminara itself is **minimal risk** under the EU AI Act (it's infrastructure tooling). It is a **compliance enabler** — precisely the tool that high-risk AI system providers need to meet Article 12 requirements.
+Liminara itself is **minimal risk** under the EU AI Act (it's infrastructure tooling). Its architecture (event sourcing, content-addressing, decision records) naturally satisfies Article 12 requirements — but this is a selling point in pitches, not the reason to build or buy Liminara. The actual value is reproducibility, replay, caching, and decision recording.
 
 ### Article 12 mapping
 
@@ -140,7 +140,7 @@ Article 12 requires automatic, tamper-resistant logging for all high-risk AI sys
 
 ### Positioning for funding applications
 
-> "The EU AI Act (Article 12) requires automatic, tamper-resistant logging for all high-risk AI systems by August 2026. No open-source tool provides content-addressed artifact provenance, decision recording, and deterministic replay for AI workflows as first-class architectural properties. Liminara fills this gap."
+> "Liminara is a provenance engine for nondeterministic computation — it makes AI-driven workflows reproducible, auditable, and cacheable by recording every nondeterministic choice. Its architecture (content-addressed artifacts, decision records, determinism classes) naturally satisfies EU AI Act Article 12 requirements for automatic, tamper-resistant logging — compliance is a built-in consequence, not a bolt-on."
 
 Sources: [03_EU_AI_Act_and_Funding.md](03_EU_AI_Act_and_Funding.md)
 
@@ -223,21 +223,21 @@ FlowTime (github.com/23min/flowtime) is a flow modeling platform: visualizes and
 
 ## 9. Development Sequence — Revised
 
-The compliance demo tool (Python SDK) changes the sequencing. It is buildable before the full Elixir runtime and produces a fundable, demonstrable artifact faster.
+The Python SDK (Phase 1) was built before the Elixir runtime to validate the data model spec when changes were cheap. It also produces a runnable demo artifact for pitches and funding applications — but it is not a product. The compliance reporting it generates is a consequence of Liminara's architecture, not a standalone value proposition. Anyone could build equivalent compliance-only tooling in a weekend.
 
 ```
 Phase 0: Data model definition (before any code)
   Define once: event format, artifact hash format, decision record schema,
   hash chain algorithm. Both Python SDK and Elixir runtime implement this model.
 
-Phase 1: Python compliance demo tool  (integrations/python/)
-  Standalone. No Elixir. Works with any Python code.
+Phase 1: Python SDK / data model validation  (integrations/python/)
+  Validates the data model spec end-to-end in a running implementation.
   - liminara/ Python SDK with decorators
-  - Example 01: raw Python + Anthropic SDK (universality demo)
+  - Example 01: raw Python + Anthropic SDK (data model demo)
   - Example 02: LangChain RAG + LiminaraCallbackHandler (named integration)
   - CLI + Docker (runnable in 5 minutes)
   - Full test suite (output equivalence, completeness, correctness, tamper-evidence)
-  Deliverable: runnable Article 12 compliance demo. EIC/Vinnova fundable artifact.
+  Deliverable: validated data model, runnable demo artifact for pitches.
 
 Phase 2: Elixir walking skeleton
   Artifact.Store, Event.Store, Plan, Run.Server, Op behaviour.

@@ -4,9 +4,9 @@
 
 - [x] E-01 Data Model Spec
 
-## Phase 1: Python Compliance Demo — Draft
+## Phase 1: Python SDK / Data Model Validation — Draft
 
-- [x] E-02 Python Compliance SDK
+- [x] E-02 Python SDK (data model validation + demo artifact)
 - [ ] E-03 LangChain Integration
 
 ## Phase 2: Elixir Walking Skeleton — Draft

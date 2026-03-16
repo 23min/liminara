@@ -1,19 +1,19 @@
-# Compliance Demo Tool — Design and Rationale
+# Python SDK — Design and Rationale
 
-**Date:** 2026-03-14
-**Context:** Design of a standalone Python compliance demonstration tool to be included in the Liminara repository. This is one of the first concrete deliverables — a working, runnable proof that Liminara's compliance layer integrates with existing AI pipelines.
+**Date:** 2026-03-14 (updated 2026-03-16)
+**Context:** Design of the Python SDK that validates Liminara's data model spec before the Elixir runtime exists. The compliance reporting it produces is a consequence of the architecture, not a standalone product.
 
 ---
 
-## Why This Is a First Deliverable
+## Why This Was Built First
 
-The compliance demo tool should be built **before** (or in parallel with) the full Elixir runtime, for three reasons:
+The Python SDK was built before the Elixir runtime for two reasons:
 
-**1. It is independently useful.** A Python developer can add `@liminara.op` decorators to their LangChain pipeline today and get Article 12 compliance records, without any Elixir involved. This is a product in itself.
+**1. It forces the data model to be designed correctly.** The event format, artifact hash format, decision record schema, and hash chain algorithm must be defined once and shared between the Python SDK and the Elixir runtime. Building the Python SDK first forced these decisions early, when they were cheap to change.
 
-**2. It forces the data model to be designed correctly.** The event format, artifact hash format, decision record schema, and hash chain algorithm must be defined once and shared between the Python SDK and the Elixir runtime. Building the Python SDK first forces these decisions early, when they are cheap to change.
+**2. It produces a runnable demo artifact.** An investor or EIC evaluator can clone the repo, run `docker compose up`, and see Liminara's data model working against a real pipeline in under 5 minutes. This is a concrete artifact the full Elixir runtime cannot yet be.
 
-**3. It is the fastest path to a demonstrable proof.** An investor, an EIC evaluator, or a potential customer can clone the repo, run `docker compose up`, and see the compliance layer working against a real LangChain pipeline in under 5 minutes. This is a concrete artifact the full Elixir runtime cannot yet be.
+**What this is not:** A product. The compliance layer (Article 12 reports, tamper-evidence, hash chains) is a natural consequence of Liminara's event sourcing + content-addressing + decision records. Anyone could build equivalent compliance-only tooling in a weekend. Liminara's value is reproducibility, replay, caching, and decision recording — compliance falls out for free.
 
 ---
 
@@ -470,7 +470,7 @@ Run everything: `ANTHROPIC_API_KEY=sk-... docker compose up`
 
 ## Relationship to the Elixir Runtime
 
-The Python SDK is **not** a throw-away. It is the first implementation of the Liminara data model, which the Elixir runtime must be compatible with.
+The Python SDK is the first implementation of the Liminara data model — a reference implementation that the Elixir runtime must be compatible with. Its ongoing value is as a reference and integration layer, not as a standalone product.
 
 **Shared data model (defined once, implemented twice):**
 
@@ -531,7 +531,7 @@ Phase 3: Additional integrations (as needed for market)
 | Deterministic replay | — | ✓ |
 | Observation UI | — | ✓ |
 
-Phase 1 alone is a demonstrable, fundable, marketable proof of concept.
+Phase 1 validates the data model and produces a demo artifact. The real product starts at Phase 2.
 
 ---
 
