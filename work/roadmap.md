@@ -9,9 +9,12 @@
 - [x] E-02 Python Compliance SDK
 - [ ] E-03 LangChain Integration
 
-## Phase 2: Elixir Walking Skeleton — Not started
+## Phase 2: Elixir Walking Skeleton — Draft
 
-*Epics not yet drafted.*
+- [ ] E-04 Elixir Project Scaffolding + Golden Fixtures
+- [ ] E-05 Storage Layer (Artifact Store + Event Store + Decision Store)
+- [ ] E-06 Execution Engine (Plan + Op + Run.Server + Cache)
+- [ ] E-07 Integration and Replay (end-to-end, Pack behaviour, interop)
 
 ## Phase 3: Report Compiler Pack — Not started
 

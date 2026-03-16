@@ -52,17 +52,17 @@ This produces a unique, deterministic byte representation for any given JSON val
 
 ```
 {store_root}/
-  {hash[7:9]}/
-    {hash[9:11]}/
-      {hash}          ← raw bytes, no extension
+  {hex[0:2]}/
+    {hex[2:4]}/
+      {hex}          ← raw bytes, no extension
 ```
 
-Where `hash` is the full `sha256:{64 hex}` string stripped of the `sha256:` prefix for path construction (i.e., the 64 hex chars only).
+Where `hex` is the 64-character lowercase hex string (the `sha256:` prefix is stripped for path construction). This follows the Git object store convention.
 
 **Example:** artifact with hash `sha256:2c624232cdd221771294dfbb310acbc8f347f4a1c695fc8e2d0a48967caa8b97`
 
 ```
-{store_root}/32/cd/2c624232cdd221771294dfbb310acbc8f347f4a1c695fc8e2d0a48967caa8b97
+{store_root}/2c/62/2c624232cdd221771294dfbb310acbc8f347f4a1c695fc8e2d0a48967caa8b97
 ```
 
 **Content:** raw bytes. No serialization. No envelope. The artifact IS the bytes.
@@ -203,7 +203,7 @@ Minimum set for v1:
 {liminara_root}/
   store/
     artifacts/
-      {aa}/{bb}/{sha256_hex}      ← artifact blobs (raw bytes)
+      {hex[0:2]}/{hex[2:4]}/{sha256_hex}   ← artifact blobs (raw bytes, Git-style sharding)
   runs/
     {run_id}/
       events.jsonl                ← append-only event log
