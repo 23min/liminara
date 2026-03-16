@@ -1,7 +1,7 @@
 ---
 id: E-02-python-compliance-sdk
 phase: 1
-status: active
+status: done
 ---
 
 # E-02: Python Compliance SDK
