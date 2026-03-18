@@ -1,7 +1,7 @@
 ---
 id: E-03-langchain-integration
 phase: 1
-status: draft
+status: done
 ---
 
 # E-03: LangChain Integration
@@ -52,18 +52,18 @@ Prove that the Liminara Python SDK integrates with LangChain via a callback hand
 
 | ID | Milestone | Status |
 |----|-----------|--------|
-| M-LC-01-callback-handler | LiminaraCallbackHandler implementing BaseCallbackHandler, with tests | draft |
-| M-LC-02-rag-example | RAG pipeline with LanceDB + fastembed + Claude Haiku, interactive REPL, end-to-end validation | draft |
+| M-LC-01-callback-handler | LiminaraCallbackHandler implementing BaseCallbackHandler, with tests | done |
+| M-LC-02-rag-example | RAG pipeline with LanceDB + fastembed + Claude Haiku, interactive REPL, end-to-end validation | done |
 
 ## Success criteria
 
-- [ ] `uv run python examples/02_langchain/run.py` launches interactive REPL
-- [ ] User can ask questions about Liminara docs and get relevant answers
-- [ ] Each question produces a Liminara run with valid hash chain
-- [ ] `liminara list` shows all runs from the session
-- [ ] `liminara report <run_id> --format human` shows LLM model, tokens, and provenance
-- [ ] Adding instrumentation to the RAG pipeline is a one-line change (adding the callback)
-- [ ] Works with only `ANTHROPIC_API_KEY` set (embeddings are local via fastembed)
+- [x] `uv run python examples/02_langchain/run.py` launches interactive REPL
+- [x] User can ask questions about Liminara docs and get relevant answers
+- [x] Each question produces a Liminara run with valid hash chain
+- [x] `liminara list` shows all runs from the session
+- [x] `liminara report <run_id> --format human` shows LLM model, tokens, and provenance
+- [x] Adding instrumentation to the RAG pipeline is a one-line change (adding the callback)
+- [x] Works with only `ANTHROPIC_API_KEY` set (embeddings are local via fastembed)
 
 ## References
 

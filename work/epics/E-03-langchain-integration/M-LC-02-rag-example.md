@@ -1,7 +1,7 @@
 ---
 id: M-LC-02-rag-example
 epic: E-03-langchain-integration
-status: draft
+status: done
 ---
 
 # M-LC-02: RAG Example with End-to-End Validation
@@ -25,55 +25,55 @@ This is both a learning exercise (first time working with embeddings, vector sea
 
 ### Index setup (`examples/02_langchain/setup_index.py`)
 
-- [ ] Loads three markdown files from `docs/`:
+- [x] Loads three markdown files from `docs/`:
   - `docs/analysis/08_Article_12_Summary.md`
   - `docs/analysis/10_Synthesis.md`
   - `docs/architecture/01_CORE.md`
-- [ ] Splits documents using LangChain's `RecursiveCharacterTextSplitter` (chunk size ~500 chars, overlap ~50)
-- [ ] Embeds chunks using fastembed (`all-MiniLM-L6-v2` model)
-- [ ] Stores in LanceDB at `examples/02_langchain/.lancedb/`
-- [ ] Runnable standalone: `uv run python examples/02_langchain/setup_index.py`
-- [ ] Idempotent: re-running rebuilds the index
+- [x] Splits documents using LangChain's `RecursiveCharacterTextSplitter` (chunk size ~500 chars, overlap ~50)
+- [x] Embeds chunks using fastembed (`all-MiniLM-L6-v2` model)
+- [x] Stores in LanceDB at `examples/02_langchain/.lancedb/`
+- [x] Runnable standalone: `uv run python examples/02_langchain/setup_index.py`
+- [x] Idempotent: re-running rebuilds the index
 
 ### Interactive REPL (`examples/02_langchain/run.py`)
 
-- [ ] On startup: loads LanceDB index (runs `setup_index.py` automatically if index doesn't exist)
-- [ ] Prints: document count, chunk count, "Type a question, or 'quit' to exit."
-- [ ] Single-question mode: `uv run python examples/02_langchain/run.py "What does Article 12 require?"`
-- [ ] Interactive mode: `uv run python examples/02_langchain/run.py` → prompt loop
-- [ ] Each question:
+- [x] On startup: loads LanceDB index (runs `setup_index.py` automatically if index doesn't exist)
+- [x] Prints: document count, chunk count, "Type a question, or 'quit' to exit."
+- [x] Single-question mode: `uv run python examples/02_langchain/run.py "What does Article 12 require?"`
+- [x] Interactive mode: `uv run python examples/02_langchain/run.py` → prompt loop
+- [x] Each question:
   - Creates a new Liminara run
   - Retrieves top 4 relevant chunks from LanceDB
   - Builds prompt with retrieved context + question
   - Calls Claude Haiku via `langchain-anthropic`
   - Prints the answer
   - Prints run metadata: `[Run {run_id} | {n} events | seal: sha256:{first 8 chars}...]`
-- [ ] On quit: prints summary ("N runs recorded. Run 'liminara list' to see them.")
-- [ ] Uses `LiminaraCallbackHandler` — one line in the chain config
+- [x] On quit: prints summary ("N runs recorded. Run 'liminara list' to see them.")
+- [x] Uses `LiminaraCallbackHandler` — one line in the chain config
 
 ### RAG chain construction
 
-- [ ] Uses LangChain's `ChatAnthropic` with `claude-haiku-4-5-20251001`
-- [ ] Retriever: LanceDB retriever with `k=4` (return 4 most relevant chunks)
-- [ ] Prompt template: simple "Given the following context, answer the question" pattern
-- [ ] Chain: retriever → prompt template → LLM → output parser (string)
+- [x] Uses LangChain's `ChatAnthropic` with `claude-haiku-4-5-20251001`
+- [x] Retriever: LanceDB retriever with `k=4` (return 4 most relevant chunks)
+- [x] Prompt template: simple "Given the following context, answer the question" pattern
+- [x] Chain: retriever → prompt template → LLM → output parser (string)
 
 ### End-to-end validation
 
-- [ ] `liminara list` shows runs from a REPL session
-- [ ] `liminara verify <run_id>` passes (exit code 0) for each run
-- [ ] `liminara report <run_id> --format json` produces valid JSON with all fields
-- [ ] `liminara report <run_id> --format human` produces readable output
-- [ ] Report shows: Claude Haiku model ID, token usage, hash chain status
-- [ ] Three sequential questions produce three independent, valid runs
-- [ ] Manual tampering of an event in JSONL causes `liminara verify` to fail
+- [x] `liminara list` shows runs from a REPL session
+- [x] `liminara verify <run_id>` passes (exit code 0) for each run
+- [x] `liminara report <run_id> --format json` produces valid JSON with all fields
+- [x] `liminara report <run_id> --format human` produces readable output
+- [x] Report shows: Claude Haiku model ID, token usage, hash chain status
+- [x] Three sequential questions produce three independent, valid runs
+- [x] Manual tampering of an event in JSONL causes `liminara verify` to fail
 
 ### README (`examples/02_langchain/README.md`)
 
-- [ ] Explains what RAG is (2-3 sentences)
-- [ ] How to run: prerequisites (ANTHROPIC_API_KEY), install, run
-- [ ] Expected output: example questions and answers
-- [ ] Explains the one-line Liminara integration (where the callback handler is added)
+- [x] Explains what RAG is (2-3 sentences)
+- [x] How to run: prerequisites (ANTHROPIC_API_KEY), install, run
+- [x] Expected output: example questions and answers
+- [x] Explains the one-line Liminara integration (where the callback handler is added)
 
 ## Tests
 
