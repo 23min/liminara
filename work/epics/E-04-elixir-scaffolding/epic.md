@@ -1,7 +1,7 @@
 ---
 id: E-04-elixir-scaffolding
 phase: 2
-status: draft
+status: done
 ---
 
 # E-04: Elixir Project Scaffolding
@@ -14,12 +14,18 @@ Set up the Elixir umbrella project structure, dependencies, tooling, and golden 
 
 **In:**
 
-### Umbrella project (`liminara/`)
+### Devcontainer
+- `.devcontainer/Dockerfile` based on `hexpm/elixir` (Elixir 1.20+, OTP 27+)
+- Python 3.12+ with `uv`, Node.js LTS (for MCP tools)
+- VS Code extensions and `postCreateCommand` for dependency setup
+- Shared by all project languages — no system-wide installs required
+
+### Umbrella project (`runtime/`)
 - `mix new liminara --umbrella`
 - First app: `apps/liminara_core/` — the runtime kernel (all Phase 2 code lives here)
-- Mix configuration: Elixir 1.18+, OTP 27+
+- Mix configuration: Elixir 1.20+, OTP 27+
 - Dependencies: `jason` (JSON), `ex_doc` (docs)
-- Dev dependencies: `credo` (linting), `dialyxir` (type checking)
+- Dev dependencies: `credo` (linting), `dialyxir` (type checking), `quokka` (format plugin)
 - Formatter config (`.formatter.exs`)
 - Credo config (`.credo.exs`)
 
@@ -49,18 +55,19 @@ Set up the Elixir umbrella project structure, dependencies, tooling, and golden 
 
 | ID | Milestone | Status |
 |----|-----------|--------|
-| M-ES-01-umbrella | Umbrella project, liminara_core app, deps, tooling config | draft |
-| M-ES-02-fixtures | Golden test fixtures (valid run + tampered run), fixture verification tests | draft |
+| M-ES-01-umbrella | Umbrella project, liminara_core app, deps, tooling config | done |
+| M-ES-02-fixtures | Golden test fixtures (valid run + tampered run), fixture verification tests | done |
 
 ## Success criteria
 
-- [ ] `mix compile` succeeds with zero warnings
-- [ ] `mix format --check-formatted` passes
-- [ ] `mix credo` passes
-- [ ] `mix dialyzer` passes
-- [ ] `mix test` runs and passes (placeholder + fixture validation tests)
-- [ ] Golden fixtures are valid (events.jsonl hash chain is verifiable by hand)
-- [ ] Fixture directory structure matches 11_Data_Model_Spec.md exactly
+- [x] Devcontainer builds and provides Elixir 1.18+, Python 3.11+, Node.js, uv
+- [x] `mix compile` succeeds with zero warnings
+- [x] `mix format --check-formatted` passes
+- [x] `mix credo` passes
+- [x] `mix dialyzer` passes
+- [x] `mix test` runs and passes (24 tests: placeholder + fixture validation)
+- [x] Golden fixtures are valid (events.jsonl hash chain verified by both Elixir and Python)
+- [x] Fixture directory structure matches 11_Data_Model_Spec.md exactly
 
 ## References
 

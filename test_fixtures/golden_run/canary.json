@@ -1,0 +1,1 @@
+{"canonical_bytes":"{\"a\":[true,null,\"hello\"],\"m\":{\"nested\":42},\"z\":1}","hash":"sha256:0fa7f2a293c29e7a21ddaa8cf24c99d6740a85353793a6bc92abdc9ab538637e","object":{"a":[true,null,"hello"],"m":{"nested":42},"z":1}}

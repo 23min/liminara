@@ -7,6 +7,7 @@ deps/
 # Generated files
 cover/
 doc/
+erl_crash.dump
 
 # Env and secrets
 .env
