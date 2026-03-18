@@ -1,7 +1,7 @@
 ---
 id: E-06-execution-engine
 phase: 2
-status: draft
+status: done
 ---
 
 # E-06: Execution Engine (Plan + Op + Run.Server)
@@ -76,23 +76,23 @@ Liminara.Supervisor
 
 | ID | Milestone | Status |
 |----|-----------|--------|
-| M-EE-01-plan | Plan data structure, node/ref/literal, ready_nodes, validation (no cycles, no dangling refs) | draft |
-| M-EE-02-op | Op behaviour, determinism classes, executor dispatch (inline + task) | draft |
-| M-EE-03-run-server | Run.Server GenServer, scheduler loop, supervision tree, event recording | draft |
-| M-EE-04-cache | Cache (ETS), cache key computation, hit/miss logic per determinism class | draft |
+| M-EE-01-plan | Plan data structure, node/ref/literal, ready_nodes, validation (no cycles, no dangling refs) | done |
+| M-EE-02-op | Op behaviour, determinism classes, executor dispatch (inline + task) | done |
+| M-EE-03-run-server | Run.Server GenServer, scheduler loop, supervision tree, event recording | done |
+| M-EE-04-cache | Cache (ETS), cache key computation, hit/miss logic per determinism class | done |
 
 ## Success criteria
 
-- [ ] Can define a Plan with 3+ nodes, refs between them, and literals
-- [ ] Plan rejects cycles and dangling refs
-- [ ] `ready_nodes` correctly identifies nodes whose inputs are all resolved
-- [ ] Op behaviour: a module implementing Op can be dispatched and produces outputs
-- [ ] Run.Server: runs a 3-node linear plan to completion, emitting all events
-- [ ] Run.Server: runs a fan-out plan (A → B, A → C) with parallel dispatch
-- [ ] Run.Server: handles op failure (records event, fails run)
-- [ ] Cache: pure op with same inputs → cache hit, no re-execution
-- [ ] Cache: recordable op → never cached, always executes
-- [ ] Event log for a completed run has valid hash chain
+- [x] Can define a Plan with 3+ nodes, refs between them, and literals
+- [x] Plan rejects cycles and dangling refs
+- [x] `ready_nodes` correctly identifies nodes whose inputs are all resolved
+- [x] Op behaviour: a module implementing Op can be dispatched and produces outputs
+- [x] Run.Server: runs a 3-node linear plan to completion, emitting all events
+- [x] Run.Server: runs a fan-out plan (A → B, A → C) with parallel dispatch
+- [x] Run.Server: handles op failure (records event, fails run)
+- [x] Cache: pure op with same inputs → cache hit, no re-execution
+- [x] Cache: recordable op → never cached, always executes
+- [x] Event log for a completed run has valid hash chain
 
 ## References
 
