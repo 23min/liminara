@@ -11,8 +11,8 @@ def hash_bytes(raw_bytes: bytes) -> str:
     return f"sha256:{hex_digest}"
 
 
-def canonical_json(obj: dict) -> bytes:
-    """Serialize dict to RFC 8785 canonical JSON (sorted keys, no whitespace, UTF-8 bytes)."""
+def canonical_json(obj: dict | list | str | int | float | bool | None) -> bytes:
+    """Serialize JSON-serializable value to RFC 8785 canonical JSON (UTF-8 bytes)."""
     return canonicaljson.encode_canonical_json(obj)
 
 

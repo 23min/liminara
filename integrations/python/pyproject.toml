@@ -44,7 +44,7 @@ addopts = "--cov=liminara --cov-report=term-missing -m 'not integration'"
 markers = ["integration: requires ANTHROPIC_API_KEY and --run-integration flag"]
 
 [tool.ty.src]
-exclude = ["examples/", "tests/test_example_01*.py"]
+exclude = ["examples/", "tests/test_example_01*.py", "tests/test_rag_integration.py"]
 
 [tool.coverage.run]
 source = ["liminara"]

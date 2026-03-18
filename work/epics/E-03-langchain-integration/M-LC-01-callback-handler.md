@@ -1,7 +1,7 @@
 ---
 id: M-LC-01-callback-handler
 epic: E-03-langchain-integration
-status: draft
+status: done
 ---
 
 # M-LC-01: LiminaraCallbackHandler
@@ -26,22 +26,22 @@ Key methods:
 
 ### LiminaraCallbackHandler (`liminara/integrations/langchain.py`)
 
-- [ ] Subclasses `BaseCallbackHandler` from `langchain_core`
-- [ ] Constructor accepts optional `run` context (if not provided, creates one)
-- [ ] `on_llm_start`: emits `op_started` event, captures model name from serialized config, hashes prompt as input artifact
-- [ ] `on_llm_end`: records decision (model ID, prompt hash, response hash, token usage from response.llm_output), emits `decision_recorded` and `op_completed` events
-- [ ] `on_llm_error`: emits `op_failed` event with error details
-- [ ] `on_chain_start`: emits `op_started` event with chain name and input hashes
-- [ ] `on_chain_end`: emits `op_completed` event with output hashes
-- [ ] `on_chain_error`: emits `op_failed` event
-- [ ] Extracts model ID from LangChain's serialized model config (handles `ChatAnthropic` at minimum)
-- [ ] Extracts token usage from LangChain's response metadata
+- [x] Subclasses `BaseCallbackHandler` from `langchain_core`
+- [x] Constructor accepts optional `run` context (if not provided, creates one)
+- [x] `on_llm_start`: emits `op_started` event, captures model name from serialized config, hashes prompt as input artifact
+- [x] `on_llm_end`: records decision (model ID, prompt hash, response hash, token usage from response.llm_output), emits `decision_recorded` and `op_completed` events
+- [x] `on_llm_error`: emits `op_failed` event with error details
+- [x] `on_chain_start`: emits `op_started` event with chain name and input hashes
+- [x] `on_chain_end`: emits `op_completed` event with output hashes
+- [x] `on_chain_error`: emits `op_failed` event
+- [x] Extracts model ID from LangChain's serialized model config (handles `ChatAnthropic` at minimum)
+- [x] Extracts token usage from LangChain's response metadata
 
 ### Integration with Liminara run context
 
-- [ ] If used within a `with liminara.run(...)` context, events go to that run
-- [ ] If used standalone, creates its own run context
-- [ ] Multiple callback handler instances in the same run produce events in the same event log
+- [x] If used within a `with liminara.run(...)` context, events go to that run
+- [x] If used standalone, creates its own run context
+- [x] Multiple callback handler instances in the same run produce events in the same event log
 
 ### Usage pattern
 
