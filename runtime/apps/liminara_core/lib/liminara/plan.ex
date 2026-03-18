@@ -8,10 +8,12 @@ defmodule Liminara.Plan do
 
   alias Liminara.{Canonical, Hash}
 
+  @type t :: %__MODULE__{nodes: map(), insert_order: [String.t()]}
   defstruct nodes: %{}, insert_order: []
 
   defmodule Node do
     @moduledoc false
+    @type t :: %__MODULE__{node_id: String.t(), op_module: module(), inputs: map()}
     defstruct [:node_id, :op_module, :inputs]
   end
 

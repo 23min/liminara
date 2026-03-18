@@ -10,6 +10,7 @@ defmodule Liminara.Run do
 
   defmodule Result do
     @moduledoc false
+    @type t :: %__MODULE__{run_id: String.t(), status: atom(), outputs: map(), event_count: non_neg_integer()}
     defstruct [:run_id, :status, :outputs, :event_count]
   end
 
@@ -39,6 +40,7 @@ defmodule Liminara.Run do
       store_root: store_root,
       runs_root: runs_root,
       cache: Keyword.get(opts, :cache),
+      replay: Keyword.get(opts, :replay),
       completed: MapSet.new(),
       # node_id => %{output_key => artifact_hash}
       outputs: %{},
@@ -134,9 +136,7 @@ defmodule Liminara.Run do
     node = Plan.get_node(state.plan, node_id)
     op_module = node.op_module
     input_hashes = compute_input_hashes(state, node.inputs)
-
-    # Check cache for cacheable ops
-    cache_result = check_cache(state, op_module, input_hashes)
+    determinism = op_module.determinism()
 
     # Emit op_started
     state =
@@ -144,37 +144,98 @@ defmodule Liminara.Run do
         "node_id" => node_id,
         "op_id" => op_module.name(),
         "op_version" => op_module.version(),
-        "determinism" => Atom.to_string(op_module.determinism()),
+        "determinism" => Atom.to_string(determinism),
         "input_hashes" => input_hashes
       })
 
-    case cache_result do
-      {:hit, output_hashes} ->
-        # Cache hit — skip execution
+    # Replay mode: skip side-effecting, inject recordable decisions
+    cond do
+      state.replay != nil and determinism == :side_effecting ->
+        handle_replay_skip(state, node_id)
+
+      state.replay != nil and determinism == :recordable ->
+        handle_replay_inject(state, node_id)
+
+      check_cache(state, op_module, input_hashes) != :miss ->
+        {:hit, output_hashes} = check_cache(state, op_module, input_hashes)
         handle_cache_hit(state, node_id, output_hashes)
 
-      :miss ->
-        # Cache miss — resolve inputs and execute
-        resolved_inputs = resolve_inputs(state, node.inputs)
+      true ->
+        dispatch_execute(state, node_id, node, input_hashes)
+    end
+  end
 
-        case Executor.run(op_module, resolved_inputs) do
-          {:ok, outputs, duration_ms} ->
-            handle_success(state, node_id, outputs, duration_ms, [], input_hashes)
+  defp dispatch_execute(state, node_id, node, input_hashes) do
+    resolved_inputs = resolve_inputs(state, node.inputs)
 
-          {:ok, outputs, duration_ms, decisions} ->
-            handle_success(state, node_id, outputs, duration_ms, decisions, input_hashes)
+    case Executor.run(node.op_module, resolved_inputs) do
+      {:ok, outputs, duration_ms} ->
+        handle_success(state, node_id, outputs, duration_ms, [], input_hashes)
 
-          {:error, reason, duration_ms} ->
-            state =
-              emit_event(state, "op_failed", %{
-                "node_id" => node_id,
-                "error_type" => "execution_error",
-                "error_message" => inspect(reason),
-                "duration_ms" => duration_ms
-              })
+      {:ok, outputs, duration_ms, decisions} ->
+        handle_success(state, node_id, outputs, duration_ms, decisions, input_hashes)
 
-            {:error, state, node_id, reason}
-        end
+      {:error, reason, duration_ms} ->
+        state =
+          emit_event(state, "op_failed", %{
+            "node_id" => node_id,
+            "error_type" => "execution_error",
+            "error_message" => inspect(reason),
+            "duration_ms" => duration_ms
+          })
+
+        {:error, state, node_id, reason}
+    end
+  end
+
+  defp handle_replay_skip(state, node_id) do
+    # Side-effecting op in replay: skip, use empty outputs
+    state =
+      emit_event(state, "op_completed", %{
+        "node_id" => node_id,
+        "output_hashes" => [],
+        "cache_hit" => true,
+        "duration_ms" => 0
+      })
+
+    state = %{
+      state
+      | completed: MapSet.put(state.completed, node_id),
+        outputs: Map.put(state.outputs, node_id, %{})
+    }
+
+    {:ok, state}
+  end
+
+  defp handle_replay_inject(state, node_id) do
+    # Recordable op in replay: load stored decision and use its output
+    case Decision.Store.get(state.runs_root, state.replay, node_id) do
+      {:ok, decision} ->
+        # The decision's output contains the response — store it as an artifact
+        output_value = get_in(decision, ["output", "response"]) || ""
+        {output_hashes, state} = store_outputs(state, %{"result" => output_value})
+
+        state =
+          emit_event(state, "op_completed", %{
+            "node_id" => node_id,
+            "output_hashes" => Map.values(output_hashes),
+            "cache_hit" => false,
+            "duration_ms" => 0
+          })
+
+        state = %{
+          state
+          | completed: MapSet.put(state.completed, node_id),
+            outputs: Map.put(state.outputs, node_id, output_hashes)
+        }
+
+        {:ok, state}
+
+      {:error, :not_found} ->
+        # No stored decision — fall back to normal execution
+        node = Plan.get_node(state.plan, node_id)
+        input_hashes = compute_input_hashes(state, node.inputs)
+        dispatch_execute(state, node_id, node, input_hashes)
     end
   end
 

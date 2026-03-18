@@ -1,7 +1,7 @@
 ---
 id: E-07-integration-and-replay
 phase: 2
-status: draft
+status: done
 ---
 
 # E-07: Integration and Replay
@@ -77,19 +77,19 @@ This is the "done when" proof for Phase 2: "Can define a trivial plan (3 ops), e
 
 | ID | Milestone | Status |
 |----|-----------|--------|
-| M-IR-01-replay | Replay module: load decisions, inject on dispatch, skip side-effecting | draft |
-| M-IR-02-pack | Pack behaviour, TestPack with 3 ops, public API (Liminara.run, Liminara.replay) | draft |
-| M-IR-03-end-to-end | End-to-end integration tests: discovery run, replay run, cache behavior, interop with golden fixtures | draft |
+| M-IR-01-replay | Replay module: load decisions, inject on dispatch, skip side-effecting | done |
+| M-IR-02-pack | Pack behaviour, TestPack with 3 ops, public API (Liminara.run, Liminara.replay) | done |
+| M-IR-03-end-to-end | End-to-end integration tests: discovery run, replay run, cache behavior, interop with golden fixtures | done |
 
 ## Success criteria
 
-- [ ] First run of TestPack: all ops execute, events recorded, hash chain valid, seal computed
-- [ ] Replay of that run: Transform op injects stored decision, output matches first run
-- [ ] Cache test: second fresh run with same inputs → pure ops cache-hit
-- [ ] Golden fixtures from E-04 are readable by Elixir storage layer
-- [ ] Elixir-written event log is valid canonical JSON matching the spec
-- [ ] Pack behaviour: TestPack implements all callbacks, `Liminara.run(TestPack, input)` works
-- [ ] `Liminara.replay(TestPack, input, run_id)` works
+- [x] First run of TestPack: all ops execute, events recorded, hash chain valid, seal computed
+- [x] Replay of that run: Transform op injects stored decision, output matches first run
+- [x] Cache test: second fresh run with same inputs → pure ops cache-hit
+- [x] Golden fixtures from E-04 are readable by Elixir storage layer
+- [x] Elixir-written event log is valid canonical JSON matching the spec
+- [x] Pack behaviour: TestPack implements all callbacks, `Liminara.run(TestPack, input)` works
+- [x] `Liminara.replay(TestPack, input, run_id)` works
 
 ## References
 

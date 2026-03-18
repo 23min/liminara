@@ -113,3 +113,23 @@ defmodule Liminara.TestOps.Recordable do
     {:ok, %{"result" => "Generated response for: #{prompt}"}, [decision]}
   end
 end
+
+defmodule Liminara.TestOps.SideEffect do
+  @moduledoc "Side-effecting op that writes to a file (simulated)."
+  @behaviour Liminara.Op
+
+  @impl true
+  def name, do: "side_effect"
+
+  @impl true
+  def version, do: "1.0"
+
+  @impl true
+  def determinism, do: :side_effecting
+
+  @impl true
+  def execute(%{"data" => data}) do
+    # Simulate a side effect (in real use: send email, write to external DB, etc.)
+    {:ok, %{"result" => "side_effect_done:#{data}"}}
+  end
+end
