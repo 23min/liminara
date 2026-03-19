@@ -10,7 +10,12 @@ defmodule Liminara.Run do
 
   defmodule Result do
     @moduledoc false
-    @type t :: %__MODULE__{run_id: String.t(), status: atom(), outputs: map(), event_count: non_neg_integer()}
+    @type t :: %__MODULE__{
+            run_id: String.t(),
+            status: atom(),
+            outputs: map(),
+            event_count: non_neg_integer()
+          }
     defstruct [:run_id, :status, :outputs, :event_count]
   end
 

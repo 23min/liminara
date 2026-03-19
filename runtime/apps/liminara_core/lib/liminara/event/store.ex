@@ -5,9 +5,48 @@ defmodule Liminara.Event.Store do
   Each run gets one event log at `{runs_root}/{run_id}/events.jsonl`.
   Events are canonical JSON (RFC 8785), one per line, hash-chained
   via `prev_hash`.
+
+  Can be used in two modes:
+  - **Supervised** (without runs_root): calls go through the named GenServer.
+  - **Direct** (with explicit runs_root): stateless, for tests or standalone use.
   """
 
+  use GenServer
+
   alias Liminara.{Canonical, Hash}
+
+  # ── Supervised API (process-backed) ─────────────────────────────
+
+  def start_link(opts) do
+    runs_root = Keyword.fetch!(opts, :runs_root)
+    GenServer.start_link(__MODULE__, runs_root, name: __MODULE__)
+  end
+
+  @doc "Append an event via the supervised process."
+  @spec append(String.t(), String.t(), map(), String.t() | nil) :: {:ok, map()}
+  def append(run_id, event_type, payload, prev_hash) do
+    GenServer.call(__MODULE__, {:append, run_id, event_type, payload, prev_hash})
+  end
+
+  @doc "Read all events via the supervised process."
+  @spec read_all(String.t()) :: {:ok, [map()]}
+  def read_all(run_id) when is_binary(run_id) do
+    GenServer.call(__MODULE__, {:read_all, run_id})
+  end
+
+  @doc "Verify hash chain via the supervised process."
+  @spec verify(String.t()) :: {:ok, non_neg_integer()} | {:error, non_neg_integer(), String.t()}
+  def verify(run_id) when is_binary(run_id) do
+    GenServer.call(__MODULE__, {:verify, run_id})
+  end
+
+  @doc "Write run seal via the supervised process."
+  @spec write_seal(String.t()) :: {:ok, map()}
+  def write_seal(run_id) when is_binary(run_id) do
+    GenServer.call(__MODULE__, {:write_seal, run_id})
+  end
+
+  # ── Direct API (stateless, explicit runs_root) ──────────────────
 
   @doc """
   Append an event to the log. Returns `{:ok, event}` with computed hash and timestamp.
@@ -127,6 +166,37 @@ defmodule Liminara.Event.Store do
 
     {:ok, seal}
   end
+
+  # ── GenServer callbacks ─────────────────────────────────────────
+
+  @impl true
+  def init(runs_root) do
+    File.mkdir_p!(runs_root)
+    {:ok, %{runs_root: runs_root}}
+  end
+
+  @impl true
+  def handle_call(
+        {:append, run_id, event_type, payload, prev_hash},
+        _from,
+        %{runs_root: root} = state
+      ) do
+    {:reply, append(root, run_id, event_type, payload, prev_hash), state}
+  end
+
+  def handle_call({:read_all, run_id}, _from, %{runs_root: root} = state) do
+    {:reply, read_all(root, run_id), state}
+  end
+
+  def handle_call({:verify, run_id}, _from, %{runs_root: root} = state) do
+    {:reply, verify(root, run_id), state}
+  end
+
+  def handle_call({:write_seal, run_id}, _from, %{runs_root: root} = state) do
+    {:reply, write_seal(root, run_id), state}
+  end
+
+  # ── Private ─────────────────────────────────────────────────────
 
   defp events_path(runs_root, run_id) do
     Path.join([runs_root, run_id, "events.jsonl"])

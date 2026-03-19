@@ -133,3 +133,23 @@ defmodule Liminara.TestOps.SideEffect do
     {:ok, %{"result" => "side_effect_done:#{data}"}}
   end
 end
+
+defmodule Liminara.TestOps.Slow do
+  @moduledoc "Pure op that sleeps before returning. For testing timeouts and mid-run inspection."
+  @behaviour Liminara.Op
+
+  @impl true
+  def name, do: "slow"
+
+  @impl true
+  def version, do: "1.0"
+
+  @impl true
+  def determinism, do: :pure
+
+  @impl true
+  def execute(%{"text" => text}) do
+    Process.sleep(500)
+    {:ok, %{"result" => String.upcase(text)}}
+  end
+end

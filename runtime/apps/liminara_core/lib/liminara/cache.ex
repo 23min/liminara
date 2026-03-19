@@ -5,9 +5,42 @@ defmodule Liminara.Cache do
   Cache key is computed from op name, version, and sorted input hashes.
   Only `:pure` and `:pinned_env` ops are cached; `:recordable` and
   `:side_effecting` ops are never cached.
+
+  Can be used in two modes:
+  - **Supervised** (without table arg): uses the named ETS table owned by this GenServer.
+  - **Direct** (with explicit table arg): for tests or standalone use.
   """
 
+  use GenServer
+
   alias Liminara.{Canonical, Hash}
+
+  # ── Supervised API (process-backed) ─────────────────────────────
+
+  def start_link(_opts) do
+    GenServer.start_link(__MODULE__, [], name: __MODULE__)
+  end
+
+  @doc "Look up cached outputs via the supervised process's ETS table."
+  @spec lookup(module(), [String.t()]) :: {:hit, map()} | :miss
+  def lookup(op_module, input_hashes) when is_atom(op_module) and is_list(input_hashes) do
+    lookup(__MODULE__, op_module, input_hashes)
+  end
+
+  @doc "Store op outputs via the supervised process's ETS table."
+  @spec store(module(), [String.t()], map()) :: :ok
+  def store(op_module, input_hashes, output_hashes)
+      when is_atom(op_module) and is_list(input_hashes) do
+    store(__MODULE__, op_module, input_hashes, output_hashes)
+  end
+
+  @doc "Clear all cache entries in the supervised process's ETS table."
+  @spec clear() :: :ok
+  def clear do
+    clear(__MODULE__)
+  end
+
+  # ── Direct API (stateless, explicit table) ──────────────────────
 
   @doc """
   Look up cached outputs for an op with given input hashes.
@@ -50,6 +83,16 @@ defmodule Liminara.Cache do
   def cacheable?(op_module) do
     op_module.determinism() in [:pure, :pinned_env]
   end
+
+  # ── GenServer callbacks ─────────────────────────────────────────
+
+  @impl true
+  def init(_opts) do
+    table = :ets.new(__MODULE__, [:set, :public, :named_table])
+    {:ok, %{table: table}}
+  end
+
+  # ── Private ─────────────────────────────────────────────────────
 
   defp cache_key(op_module, input_hashes) do
     sorted_hashes = Enum.sort(input_hashes)
