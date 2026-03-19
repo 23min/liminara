@@ -83,6 +83,19 @@ defmodule Liminara.Run.Server do
     end
   end
 
+  @doc """
+  Resolve a gate for a waiting node. The response becomes the gate's decision and output.
+  """
+  def resolve_gate(run_id, node_id, response) do
+    case Registry.lookup(Liminara.Run.Registry, run_id) do
+      [{pid, _}] ->
+        GenServer.cast(pid, {:resolve_gate, node_id, response})
+
+      [] ->
+        {:error, :not_found}
+    end
+  end
+
   # ── GenServer child_spec / start_link ────────────────────────────
 
   def child_spec(opts) do
@@ -264,6 +277,9 @@ defmodule Liminara.Run.Server do
         {:ok, outputs, duration_ms, decisions} ->
           handle_node_success(state, node_id, outputs, duration_ms, decisions)
 
+        {:gate, prompt, _duration_ms} ->
+          handle_gate_requested(state, node_id, prompt)
+
         {:error, reason, duration_ms} ->
           handle_node_failure(state, node_id, reason, duration_ms)
       end
@@ -299,9 +315,21 @@ defmodule Liminara.Run.Server do
     {:stop, :normal, state}
   end
 
+  @impl true
+  def handle_cast({:resolve_gate, node_id, response}, state) do
+    if state.node_states[node_id] == :waiting do
+      state = handle_gate_resolved(state, node_id, response)
+      state = dispatch_ready(state)
+      {:noreply, maybe_complete(state)}
+    else
+      {:noreply, state}
+    end
+  end
+
   # ── Dispatch ─────────────────────────────────────────────────────
 
   defp dispatch_ready(state) do
+    # Find all pending nodes whose inputs are satisfied
     completed = completed_set(state)
     ready = Plan.ready_nodes(state.plan, completed)
 
@@ -312,10 +340,19 @@ defmodule Liminara.Run.Server do
       [] ->
         state
 
-      nodes ->
-        state = Enum.reduce(nodes, state, &dispatch_node(&2, &1))
-        # Some nodes may have completed synchronously (cache hit, replay inject/skip),
-        # which could make new nodes ready. Loop until stable.
+      _ ->
+        # Dispatch all pending_ready nodes in this batch, then re-check.
+        state =
+          Enum.reduce(pending_ready, state, fn node_id, acc ->
+            if acc.node_states[node_id] == :pending do
+              dispatch_node(acc, node_id)
+            else
+              acc
+            end
+          end)
+
+        # Re-check: synchronous completions (cache hits) may have
+        # unblocked new nodes.
         dispatch_ready(state)
     end
   end
@@ -418,6 +455,51 @@ defmodule Liminara.Run.Server do
     end
   end
 
+  # ── Gate handling ─────────────────────────────────────────────────
+
+  defp handle_gate_requested(state, node_id, prompt) do
+    state =
+      emit_event(state, "gate_requested", %{
+        "node_id" => node_id,
+        "prompt" => prompt
+      })
+
+    %{state | node_states: Map.put(state.node_states, node_id, :waiting)}
+  end
+
+  defp handle_gate_resolved(state, node_id, response) do
+    # Record the gate decision
+    decision = %{
+      "decision_type" => "gate_approval",
+      "inputs" => %{"node_id" => node_id},
+      "output" => %{"response" => Jason.encode!(response)}
+    }
+
+    {output_hashes, state} = store_outputs(state, %{"result" => Jason.encode!(response)})
+
+    state = record_decisions(state, node_id, [decision])
+
+    state =
+      emit_event(state, "gate_resolved", %{
+        "node_id" => node_id,
+        "response" => response
+      })
+
+    state =
+      emit_event(state, "op_completed", %{
+        "node_id" => node_id,
+        "output_hashes" => Map.values(output_hashes),
+        "cache_hit" => false,
+        "duration_ms" => 0
+      })
+
+    %{
+      state
+      | node_states: Map.put(state.node_states, node_id, :completed),
+        node_outputs: Map.put(state.node_outputs, node_id, output_hashes)
+    }
+  end
+
   # ── Cache handling ───────────────────────────────────────────────
 
   defp check_cache(op_module, input_hashes) do
@@ -498,11 +580,12 @@ defmodule Liminara.Run.Server do
     completed = completed_set(state)
     all_done = Plan.all_complete?(state.plan, completed)
     any_running = Enum.any?(state.node_states, fn {_, s} -> s == :running end)
+    any_waiting = Enum.any?(state.node_states, fn {_, s} -> s == :waiting end)
     any_failed = Enum.any?(state.node_states, fn {_, s} -> s == :failed end)
     any_completed = Enum.any?(state.node_states, fn {_, s} -> s == :completed end)
 
-    # Check if we're stuck: no running tasks and not all complete
-    stuck = not any_running and not all_done
+    # Check if we're stuck: no running/waiting tasks and not all complete
+    stuck = not any_running and not any_waiting and not all_done
 
     any_pending = Enum.any?(state.node_states, fn {_, s} -> s == :pending end)
 

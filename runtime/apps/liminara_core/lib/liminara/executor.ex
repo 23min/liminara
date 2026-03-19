@@ -55,5 +55,7 @@ defmodule Liminara.Executor do
   defp wrap_result({:ok, outputs, decisions}, duration_ms),
     do: {:ok, outputs, duration_ms, decisions}
 
+  defp wrap_result({:gate, prompt}, duration_ms), do: {:gate, prompt, duration_ms}
+
   defp wrap_result({:error, reason}, duration_ms), do: {:error, reason, duration_ms}
 end
