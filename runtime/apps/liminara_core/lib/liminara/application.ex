@@ -23,6 +23,7 @@ defmodule Liminara.Application do
       {Liminara.Event.Store, runs_root: runs_root},
       {Liminara.Decision.Store, runs_root: runs_root},
       Liminara.Cache,
+      %{id: :pg, start: {:pg, :start_link, [:liminara]}},
       {Registry, keys: :unique, name: Liminara.Run.Registry},
       {DynamicSupervisor, name: Liminara.Run.DynamicSupervisor, strategy: :one_for_one}
     ]

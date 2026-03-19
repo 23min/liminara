@@ -544,7 +544,14 @@ defmodule Liminara.Run.Server do
     {:ok, event} =
       Event.Store.append(state.run_id, event_type, payload, state.prev_hash)
 
+    broadcast(state.run_id, event)
+
     %{state | prev_hash: event.event_hash, event_count: state.event_count + 1}
+  end
+
+  defp broadcast(run_id, event) do
+    :pg.get_members(:liminara, {:run, run_id})
+    |> Enum.each(&send(&1, {:run_event, run_id, event}))
   end
 
   # ── Helpers ──────────────────────────────────────────────────────

@@ -1,12 +1,26 @@
 defmodule Liminara.Run do
   @moduledoc """
-  Executes a plan synchronously, recording events and storing artifacts.
+  Run execution and subscription API.
 
-  This is the scheduler loop: find ready nodes → dispatch → collect →
-  record events → repeat until all nodes complete or one fails.
+  Contains the synchronous scheduler loop (direct mode) and the
+  subscribe/unsubscribe API for :pg-based event broadcasting.
   """
 
   alias Liminara.{Artifact, Cache, Canonical, Decision, Event, Executor, Hash, Plan}
+
+  @doc "Subscribe the calling process to events from the given run."
+  @spec subscribe(String.t()) :: :ok
+  def subscribe(run_id) do
+    :pg.join(:liminara, {:run, run_id}, self())
+    :ok
+  end
+
+  @doc "Unsubscribe the calling process from events for the given run."
+  @spec unsubscribe(String.t()) :: :ok
+  def unsubscribe(run_id) do
+    :pg.leave(:liminara, {:run, run_id}, self())
+    :ok
+  end
 
   defmodule Result do
     @moduledoc false
