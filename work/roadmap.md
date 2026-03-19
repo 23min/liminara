@@ -22,7 +22,7 @@
 
 ## Phase 4: Observation Layer — Not started
 
-*Epics not yet drafted.*
+- [ ] E-09 Observation Layer (Observation.Server, Phoenix LiveView UI, DAG visualization, inspectors, A2UI experimental renderer)
 
 ## Phase 5: Radar — Not started
 
