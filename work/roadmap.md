@@ -9,16 +9,16 @@
 - [x] E-02 Python SDK (data model validation + demo artifact)
 - [x] E-03 LangChain Integration
 
-## Phase 2: Elixir Walking Skeleton — Active
+## Phase 2: Elixir Walking Skeleton — Complete
 
 - [x] E-04 Elixir Project Scaffolding + Golden Fixtures
 - [x] E-05 Storage Layer (Artifact Store + Event Store + Decision Store)
 - [x] E-06 Execution Engine (Plan + Op + Run.Server + Cache)
 - [x] E-07 Integration and Replay (end-to-end, Pack behaviour, interop)
 
-## Phase 3: Report Compiler Pack — Not started
+## Phase 3: OTP Runtime Layer — Active
 
-*Epics not yet drafted.*
+- [ ] E-08 OTP Runtime (supervision tree, Run.Server GenServer, :pg broadcasting, crash recovery, property-based stress testing, toy pack)
 
 ## Phase 4: Observation Layer — Not started
 

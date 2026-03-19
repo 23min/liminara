@@ -1,11 +1,11 @@
 # Liminara: Build Plan
 
 **Status:** Living document. Updated as phases complete and priorities shift.
-**Last updated:** 2026-03-14
+**Last updated:** 2026-03-19
 
 ---
 
-## Current phase: Phase 0
+## Current phase: Phase 3
 
 ---
 
@@ -72,26 +72,26 @@
 
 **Dependencies:** Phase 0 (data model).
 
-**Status:** Not started.
+**Status:** Complete.
 
 ---
 
-### Phase 3: Report Compiler pack (test fixture)
+### Phase 3: OTP Runtime Layer
 
-**Goal:** A tiny pack that exercises every core concept in miniature.
+**Goal:** Promote the synchronous walking skeleton into a proper OTP application. The Phase 2 runtime is a synchronous loop with no supervision, no process isolation, and no event broadcasting. This phase builds the foundation that the observation layer and all real packs depend on.
 
 **What's built:**
-- `ReportCompiler.Pack` — sources → outline → draft → review_gate → final_pdf
-- Exercises:
-  - Pure ops (outline from sources)
-  - Recordable op (LLM drafting)
-  - Side-effecting op (PDF render)
-  - Gate (human review before finalize)
-  - Binary artifact (PDF output)
-- Decision recording and replay
-- Caching: re-run with same sources → pure ops cache-hit, only LLM re-executes
+- `Liminara.Application` — OTP application with full supervision tree
+- `Run.Server` GenServer — async, message-driven execution with concurrent fan-out
+- `Run.DynamicSupervisor` + `Op.TaskSupervisor` — process isolation and supervision
+- `Run.Registry` — maps run IDs to Run.Server PIDs
+- `:pg` event broadcasting — every event broadcast to subscribers in real-time
+- Crash recovery — op crashes handled gracefully, Run.Server rebuilds from event log
+- Concurrent run isolation — multiple runs don't interfere
+- Property-based stress testing (StreamData) — random DAG shapes, crash injection, concurrency invariants
+- Toy pack exercising all four determinism classes, gates, binary artifacts, cache, and replay through the async runtime
 
-**Done when:** Run once, replay exactly. Change sources, observe correct cache invalidation.
+**Done when:** Observer shows the expected supervision tree. 100+ random DAG shapes all execute correctly. Op crashes don't crash the Run.Server. Two concurrent runs produce independent, valid results. A toy pack with all determinism classes runs end-to-end through the GenServer path.
 
 **Dependencies:** Phase 2 (walking skeleton).
 
@@ -104,15 +104,14 @@
 **Goal:** See what's happening inside a run. The "Excel quality" — everything visible, traceable, inspectable.
 
 **What's built:**
-- `:pg` event broadcasting from Run.Server
 - Observation UI (ex_a2ui on Bandit, or Phoenix LiveView)
-- Live DAG visualization
+- Live DAG visualization (consumes the `:pg` event stream built in Phase 3)
 - Node inspection (inputs, outputs, decisions)
 - No Phoenix as a platform dependency — lightweight observation only
 
-**Done when:** Can watch a Report Compiler run in real-time in a browser, click nodes, see artifacts.
+**Done when:** Can watch a toy pack run in real-time in a browser, click nodes, see artifacts.
 
-**Dependencies:** Phase 3 (something to observe).
+**Dependencies:** Phase 3 (OTP runtime with event broadcasting).
 
 **Status:** Not started.
 

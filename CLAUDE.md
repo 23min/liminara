@@ -1,5 +1,9 @@
 # Liminara
 
+## Working rules
+
+- **Never make assumptions on ambiguous decisions.** If something is unclear, could go multiple ways, or has downstream consequences — stop and ask. Do not guess what the user wants. This applies always, not just for architecture-level choices.
+
 ## What this is
 
 Liminara is **a runtime for reproducible nondeterministic computation**. It records every nondeterministic choice — LLM responses, human approvals, stochastic selections — so any run can be replayed exactly, audited completely, and cached intelligently. Technically: a DAG of operations producing immutable, content-addressed artifacts, with nondeterminism captured as decision records, supervised by Elixir/OTP. Five concepts (Artifact, Op, Decision, Run, Pack), one scheduler loop, one event log as source of truth.
