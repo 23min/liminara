@@ -20,6 +20,8 @@ Liminara is **a runtime for reproducible nondeterministic computation**. It reco
 - `docs/architecture/` — Core architecture and build plan. Start here.
   - `01_CORE.md` — The runtime architecture (five concepts, scheduler, OTP mapping, caching)
   - `02_PLAN.md` — Living build plan (current phase, sequencing, deferral triggers)
+  - `03_PHASE3_REFERENCE.md` — Snapshot reference after Phase 3 (supervision tree, APIs, how to run)
+- `docs/decisions/` — Architecture Decision Records (ADRs). For humans — documents significant design choices with context, alternatives, and trade-offs.
 - `docs/analysis/` — Strategic analysis and landscape research
   - `02_Fresh_Analysis.md` — What Liminara is, landscape, viability, MVP strategy, Burr/ControlFlow/Crosser comparison
   - `03_EU_AI_Act_and_Funding.md` — EU AI Act Article 12 mapping, funding paths (EIC, Vinnova, Horizon Europe)
@@ -71,7 +73,7 @@ See `docs/architecture/02_PLAN.md` for the full build plan (Phase 0–7) with do
 - `work/` — the pipeline: roadmap, active epics/milestones, decisions, templates.
   - `work/epics/` — active epics. Each epic is a folder with `epic.md` + milestone files + session logs.
   - `work/done/` — completed epics (whole epic folder moves here when all milestones are done).
-  - `work/decisions/` — Architecture Decision Records (ADRs).
+  - `work/decisions/` — (deprecated, use `docs/decisions/` for ADRs)
   - `work/_templates/` — templates for epics, milestones, logs, ADRs.
 
 ### Planning hierarchy
@@ -156,7 +158,7 @@ Use the template in `work/_templates/milestone-log.md`.
 Record: decisions made, alternatives tried and abandoned, outcome, open items.
 
 ### Architecture Decision Records
-When a significant architectural decision is made, create an ADR in `work/decisions/`.
+When a significant architectural decision is made, create an ADR in `docs/decisions/`.
 Use the template in `work/_templates/ADR.md`.
 Reference ADRs from the relevant milestone or epic doc.
 
