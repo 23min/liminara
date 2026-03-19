@@ -1,7 +1,7 @@
 ---
 id: M-OTP-02-run-server
 epic: E-08-otp-runtime
-status: draft
+status: done
 ---
 
 # M-OTP-02: Run.Server GenServer

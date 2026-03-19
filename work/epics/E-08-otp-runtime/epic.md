@@ -1,7 +1,7 @@
 ---
 id: E-08-otp-runtime
 phase: 3
-status: draft
+status: done
 ---
 
 # E-08: OTP Runtime Layer
@@ -66,24 +66,24 @@ This is infrastructure, not features. Every design choice in `01_CORE.md` § "Ho
 
 | ID | Milestone | Status |
 |----|-----------|--------|
-| M-OTP-01-supervision | Application module, supervision tree, Run.Registry, DynamicSupervisor, ETS table lifecycle | draft |
-| M-OTP-02-run-server | Run.Server GenServer: async dispatch, fan-out, op completion/failure handling, state management | draft |
-| M-OTP-03-broadcast | `:pg` event broadcasting, subscriber API, multi-subscriber delivery | draft |
-| M-OTP-04-crash-recovery | Op crash handling, Run.Server restart + state rebuild from event log, concurrent run isolation | draft |
-| M-OTP-05-stress-testing | StreamData property-based tests, random DAG shapes, crash injection, concurrency invariants | draft |
+| M-OTP-01-supervision | Application module, supervision tree, Run.Registry, DynamicSupervisor, ETS table lifecycle | done |
+| M-OTP-02-run-server | Run.Server GenServer: async dispatch, fan-out, op completion/failure handling, state management | done |
+| M-OTP-03-broadcast | `:pg` event broadcasting, subscriber API, multi-subscriber delivery | done |
+| M-OTP-04-crash-recovery | Op crash handling, Run.Server restart + state rebuild from event log, concurrent run isolation | done |
+| M-OTP-05-stress-testing | StreamData property-based tests, random DAG shapes, crash injection, concurrency invariants | done |
 
 ## Success criteria
 
-- [ ] `Application.start` brings up the full supervision tree; Observer shows the expected process hierarchy
-- [ ] A 3-op plan runs end-to-end through the GenServer path with concurrent fan-out
-- [ ] A subscriber receives all events from a run in real-time via `:pg`
-- [ ] Killing an op Task doesn't crash the Run.Server; the node is marked failed
-- [ ] Killing a Run.Server and restarting it rebuilds state from the event log and continues (or reports final status)
-- [ ] 100+ randomized DAG shapes all terminate correctly with valid event logs
-- [ ] Two concurrent runs with interleaved op completions produce independent, valid results
-- [ ] Replay works through the async GenServer path (decisions injected, output matches)
-- [ ] `:sys.get_state/1` on a Run.Server returns inspectable state
-- [ ] All existing tests continue to pass (the synchronous path may be retained or adapted)
+- [x] `Application.start` brings up the full supervision tree; Observer shows the expected process hierarchy
+- [x] A 3-op plan runs end-to-end through the GenServer path with concurrent fan-out
+- [x] A subscriber receives all events from a run in real-time via `:pg`
+- [x] Killing an op Task doesn't crash the Run.Server; the node is marked failed
+- [x] Killing a Run.Server and restarting it rebuilds state from the event log and continues (or reports final status)
+- [x] 100+ randomized DAG shapes all terminate correctly with valid event logs
+- [x] Two concurrent runs with interleaved op completions produce independent, valid results
+- [x] Replay works through the async GenServer path (decisions injected, output matches)
+- [x] `:sys.get_state/1` on a Run.Server returns inspectable state
+- [x] All existing tests continue to pass (the synchronous path may be retained or adapted)
 
 ## References
 

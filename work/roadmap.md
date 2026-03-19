@@ -16,9 +16,9 @@
 - [x] E-06 Execution Engine (Plan + Op + Run.Server + Cache)
 - [x] E-07 Integration and Replay (end-to-end, Pack behaviour, interop)
 
-## Phase 3: OTP Runtime Layer — Active
+## Phase 3: OTP Runtime Layer — Complete
 
-- [ ] E-08 OTP Runtime (supervision tree, Run.Server GenServer, :pg broadcasting, crash recovery, property-based stress testing, toy pack)
+- [x] E-08 OTP Runtime (supervision tree, Run.Server GenServer, :pg broadcasting, crash recovery, property-based stress testing, toy pack)
 
 ## Phase 4: Observation Layer — Not started
 

@@ -1,7 +1,7 @@
 ---
 id: M-OTP-05-stress-testing
 epic: E-08-otp-runtime
-status: draft
+status: done
 ---
 
 # M-OTP-05: Property-Based Stress Testing and Toy Pack

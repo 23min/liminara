@@ -1,7 +1,7 @@
 ---
 id: M-OTP-04-crash-recovery
 epic: E-08-otp-runtime
-status: draft
+status: done
 ---
 
 # M-OTP-04: Crash Recovery and Run Isolation
