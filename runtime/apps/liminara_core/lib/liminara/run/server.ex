@@ -131,8 +131,14 @@ defmodule Liminara.Run.Server do
       node_states: node_states
     }
 
-    # Emit run_started and dispatch initial ready nodes
-    {:ok, state, {:continue, :start_run}}
+    # Check if there's an existing event log for this run (crash recovery)
+    {:ok, existing_events} = Event.Store.read_all(run_id)
+
+    if existing_events != [] do
+      {:ok, state, {:continue, {:rebuild, existing_events}}}
+    else
+      {:ok, state, {:continue, :start_run}}
+    end
   end
 
   @impl true
@@ -148,6 +154,101 @@ defmodule Liminara.Run.Server do
     state = dispatch_ready(state)
     {:noreply, maybe_complete(state)}
   end
+
+  def handle_continue({:rebuild, events}, state) do
+    state = rebuild_from_events(state, events)
+
+    last_event = List.last(events)
+    last_type = last_event["event_type"]
+
+    cond do
+      last_type in ["run_completed", "run_failed"] ->
+        # Run was already finished — just report the result
+        status = if last_type == "run_completed", do: :success, else: :failed
+
+        failed_nodes =
+          state.node_states
+          |> Enum.filter(fn {_, s} -> s == :failed end)
+          |> Enum.map(fn {id, _} -> id end)
+
+        result = %Result{
+          run_id: state.run_id,
+          status: status,
+          outputs: state.node_outputs,
+          event_count: state.event_count,
+          node_states: state.node_states,
+          failed_nodes: failed_nodes
+        }
+
+        state = %{state | result: result}
+        Process.send_after(self(), :stop, 0)
+        {:noreply, state}
+
+      true ->
+        # Run was interrupted — reset in-progress nodes and continue
+        node_states =
+          Map.new(state.node_states, fn
+            {id, :running} -> {id, :pending}
+            other -> other
+          end)
+
+        state = %{state | node_states: node_states}
+        state = dispatch_ready(state)
+        {:noreply, maybe_complete(state)}
+    end
+  end
+
+  defp rebuild_from_events(state, events) do
+    Enum.reduce(events, state, fn event, state ->
+      type = event["event_type"]
+      payload = event["payload"]
+
+      state = %{
+        state
+        | prev_hash: event["event_hash"],
+          event_count: state.event_count + 1
+      }
+
+      case type do
+        "op_completed" ->
+          node_id = payload["node_id"]
+          # Rebuild output hashes from event store artifacts
+          # The artifacts are already in the store from the original run
+          output_hashes = rebuild_output_hashes(state, node_id, payload)
+
+          %{
+            state
+            | node_states: Map.put(state.node_states, node_id, :completed),
+              node_outputs: Map.put(state.node_outputs, node_id, output_hashes)
+          }
+
+        "op_started" ->
+          node_id = payload["node_id"]
+          %{state | node_states: Map.put(state.node_states, node_id, :running)}
+
+        "op_failed" ->
+          node_id = payload["node_id"]
+          %{state | node_states: Map.put(state.node_states, node_id, :failed)}
+
+        _ ->
+          state
+      end
+    end)
+  end
+
+  defp rebuild_output_hashes(_state, _node_id, %{"output_hashes" => hashes})
+       when is_list(hashes) and hashes != [] do
+    # For rebuild, we reconstruct a simple map from the stored hashes
+    # The original key names are lost in the event, use "result" as default
+    hashes
+    |> Enum.with_index()
+    |> Map.new(fn
+      {hash, 0} -> {"result", hash}
+      {hash, i} -> {"output_#{i}", hash}
+    end)
+  end
+
+  defp rebuild_output_hashes(_state, _node_id, _payload), do: %{}
 
   @impl true
   def handle_info({ref, {:node_result, node_id, result}}, state) when is_reference(ref) do
@@ -398,15 +499,23 @@ defmodule Liminara.Run.Server do
     all_done = Plan.all_complete?(state.plan, completed)
     any_running = Enum.any?(state.node_states, fn {_, s} -> s == :running end)
     any_failed = Enum.any?(state.node_states, fn {_, s} -> s == :failed end)
+    any_completed = Enum.any?(state.node_states, fn {_, s} -> s == :completed end)
 
     # Check if we're stuck: no running tasks and not all complete
     stuck = not any_running and not all_done
+
+    any_pending = Enum.any?(state.node_states, fn {_, s} -> s == :pending end)
 
     cond do
       all_done ->
         finish_run(state, :success)
 
+      stuck and any_failed and any_completed and not any_pending ->
+        # Some nodes completed, some failed, none blocked — partial success
+        finish_run(state, :partial)
+
       stuck and any_failed ->
+        # Some nodes are still pending (blocked by failures) — failed
         finish_run(state, :failed)
 
       true ->
@@ -422,6 +531,11 @@ defmodule Liminara.Run.Server do
       |> Map.values()
       |> Enum.flat_map(&Map.values/1)
 
+    failed_nodes =
+      state.node_states
+      |> Enum.filter(fn {_, s} -> s == :failed end)
+      |> Enum.map(fn {id, _} -> id end)
+
     payload =
       case status do
         :success ->
@@ -431,18 +545,19 @@ defmodule Liminara.Run.Server do
             "artifact_hashes" => artifact_hashes
           }
 
-        :failed ->
+        _ ->
           %{
             "run_id" => state.run_id,
             "error_type" => "run_failure",
-            "error_message" => "one or more nodes failed"
+            "error_message" => "one or more nodes failed",
+            "failed_nodes" => failed_nodes
           }
       end
 
     state = emit_event(state, event_type, payload)
 
-    # Write seal on success
-    if status == :success do
+    # Write seal on success or partial
+    if status in [:success, :partial] do
       Event.Store.write_seal(state.run_id)
     end
 
@@ -450,7 +565,9 @@ defmodule Liminara.Run.Server do
       run_id: state.run_id,
       status: status,
       outputs: state.node_outputs,
-      event_count: state.event_count
+      event_count: state.event_count,
+      node_states: state.node_states,
+      failed_nodes: failed_nodes
     }
 
     # Notify all waiting callers

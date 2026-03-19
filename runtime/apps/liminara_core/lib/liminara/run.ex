@@ -28,9 +28,11 @@ defmodule Liminara.Run do
             run_id: String.t(),
             status: atom(),
             outputs: map(),
-            event_count: non_neg_integer()
+            event_count: non_neg_integer(),
+            node_states: map(),
+            failed_nodes: [String.t()]
           }
-    defstruct [:run_id, :status, :outputs, :event_count]
+    defstruct [:run_id, :status, :outputs, :event_count, node_states: %{}, failed_nodes: []]
   end
 
   @doc """

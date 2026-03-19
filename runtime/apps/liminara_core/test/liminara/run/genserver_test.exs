@@ -388,17 +388,20 @@ defmodule Liminara.Run.GenServerTest do
 
   describe "introspection" do
     test ":sys.get_state returns state with plan, node_states, run_id" do
-      run_id = "intro-state-#{:erlang.unique_integer([:positive])}"
+      unique = :erlang.unique_integer([:positive])
+      run_id = "intro-state-#{unique}"
 
-      # Use a slow op so we can inspect mid-run
+      # Use a slow op with unique input to avoid cache hits
       plan =
         Plan.new()
-        |> Plan.add_node("a", Liminara.TestOps.Slow, %{"text" => {:literal, "inspect"}})
+        |> Plan.add_node("a", Liminara.TestOps.Slow, %{
+          "text" => {:literal, "inspect-#{unique}"}
+        })
 
       {:ok, pid} = start_run_server(run_id, plan)
 
-      # Give it a moment to start
-      Process.sleep(10)
+      # Give it a moment to start and process handle_continue
+      Process.sleep(50)
 
       state = :sys.get_state(pid)
       assert state.run_id == run_id

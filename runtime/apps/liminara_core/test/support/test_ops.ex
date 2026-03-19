@@ -153,3 +153,41 @@ defmodule Liminara.TestOps.Slow do
     {:ok, %{"result" => String.upcase(text)}}
   end
 end
+
+defmodule Liminara.TestOps.Raise do
+  @moduledoc "Op that raises a RuntimeError. For testing crash handling."
+  @behaviour Liminara.Op
+
+  @impl true
+  def name, do: "raise"
+
+  @impl true
+  def version, do: "1.0"
+
+  @impl true
+  def determinism, do: :pure
+
+  @impl true
+  def execute(_inputs) do
+    raise "intentional crash"
+  end
+end
+
+defmodule Liminara.TestOps.ExitKill do
+  @moduledoc "Op that exits with :kill. For testing brutal crash handling."
+  @behaviour Liminara.Op
+
+  @impl true
+  def name, do: "exit_kill"
+
+  @impl true
+  def version, do: "1.0"
+
+  @impl true
+  def determinism, do: :pure
+
+  @impl true
+  def execute(_inputs) do
+    Process.exit(self(), :kill)
+  end
+end
