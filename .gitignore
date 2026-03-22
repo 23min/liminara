@@ -27,5 +27,11 @@ Thumbs.db
 # Claude Code local settings
 .claude/settings.local.json
 
+# Node
+node_modules/
+
+# Test/scratch output
+.scratch/
+
 # Original brainstorm export (contents are in docs/brainstorm/)
 agent_runtime_specs.zip
