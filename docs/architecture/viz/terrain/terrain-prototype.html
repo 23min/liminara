@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Liminara Terrain — Animated Prototype</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --paper: #F5F0E8; --pw: #FDFBF7;
+    --ink: #2C2C2C; --il: #8C8680; --ig: #D4CFC7;
+    --teal: #2B8A8E; --coral: #E8846B; --amber: #D4944C; --red: #C45B4A;
+  }
+  body { background: var(--paper); font-family: 'IBM Plex Mono', monospace; color: var(--ink); padding: 32px; }
+  h1 { font-size: 12px; font-weight: 400; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 4px; }
+  .sub { font-size: 10px; color: var(--il); margin-bottom: 20px; }
+  .controls { display: flex; gap: 12px; margin-bottom: 20px; align-items: center; }
+  button { font-family: inherit; font-size: 10px; padding: 5px 12px; background: var(--pw); border: 1px solid var(--ig); color: var(--ink); cursor: pointer; border-radius: 3px; }
+  button:hover { border-color: var(--il); }
+  button.active { background: var(--ink); color: var(--paper); }
+  .status { font-size: 10px; color: var(--il); }
+  canvas { display: block; border-radius: 4px; }
+  .legend { display: flex; gap: 16px; margin-top: 12px; font-size: 9px; color: var(--il); flex-wrap: wrap; }
+</style>
+</head>
+<body>
+<h1>The Terrain — Animated Prototype</h1>
+<p class="sub">Radar daily briefing. Watch the landscape rise. Each op builds a hill. Height = duration. Water flows between.</p>
+<div class="controls">
+  <button id="btn-run" class="active">Grow</button>
+  <button id="btn-reset">Reset</button>
+  <button id="btn-instant">Show Final</button>
+  <span class="status" id="status">Flat terrain</span>
+</div>
+<canvas id="c" width="900" height="440"></canvas>
+<div class="legend">
+  <span>Hill height = op duration</span>
+  <span>|</span>
+  <span style="color:#D4944C">Amber hills = I/O</span>
+  <span style="color:#2B8A8E">Teal ridge = pure</span>
+  <span style="color:#E8846B">Coral mountain = LLM</span>
+  <span>|</span>
+  <span>Contour lines = elevation</span>
+  <span>|</span>
+  <span>Streams = artifact flow</span>
+</div>
+
+<script>
+const C = { paper:'#F5F0E8', pw:'#FDFBF7', ink:'#2C2C2C', il:'#8C8680', ig:'#D4CFC7',
+            teal:'#2B8A8E', coral:'#E8846B', amber:'#D4944C', red:'#C45B4A' };
+
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const dpr = window.devicePixelRatio || 1;
+canvas.width = 900 * dpr; canvas.height = 440 * dpr;
+canvas.style.width = '900px'; canvas.style.height = '440px';
+ctx.scale(dpr, dpr);
+
+const groundY = 380;
+
+const hills = [
+  { id:'f1', x:130, w:80,  h:60,  color:C.amber, label:'DN.se',    sub:'14 items', startT:200,  dur:1200 },
+  { id:'f2', x:150, w:60,  h:40,  color:C.amber, label:'SvD.se',   sub:'8 items',  startT:200,  dur:800 },
+  { id:'f3', x:170, w:100, h:90,  color:C.amber, label:'SCB API',  sub:'Q4 data',  startT:200,  dur:1800 },
+  { id:'n1', x:370, w:50,  h:25,  color:C.teal,  label:'normalize',sub:'22→17',    startT:2200, dur:300 },
+  { id:'r1', x:560, w:200, h:200, color:C.coral,  label:'rank + summarize', sub:'"Swedish housing\n market recovery..."', startT:2700, dur:8400, decision:true },
+  { id:'d1', x:830, w:40,  h:15,  color:C.amber, label:'deliver',  sub:'sent',     startT:11400,dur:400 },
+];
+
+const streams = [
+  { from:'f1', to:'n1' }, { from:'f2', to:'n1' }, { from:'f3', to:'n1' },
+  { from:'n1', to:'r1' }, { from:'r1', to:'d1' },
+];
+
+let animTime = 0, running = false, instant = false;
+const hillState = {};
+const waterParticles = [];
+
+function reset() {
+  animTime = 0; running = false; instant = false;
+  waterParticles.length = 0;
+  hills.forEach(h => { hillState[h.id] = { rise: 0, phase: 'flat' }; });
+  document.getElementById('status').textContent = 'Flat terrain';
+}
+
+function hex2rgb(h) { return {r:parseInt(h.slice(1,3),16),g:parseInt(h.slice(3,5),16),b:parseInt(h.slice(5,7),16)}; }
+function rgba(h,a) { const{r,g,b}=hex2rgb(h); return `rgba(${r},${g},${b},${a})`; }
+
+function hillPeak(h) { return { x: h.x + h.w/2, y: groundY - h.h * hillState[h.id].rise }; }
+
+function drawGround() {
+  ctx.strokeStyle = C.ig; ctx.lineWidth = 0.3;
+  ctx.beginPath(); ctx.moveTo(40, groundY); ctx.lineTo(880, groundY); ctx.stroke();
+}
+
+function drawTimeAxis() {
+  ctx.strokeStyle = C.ig; ctx.lineWidth = 0.4;
+  ctx.beginPath(); ctx.moveTo(60, 38); ctx.lineTo(880, 38); ctx.stroke();
+  ctx.font = '7px IBM Plex Mono, monospace'; ctx.fillStyle = C.il; ctx.textAlign = 'center';
+  [[130,'0s'],[270,'2s'],[400,'5s'],[600,'10s'],[830,'16s']].forEach(([x,l]) => {
+    ctx.fillText(l,x,34);
+    ctx.beginPath(); ctx.moveTo(x,36); ctx.lineTo(x,40); ctx.stroke();
+  });
+}
+
+function drawHill(h) {
+  const st = hillState[h.id];
+  if (st.rise < 0.01) return;
+
+  const cx = h.x + h.w/2;
+  const peakY = groundY - h.h * st.rise;
+  const hw = h.w * (0.3 + 0.7 * st.rise);
+
+  // Mountain body (filled)
+  ctx.beginPath();
+  ctx.moveTo(cx - hw/2, groundY);
+  ctx.quadraticCurveTo(cx - hw/4, groundY, cx - hw/6, peakY + (groundY - peakY) * 0.3);
+  ctx.quadraticCurveTo(cx, peakY - 5, cx + hw/6, peakY + (groundY - peakY) * 0.3);
+  ctx.quadraticCurveTo(cx + hw/4, groundY, cx + hw/2, groundY);
+  ctx.closePath();
+  ctx.fillStyle = rgba(h.color, 0.08 + 0.07 * st.rise);
+  ctx.fill();
+
+  // Mountain outline
+  ctx.beginPath();
+  ctx.moveTo(cx - hw/2, groundY);
+  ctx.quadraticCurveTo(cx - hw/4, groundY, cx - hw/6, peakY + (groundY - peakY) * 0.3);
+  ctx.quadraticCurveTo(cx, peakY - 5, cx + hw/6, peakY + (groundY - peakY) * 0.3);
+  ctx.quadraticCurveTo(cx + hw/4, groundY, cx + hw/2, groundY);
+  ctx.strokeStyle = rgba(h.color, 0.3 + 0.4 * st.rise);
+  ctx.lineWidth = 1 + st.rise * 0.5;
+  ctx.stroke();
+
+  // Contour lines
+  const nContours = Math.floor(h.h / 30 * st.rise);
+  for (let i = 1; i <= nContours; i++) {
+    const frac = i / (nContours + 1);
+    const cy = groundY - (groundY - peakY) * frac;
+    const cw = hw * (1 - frac * 0.7);
+    ctx.beginPath();
+    ctx.moveTo(cx - cw/2, cy);
+    ctx.quadraticCurveTo(cx, cy - 4 * (1 - frac), cx + cw/2, cy);
+    ctx.strokeStyle = rgba(h.color, 0.15 * (1 - frac * 0.5));
+    ctx.lineWidth = 0.3;
+    ctx.stroke();
+  }
+
+  // Peak dot
+  if (st.rise > 0.8) {
+    const pa = (st.rise - 0.8) / 0.2;
+    ctx.beginPath();
+    ctx.arc(cx, peakY, 2.5, 0, Math.PI * 2);
+    ctx.fillStyle = rgba(h.color, 0.5 * pa);
+    ctx.fill();
+
+    // Decision flag
+    if (h.decision) {
+      ctx.strokeStyle = rgba(h.color, 0.6 * pa);
+      ctx.lineWidth = 0.8;
+      ctx.beginPath(); ctx.moveTo(cx, peakY); ctx.lineTo(cx, peakY - 22); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx, peakY - 22); ctx.lineTo(cx + 14, peakY - 17); ctx.lineTo(cx, peakY - 12); ctx.closePath();
+      ctx.fillStyle = rgba(h.color, 0.3 * pa);
+      ctx.fill();
+    }
+  }
+
+  // Label
+  if (st.rise > 0.5) {
+    const la = Math.min(1, (st.rise - 0.5) * 3);
+    ctx.font = '8px IBM Plex Mono, monospace';
+    ctx.fillStyle = rgba(h.color, 0.7 * la);
+    ctx.textAlign = 'center';
+    ctx.fillText(h.label, cx, peakY - (h.decision ? 28 : 10));
+    ctx.font = '7px IBM Plex Mono, monospace';
+    ctx.fillStyle = rgba(C.il, 0.6 * la);
+    const lines = h.sub.split('\n');
+    lines.forEach((l, i) => ctx.fillText(l, cx, peakY - (h.decision ? 18 : 0) + i * 10));
+  }
+
+  // Elevation marker
+  if (st.rise > 0.9) {
+    const ea = (st.rise - 0.9) / 0.1;
+    ctx.strokeStyle = rgba(h.color, 0.15 * ea);
+    ctx.lineWidth = 0.3;
+    ctx.setLineDash([1, 3]);
+    ctx.beginPath(); ctx.moveTo(cx, peakY + 5); ctx.lineTo(cx, groundY); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.font = '6px IBM Plex Mono, monospace';
+    ctx.fillStyle = rgba(C.il, 0.5 * ea);
+    ctx.fillText((h.dur / 1000).toFixed(1) + 's', cx + 4, groundY - 4);
+  }
+
+  // Rising shimmer
+  if (st.phase === 'rising') {
+    const shimmer = 0.1 * Math.sin(animTime * 0.006);
+    ctx.beginPath();
+    ctx.arc(cx, peakY, 8, 0, Math.PI * 2);
+    ctx.strokeStyle = rgba(h.color, 0.15 + shimmer);
+    ctx.lineWidth = 0.5;
+    ctx.stroke();
+  }
+}
+
+function spawnWater(fromH, toH) {
+  const fp = hillPeak(fromH), tp = hillPeak(toH);
+  for (let i = 0; i < 5; i++) {
+    waterParticles.push({
+      fx: fp.x, fy: groundY - 3,
+      tx: tp.x, ty: groundY - 3,
+      t: -i * 0.07,
+      speed: 0.004 + Math.random() * 0.003,
+      color: fromH.color,
+      r: 1.5 + Math.random() * 1.5,
+    });
+  }
+}
+
+function drawStreams() {
+  // Static stream beds
+  streams.forEach(s => {
+    const fh = hills.find(h => h.id === s.from), th = hills.find(h => h.id === s.to);
+    const fx = fh.x + fh.w/2, tx = th.x + th.w/2;
+    ctx.beginPath();
+    ctx.moveTo(fx + fh.w/3, groundY - 2);
+    ctx.quadraticCurveTo((fx + tx) / 2, groundY - 5, tx - th.w/3, groundY - 2);
+    ctx.strokeStyle = rgba(C.teal, 0.1);
+    ctx.lineWidth = 0.6;
+    ctx.stroke();
+  });
+
+  // Animated water particles
+  for (let i = waterParticles.length - 1; i >= 0; i--) {
+    const p = waterParticles[i];
+    p.t += p.speed;
+    if (p.t > 1.3) { waterParticles.splice(i, 1); continue; }
+    if (p.t < 0 || p.t > 1) continue;
+    const t = p.t;
+    const x = p.fx + (p.tx - p.fx) * t;
+    const dip = Math.sin(t * Math.PI) * 6;
+    const y = p.fy - dip;
+    // Ripple
+    ctx.beginPath(); ctx.arc(x, y, p.r * 2, 0, Math.PI * 2);
+    ctx.fillStyle = rgba(p.color, 0.06); ctx.fill();
+    // Drop
+    ctx.beginPath(); ctx.arc(x, y, p.r, 0, Math.PI * 2);
+    ctx.fillStyle = rgba(p.color, 0.45); ctx.fill();
+  }
+}
+
+function update(dt) {
+  if (!running && !instant) return;
+  const speed = instant ? 80 : 1;
+  animTime += dt * speed;
+
+  hills.forEach(h => {
+    const st = hillState[h.id];
+    if (st.phase === 'flat' && animTime >= h.startT) {
+      st.phase = 'rising';
+      document.getElementById('status').textContent = `Rising: ${h.label}`;
+    }
+    if (st.phase === 'rising') {
+      const elapsed = animTime - h.startT;
+      st.rise = Math.min(1, elapsed / h.dur);
+      if (st.rise >= 1) {
+        st.phase = 'done';
+        streams.filter(s => s.from === h.id).forEach(s => {
+          spawnWater(h, hills.find(hh => hh.id === s.to));
+        });
+      }
+    }
+  });
+
+  if (hills.every(h => hillState[h.id].phase === 'done')) {
+    running = false; instant = false;
+    document.getElementById('status').textContent = 'Terrain complete — 18.2s';
+  }
+}
+
+function draw() {
+  ctx.clearRect(0, 0, 900, 440);
+  ctx.fillStyle = C.paper; ctx.fillRect(0, 0, 900, 440);
+  drawTimeAxis();
+  drawGround();
+  drawStreams();
+  // Draw back to front (furthest hills first for overlap)
+  [...hills].reverse().forEach(drawHill);
+
+  // Ridge line (critical path) when done
+  if (hills.every(h => hillState[h.id].phase === 'done')) {
+    const pts = hills.map(h => hillPeak(h));
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, pts[0].y);
+    for (let i = 1; i < pts.length; i++) {
+      const prev = pts[i-1], curr = pts[i];
+      ctx.quadraticCurveTo((prev.x + curr.x)/2, Math.min(prev.y, curr.y) - 10, curr.x, curr.y);
+    }
+    ctx.strokeStyle = rgba(C.red, 0.2);
+    ctx.lineWidth = 0.6;
+    ctx.setLineDash([3, 3]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.font = '7px IBM Plex Mono, monospace';
+    ctx.fillStyle = rgba(C.red, 0.35);
+    ctx.textAlign = 'left';
+    ctx.fillText('critical path (ridge line)', 420, hillPeak(hills[4]).y - 35);
+  }
+}
+
+let lastT = 0;
+function loop(t) {
+  const dt = lastT ? t - lastT : 16; lastT = t;
+  update(dt); draw();
+  requestAnimationFrame(loop);
+}
+
+document.getElementById('btn-run').addEventListener('click', () => { reset(); running = true; });
+document.getElementById('btn-reset').addEventListener('click', reset);
+document.getElementById('btn-instant').addEventListener('click', () => { reset(); instant = true; running = true; });
+
+reset();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

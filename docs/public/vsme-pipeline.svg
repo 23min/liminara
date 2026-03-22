@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 340" font-family="'IBM Plex Mono', 'Courier New', monospace">
+  <rect width="800" height="340" fill="#F5F0E8"/>
+
+  <text x="24" y="28" font-size="10" fill="#8C8680" letter-spacing="0.08em">VSME REPORTING PIPELINE</text>
+  <line x1="24" y1="36" x2="776" y2="36" stroke="#2C2C2C" stroke-width="0.5" opacity="0.2"/>
+
+  <!-- Data sources -->
+  <rect x="30" y="60" width="120" height="36" rx="4" fill="none" stroke="#D4944C" stroke-width="1.5"/>
+  <text x="90" y="82" font-size="9" fill="#2C2C2C" text-anchor="middle">Fortnox</text>
+
+  <rect x="30" y="110" width="120" height="36" rx="4" fill="none" stroke="#D4944C" stroke-width="1.5"/>
+  <text x="90" y="132" font-size="9" fill="#2C2C2C" text-anchor="middle">Energy provider</text>
+
+  <rect x="30" y="160" width="120" height="36" rx="4" fill="none" stroke="#D4944C" stroke-width="1.5"/>
+  <text x="90" y="182" font-size="9" fill="#2C2C2C" text-anchor="middle">Payroll</text>
+
+  <text x="90" y="218" font-size="7" fill="#D4944C" text-anchor="middle">side-effecting</text>
+
+  <!-- Arrows from sources to validate -->
+  <line x1="150" y1="78" x2="200" y2="118" stroke="#D4CFC7" stroke-width="1"/>
+  <line x1="150" y1="128" x2="200" y2="128" stroke="#D4CFC7" stroke-width="1"/>
+  <line x1="150" y1="178" x2="200" y2="138" stroke="#D4CFC7" stroke-width="1"/>
+
+  <!-- Validate -->
+  <rect x="200" y="108" width="110" height="40" rx="4" fill="#2B8A8E" fill-opacity="0.15" stroke="#2B8A8E" stroke-width="1.5"/>
+  <text x="255" y="132" font-size="9" fill="#2C2C2C" text-anchor="middle">validate</text>
+  <text x="255" y="168" font-size="7" fill="#2B8A8E" text-anchor="middle">pure</text>
+
+  <!-- Arrow validate to calculate -->
+  <line x1="310" y1="128" x2="340" y2="128" stroke="#D4CFC7" stroke-width="1"/>
+
+  <!-- Calculate -->
+  <rect x="340" y="108" width="110" height="40" rx="4" fill="#2B8A8E" fill-opacity="0.15" stroke="#2B8A8E" stroke-width="1.5"/>
+  <text x="395" y="125" font-size="9" fill="#2C2C2C" text-anchor="middle">calculate</text>
+  <text x="395" y="138" font-size="8" fill="#8C8680" text-anchor="middle">Scope 1+2, workforce</text>
+  <text x="395" y="168" font-size="7" fill="#2B8A8E" text-anchor="middle">pure</text>
+
+  <!-- Reference data input to calculate -->
+  <rect x="340" y="56" width="110" height="30" rx="4" fill="none" stroke="#D4CFC7" stroke-width="1" stroke-dasharray="4,3"/>
+  <text x="395" y="75" font-size="8" fill="#8C8680" text-anchor="middle">DEFRA factors v2025</text>
+  <line x1="395" y1="86" x2="395" y2="108" stroke="#D4CFC7" stroke-width="1"/>
+
+  <!-- Arrow calculate to assess -->
+  <line x1="450" y1="128" x2="480" y2="128" stroke="#D4CFC7" stroke-width="1"/>
+
+  <!-- Assess applicability -->
+  <rect x="480" y="108" width="110" height="40" rx="4" fill="#E8846B" fill-opacity="0.15" stroke="#E8846B" stroke-width="1.5"/>
+  <text x="535" y="125" font-size="9" fill="#2C2C2C" text-anchor="middle">assess</text>
+  <text x="535" y="138" font-size="8" fill="#8C8680" text-anchor="middle">B1–B11 applicable?</text>
+  <text x="535" y="168" font-size="7" fill="#E8846B" text-anchor="middle">recordable</text>
+
+  <!-- Arrow assess to render -->
+  <line x1="590" y1="128" x2="620" y2="128" stroke="#D4CFC7" stroke-width="1"/>
+
+  <!-- Render -->
+  <rect x="620" y="108" width="110" height="40" rx="4" fill="#2B8A8E" fill-opacity="0.15" stroke="#2B8A8E" stroke-width="1.5"/>
+  <text x="675" y="132" font-size="9" fill="#2C2C2C" text-anchor="middle">render report</text>
+  <text x="675" y="168" font-size="7" fill="#2B8A8E" text-anchor="middle">pure</text>
+
+  <!-- Output artifacts -->
+  <line x1="730" y1="118" x2="760" y2="100" stroke="#D4CFC7" stroke-width="1"/>
+  <line x1="730" y1="138" x2="760" y2="155" stroke="#D4CFC7" stroke-width="1"/>
+
+  <rect x="760" y="84" width="24" height="24" rx="2" fill="#2C2C2C" fill-opacity="0.06" stroke="#2C2C2C" stroke-width="0.5"/>
+  <text x="796" y="100" font-size="8" fill="#2C2C2C">PDF</text>
+
+  <rect x="760" y="144" width="24" height="24" rx="2" fill="#2C2C2C" fill-opacity="0.06" stroke="#2C2C2C" stroke-width="0.5"/>
+  <text x="796" y="160" font-size="8" fill="#2C2C2C">XBRL</text>
+
+  <!-- Decision record callout -->
+  <line x1="535" y1="148" x2="535" y2="240" stroke="#E8846B" stroke-width="0.5" stroke-dasharray="3,3"/>
+  <rect x="420" y="240" width="240" height="70" rx="4" fill="#E8846B" fill-opacity="0.06" stroke="#E8846B" stroke-width="0.5"/>
+  <text x="434" y="258" font-size="8" fill="#2C2C2C" font-weight="bold">Decision recorded:</text>
+  <text x="434" y="272" font-size="8" fill="#8C8680">B5 pollution: not applicable</text>
+  <text x="434" y="286" font-size="8" fill="#8C8680">Rationale: no process chemicals</text>
+  <text x="434" y="300" font-size="8" fill="#8C8680">sha256:7d2f...</text>
+
+  <!-- Seal callout -->
+  <line x1="675" y1="148" x2="675" y2="240" stroke="#2C2C2C" stroke-width="0.5" stroke-dasharray="3,3"/>
+  <rect x="620" y="240" width="160" height="56" rx="4" fill="#2C2C2C" fill-opacity="0.04" stroke="#2C2C2C" stroke-width="0.5"/>
+  <text x="634" y="258" font-size="8" fill="#2C2C2C" font-weight="bold">Run seal:</text>
+  <text x="634" y="272" font-size="8" fill="#8C8680">sha256:e91d...</text>
+  <text x="634" y="286" font-size="8" fill="#8C8680">Verifiable by any party</text>
+
+  <!-- Legend -->
+  <text x="30" y="320" font-size="7" fill="#8C8680" letter-spacing="0.05em">
+    <tspan fill="#2B8A8E">&#x25CF;</tspan> pure (cacheable)
+    <tspan dx="16" fill="#E8846B">&#x25CF;</tspan> recordable (decision recorded)
+    <tspan dx="16" fill="#D4944C">&#x25CF;</tspan> side-effecting (external system)
+    <tspan dx="16" fill="#D4CFC7">- -</tspan> reference data (versioned)
+  </text>
+</svg>

@@ -219,13 +219,36 @@ The Radar pack's core capabilities — semantic deduplication, cross-domain conn
 **LanceDB** is particularly well-suited for v1: file-based (like SQLite for vectors), embeddable as a library, content-addressable at the file level. The vector index file IS the artifact.
 
 Sources:
+- [zvec](https://github.com/alibaba/zvec) — Alibaba's embedded vector database with Elixir NIF bindings (`{:zvec, "~> 0.2.0"}`). In-process, no server, dirty-scheduler-safe. The strongest candidate for Liminara's "zero external dependencies" philosophy. Full analysis: [zvec.md](zvec.md)
 - [LanceDB](https://lancedb.com/) — embedded vector database, file-based
 - [Qdrant](https://qdrant.tech/) — Rust-native, can run in-process
 - [pgvector](https://github.com/pgvector/pgvector) — if Postgres is already present for Oban
 
 ---
 
-## 9. Technology Synthesis — The Pattern
+## 9. CUE — Lattice-Based Configuration and Constraint Unification
+
+CUE (Configure, Unify, Execute) is a data validation language where **types and values live in a single lattice**. Every CUE value — from abstract types (`int`) to concrete data (`42`) — is placed in a partially ordered set with a unique meet (greatest lower bound, `&`) and join (least upper bound, `|`). Merging any two CUE values is always unambiguous and order-independent. Created by Marcel van Lohuizen after 15 years on Google's internal configuration language (GCL).
+
+The key insight: data, schemas, constraints, and policy are all the same kind of thing — values in a lattice. No separate validation layer.
+
+**Connection to Liminara:** CUE's lattice is to *valid states* what Liminara's DAG is to *execution order*. Both are drawn as directed acyclic graphs — every lattice has a Hasse diagram that is a DAG — but they model different things. Liminara's DAG says "do A then B." CUE's lattice says "the result must satisfy A and B simultaneously."
+
+The deepest fit is LodeTime's IR2 pass (architecture rule checking): codebase state as a CUE value, architecture rules as CUE constraints, unification = compliance checking, `_|_` (bottom) = violation with exact location and reason. Multi-stakeholder policy composition (security + platform + compliance teams defining constraints independently) is CUE's core use case.
+
+Nearer-term applications: pack manifest validation (static composition checking before runtime), run configuration with layered constraints (pack defaults + user overrides + security policy), and decision space schemas for recordable ops.
+
+**Caveat:** CUE adds real value when multiple independent sources of constraints must compose safely. Liminara doesn't have that problem yet in practice. LodeTime will.
+
+Full analysis: [cue_language.md](cue_language.md)
+
+Sources:
+- [CUE Language](https://cuelang.org/)
+- [The Logic of CUE](https://cuelang.org/docs/concept/the-logic-of-cue/)
+
+---
+
+## 10. Technology Synthesis — The Pattern
 
 The best systems come from someone who recognized that a *combination* of existing ideas was new even if the pieces weren't:
 
@@ -248,6 +271,7 @@ The collection approach: gather interesting technologies, let them sit together,
 - CRDTs — eventual consistency for future distribution
 - W3C PROV — standard provenance vocabulary for interoperability
 - Certificate Transparency architecture — publicly auditable AI audit logs
+- CUE — lattice-based constraint composition for pack manifests and architecture rules
 
 ---
 

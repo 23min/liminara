@@ -1,0 +1,349 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1060 520" font-family="'IBM Plex Mono', 'Courier New', monospace">
+  <defs>
+    <filter id="grain">
+      <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" result="noise"/>
+      <feColorMatrix type="saturate" values="0" in="noise" result="gray"/>
+      <feBlend in="SourceGraphic" in2="gray" mode="multiply" result="blend"/>
+      <feComponentTransfer in="blend">
+        <feFuncA type="linear" slope="0.03"/>
+      </feComponentTransfer>
+      <feComposite in="SourceGraphic" in2="blend" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Page (cream manuscript paper) -->
+  <rect width="1060" height="520" fill="#F5F0E8"/>
+
+  <!-- ================================================================ -->
+  <!-- LEFT MARGIN — marginalia (artifact content, the glosses)         -->
+  <!-- ================================================================ -->
+  <line x1="220" y1="20" x2="220" y2="500" stroke="#D4CFC7" stroke-width="0.4"/>
+
+  <!-- Margin title -->
+  <text x="16" y="32" font-size="7" fill="#8C8680" letter-spacing="0.06em">ARTIFACTS</text>
+
+  <!-- Gloss: fetch_dn output -->
+  <text x="16" y="88" font-size="6" fill="#D4944C" letter-spacing="0.04em">U1 fetch_rss</text>
+  <text x="16" y="102" font-size="9" fill="#2C2C2C">DN.se: 14 items</text>
+  <text x="16" y="115" font-size="8" fill="#8C8680">latest: 2h ago</text>
+  <text x="16" y="127" font-size="7" fill="#8C8680" opacity="0.6">„Riksbanken höjer</text>
+  <text x="16" y="138" font-size="7" fill="#8C8680" opacity="0.6"> styrräntan..."</text>
+  <rect x="16" y="143" width="30" height="1.5" rx="0.5" fill="#D4944C" opacity="0.2"/>
+  <text x="50" y="147" font-size="5" fill="#8C8680">1.2s</text>
+  <!-- Leader line to component -->
+  <path d="M 205 105 L 218 105 L 218 105" stroke="#D4944C" stroke-width="0.3" fill="none" opacity="0.3"/>
+  <line x1="218" y1="105" x2="290" y2="105" stroke="#D4944C" stroke-width="0.3" fill="none" opacity="0.2" stroke-dasharray="1.5,2"/>
+
+  <!-- Gloss: fetch_svd output -->
+  <text x="16" y="188" font-size="6" fill="#D4944C" letter-spacing="0.04em">U2 fetch_rss</text>
+  <text x="16" y="202" font-size="9" fill="#2C2C2C">SvD.se: 8 items</text>
+  <text x="16" y="215" font-size="8" fill="#8C8680">latest: 45m ago</text>
+  <text x="16" y="227" font-size="7" fill="#8C8680" opacity="0.6">„Bostadsmarknaden</text>
+  <text x="16" y="238" font-size="7" fill="#8C8680" opacity="0.6"> visar tecken..."</text>
+  <rect x="16" y="243" width="22" height="1.5" rx="0.5" fill="#D4944C" opacity="0.2"/>
+  <text x="42" y="247" font-size="5" fill="#8C8680">0.9s</text>
+  <line x1="218" y1="210" x2="290" y2="210" stroke="#D4944C" stroke-width="0.3" fill="none" opacity="0.2" stroke-dasharray="1.5,2"/>
+
+  <!-- Gloss: fetch_scb output -->
+  <text x="16" y="288" font-size="6" fill="#D4944C" letter-spacing="0.04em">U3 fetch_api</text>
+  <text x="16" y="302" font-size="9" fill="#2C2C2C">SCB housing API</text>
+  <text x="16" y="315" font-size="8" fill="#8C8680">Q4 data available</text>
+  <text x="16" y="327" font-size="7" fill="#8C8680" opacity="0.6">median_price: 3.2M</text>
+  <text x="16" y="338" font-size="7" fill="#8C8680" opacity="0.6">yoy_change: +4.1%</text>
+  <rect x="16" y="343" width="42" height="1.5" rx="0.5" fill="#D4944C" opacity="0.2"/>
+  <text x="62" y="347" font-size="5" fill="#8C8680">1.8s</text>
+  <line x1="218" y1="310" x2="290" y2="310" stroke="#D4944C" stroke-width="0.3" fill="none" opacity="0.2" stroke-dasharray="1.5,2"/>
+
+  <!-- Gloss: normalize output -->
+  <text x="16" y="388" font-size="6" fill="#2B8A8E" letter-spacing="0.04em">U4 normalize</text>
+  <text x="16" y="402" font-size="9" fill="#2C2C2C">22 → 17 unique</text>
+  <text x="16" y="415" font-size="8" fill="#8C8680">5 dedup, 3 cached</text>
+  <rect x="16" y="422" width="8" height="1.5" rx="0.5" fill="#2B8A8E" opacity="0.2"/>
+  <text x="28" y="426" font-size="5" fill="#8C8680">0.3s</text>
+  <line x1="218" y1="400" x2="420" y2="245" stroke="#2B8A8E" stroke-width="0.3" fill="none" opacity="0.15" stroke-dasharray="1.5,2"/>
+
+  <!-- ================================================================ -->
+  <!-- RIGHT MARGIN — marginalia (LLM output, decision, delivery)      -->
+  <!-- ================================================================ -->
+  <line x1="810" y1="20" x2="810" y2="500" stroke="#D4CFC7" stroke-width="0.4"/>
+
+  <text x="826" y="32" font-size="7" fill="#8C8680" letter-spacing="0.06em">DECISIONS &amp; OUTPUT</text>
+
+  <!-- Gloss: rank_and_summarize output (the big one) -->
+  <text x="826" y="88" font-size="6" fill="#E8846B" letter-spacing="0.04em">U5 rank_and_summarize</text>
+  <circle cx="954" cy="83" r="3" fill="#E8846B" opacity="0.5"/>
+  <text x="960" y="87" font-size="5" fill="#E8846B" opacity="0.7">DECISION</text>
+  <text x="826" y="106" font-size="9.5" fill="#2C2C2C">„The Swedish housing</text>
+  <text x="826" y="120" font-size="9.5" fill="#2C2C2C"> market showed early</text>
+  <text x="826" y="134" font-size="9.5" fill="#2C2C2C"> recovery signs in Q4,</text>
+  <text x="826" y="148" font-size="9.5" fill="#2C2C2C"> with median prices up</text>
+  <text x="826" y="162" font-size="9.5" fill="#2C2C2C"> 4.1% year-over-year."</text>
+  <text x="826" y="180" font-size="8" fill="#8C8680">3 sources cited</text>
+  <text x="826" y="193" font-size="8" fill="#8C8680">confidence: high</text>
+  <text x="826" y="206" font-size="8" fill="#8C8680">tone: neutral-positive</text>
+  <rect x="826" y="214" width="140" height="2" rx="0.5" fill="#E8846B" opacity="0.2"/>
+  <text x="970" y="218" font-size="5" fill="#8C8680">8.4s</text>
+  <!-- Ghost alternatives (faded, paths not taken) -->
+  <text x="826" y="236" font-size="7" fill="#8C8680" opacity="0.25">alt: „Recovery signals remain</text>
+  <text x="826" y="247" font-size="7" fill="#8C8680" opacity="0.25">      mixed, with regional..."</text>
+  <text x="826" y="262" font-size="7" fill="#8C8680" opacity="0.15">alt: „Despite positive Q4 data,</text>
+  <text x="826" y="273" font-size="7" fill="#8C8680" opacity="0.15">      structural challenges..."</text>
+
+  <!-- Leader to component -->
+  <line x1="812" y1="150" x2="700" y2="210" stroke="#E8846B" stroke-width="0.3" fill="none" opacity="0.2" stroke-dasharray="1.5,2"/>
+
+  <!-- Gloss: deliver output -->
+  <text x="826" y="320" font-size="6" fill="#D4944C" letter-spacing="0.04em">J1 deliver</text>
+  <text x="826" y="338" font-size="9" fill="#2C2C2C">sent to: team@</text>
+  <text x="826" y="352" font-size="8" fill="#8C8680">Daily Briefing</text>
+  <text x="826" y="365" font-size="8" fill="#8C8680">format: markdown</text>
+  <text x="826" y="378" font-size="8" fill="#8C8680">attachments: 1</text>
+  <rect x="826" y="385" width="8" height="1.5" rx="0.5" fill="#D4944C" opacity="0.2"/>
+  <text x="838" y="389" font-size="5" fill="#8C8680">0.3s</text>
+  <line x1="812" y1="345" x2="740" y2="150" stroke="#D4944C" stroke-width="0.3" fill="none" opacity="0.15" stroke-dasharray="1.5,2"/>
+
+  <!-- ================================================================ -->
+  <!-- THE BOARD — center area, actual circuit                          -->
+  <!-- ================================================================ -->
+
+  <!-- Board surface (slightly different shade from margins) -->
+  <rect x="228" y="40" width="574" height="440" rx="4" fill="#EDE8E0" filter="url(#grain)"/>
+  <rect x="230" y="42" width="570" height="436" rx="3" fill="none" stroke="#D4CFC7" stroke-width="0.5"/>
+
+  <!-- Mounting holes -->
+  <circle cx="242" cy="54" r="3.5" fill="none" stroke="#D4CFC7" stroke-width="0.4"/>
+  <circle cx="242" cy="54" r="1.5" fill="#D4CFC7" opacity="0.3"/>
+  <circle cx="788" cy="54" r="3.5" fill="none" stroke="#D4CFC7" stroke-width="0.4"/>
+  <circle cx="788" cy="54" r="1.5" fill="#D4CFC7" opacity="0.3"/>
+  <circle cx="242" cy="466" r="3.5" fill="none" stroke="#D4CFC7" stroke-width="0.4"/>
+  <circle cx="242" cy="466" r="1.5" fill="#D4CFC7" opacity="0.3"/>
+  <circle cx="788" cy="466" r="3.5" fill="none" stroke="#D4CFC7" stroke-width="0.4"/>
+  <circle cx="788" cy="466" r="1.5" fill="#D4CFC7" opacity="0.3"/>
+
+  <!-- Board silk screen title -->
+  <text x="260" y="62" font-size="7" fill="#2C2C2C" letter-spacing="0.08em" opacity="0.4">RADAR DAILY BRIEFING v1.0  —  REV A</text>
+
+  <!-- Time axis silk screen -->
+  <text x="300" y="82" font-size="5" fill="#8C8680" text-anchor="middle">0s</text>
+  <text x="420" y="82" font-size="5" fill="#8C8680" text-anchor="middle">2s</text>
+  <text x="540" y="82" font-size="5" fill="#8C8680" text-anchor="middle">5s</text>
+  <text x="660" y="82" font-size="5" fill="#8C8680" text-anchor="middle">10s</text>
+  <text x="760" y="82" font-size="5" fill="#8C8680" text-anchor="middle">18s</text>
+  <line x1="260" y1="86" x2="790" y2="86" stroke="#D4CFC7" stroke-width="0.2"/>
+
+  <!-- ============================================= -->
+  <!-- TRACES — thick, bold, 45° routed copper       -->
+  <!-- ============================================= -->
+
+  <!-- TRACE: U1 → U4 (amber, 45° jog down) -->
+  <path d="M 320 105 L 360 105 L 400 145 L 420 145 L 420 230"
+        stroke="#D4944C" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.35"/>
+
+  <!-- TRACE: U2 → U4 (amber, straight) -->
+  <path d="M 320 210 L 360 210 L 400 210 L 420 230"
+        stroke="#D4944C" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.3"/>
+
+  <!-- TRACE: U3 → U4 (amber, 45° jog up) -->
+  <path d="M 330 310 L 370 310 L 410 270 L 420 260"
+        stroke="#D4944C" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.35"/>
+
+  <!-- TRACE: U4 → VIA (teal) -->
+  <path d="M 460 245 L 510 245 L 540 245"
+        stroke="#2B8A8E" stroke-width="3.5" fill="none" stroke-linecap="round" opacity="0.35"/>
+
+  <!-- TRACE: VIA → U5 (coral, the wide one) -->
+  <path d="M 560 245 L 580 245 L 600 210 L 700 210"
+        stroke="#E8846B" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.3"/>
+
+  <!-- TRACE: U5 → J1 (amber, jog up) -->
+  <path d="M 700 210 L 720 210 L 740 170 L 740 150"
+        stroke="#D4944C" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.3"/>
+
+  <!-- Signal particles on traces -->
+  <circle cx="345" cy="105" r="3" fill="#D4944C" opacity="0.6"/>
+  <circle cx="385" cy="130" r="3" fill="#D4944C" opacity="0.4"/>
+  <circle cx="350" cy="210" r="3" fill="#D4944C" opacity="0.5"/>
+  <circle cx="390" cy="210" r="3" fill="#D4944C" opacity="0.35"/>
+  <circle cx="360" cy="310" r="3" fill="#D4944C" opacity="0.5"/>
+  <circle cx="395" cy="280" r="3" fill="#D4944C" opacity="0.35"/>
+  <circle cx="490" cy="245" r="3" fill="#2B8A8E" opacity="0.45"/>
+  <circle cx="520" cy="245" r="3" fill="#2B8A8E" opacity="0.3"/>
+  <circle cx="620" cy="215" r="3" fill="#E8846B" opacity="0.35"/>
+  <circle cx="660" cy="210" r="3" fill="#E8846B" opacity="0.25"/>
+
+  <!-- ============================================= -->
+  <!-- COMPONENTS — small, IC-shaped, true to PCB    -->
+  <!-- ============================================= -->
+
+  <!-- U1: fetch_dn — small SOIC-8 shape -->
+  <rect x="282" y="92" width="38" height="26" rx="1.5" fill="#1A1A1A" opacity="0.85"/>
+  <!-- Pins (4 per side) -->
+  <rect x="278" y="96" width="6" height="2" rx="0.5" fill="#D4944C" opacity="0.5"/>
+  <rect x="278" y="102" width="6" height="2" rx="0.5" fill="#D4944C" opacity="0.5"/>
+  <rect x="278" y="108" width="6" height="2" rx="0.5" fill="#D4944C" opacity="0.5"/>
+  <rect x="278" y="114" width="6" height="2" rx="0.5" fill="#D4944C" opacity="0.5"/>
+  <rect x="318" y="96" width="6" height="2" rx="0.5" fill="#D4944C" opacity="0.5"/>
+  <rect x="318" y="102" width="6" height="2" rx="0.5" fill="#D4944C" opacity="0.5"/>
+  <rect x="318" y="108" width="6" height="2" rx="0.5" fill="#D4944C" opacity="0.5"/>
+  <rect x="318" y="114" width="6" height="2" rx="0.5" fill="#D4944C" opacity="0.5"/>
+  <!-- Pin 1 dot -->
+  <circle cx="288" cy="98" r="1.5" fill="#D4944C" opacity="0.6"/>
+  <!-- Silk screen label -->
+  <text x="301" y="108" font-size="5.5" fill="#F5F0E8" text-anchor="middle" opacity="0.8">U1</text>
+
+  <!-- U2: fetch_svd — small SOIC-8 shape -->
+  <rect x="282" y="197" width="38" height="26" rx="1.5" fill="#1A1A1A" opacity="0.85"/>
+  <rect x="278" y="201" width="6" height="2" rx="0.5" fill="#D4944C" opacity="0.5"/>
+  <rect x="278" y="207" width="6" height="2" rx="0.5" fill="#D4944C" opacity="0.5"/>
+  <rect x="278" y="213" width="6" height="2" rx="0.5" fill="#D4944C" opacity="0.5"/>
+  <rect x="278" y="219" width="6" height="2" rx="0.5" fill="#D4944C" opacity="0.5"/>
+  <rect x="318" y="201" width="6" height="2" rx="0.5" fill="#D4944C" opacity="0.5"/>
+  <rect x="318" y="207" width="6" height="2" rx="0.5" fill="#D4944C" opacity="0.5"/>
+  <rect x="318" y="213" width="6" height="2" rx="0.5" fill="#D4944C" opacity="0.5"/>
+  <rect x="318" y="219" width="6" height="2" rx="0.5" fill="#D4944C" opacity="0.5"/>
+  <circle cx="288" cy="203" r="1.5" fill="#D4944C" opacity="0.6"/>
+  <text x="301" y="213" font-size="5.5" fill="#F5F0E8" text-anchor="middle" opacity="0.8">U2</text>
+
+  <!-- U3: fetch_scb — slightly larger (longer fetch) -->
+  <rect x="282" y="295" width="48" height="30" rx="1.5" fill="#1A1A1A" opacity="0.85"/>
+  <rect x="278" y="299" width="6" height="2" rx="0.5" fill="#D4944C" opacity="0.5"/>
+  <rect x="278" y="305" width="6" height="2" rx="0.5" fill="#D4944C" opacity="0.5"/>
+  <rect x="278" y="311" width="6" height="2" rx="0.5" fill="#D4944C" opacity="0.5"/>
+  <rect x="278" y="317" width="6" height="2" rx="0.5" fill="#D4944C" opacity="0.5"/>
+  <rect x="328" y="299" width="6" height="2" rx="0.5" fill="#D4944C" opacity="0.5"/>
+  <rect x="328" y="305" width="6" height="2" rx="0.5" fill="#D4944C" opacity="0.5"/>
+  <rect x="328" y="311" width="6" height="2" rx="0.5" fill="#D4944C" opacity="0.5"/>
+  <rect x="328" y="317" width="6" height="2" rx="0.5" fill="#D4944C" opacity="0.5"/>
+  <circle cx="288" cy="301" r="1.5" fill="#D4944C" opacity="0.6"/>
+  <text x="306" y="314" font-size="5.5" fill="#F5F0E8" text-anchor="middle" opacity="0.8">U3</text>
+
+  <!-- U4: normalize — tiny component (0.3s, a passive) -->
+  <rect x="420" y="230" width="32" height="22" rx="1.5" fill="#1A1A1A" opacity="0.8"/>
+  <rect x="416" y="235" width="6" height="2" rx="0.5" fill="#2B8A8E" opacity="0.5"/>
+  <rect x="416" y="241" width="6" height="2" rx="0.5" fill="#2B8A8E" opacity="0.5"/>
+  <rect x="416" y="247" width="6" height="2" rx="0.5" fill="#2B8A8E" opacity="0.5"/>
+  <rect x="450" y="235" width="6" height="2" rx="0.5" fill="#2B8A8E" opacity="0.5"/>
+  <rect x="450" y="241" width="6" height="2" rx="0.5" fill="#2B8A8E" opacity="0.5"/>
+  <rect x="450" y="247" width="6" height="2" rx="0.5" fill="#2B8A8E" opacity="0.5"/>
+  <circle cx="426" cy="236" r="1.2" fill="#2B8A8E" opacity="0.6"/>
+  <text x="436" y="244" font-size="5" fill="#F5F0E8" text-anchor="middle" opacity="0.8">U4</text>
+
+  <!-- VIA: determinism class transition -->
+  <circle cx="550" cy="245" r="8" fill="#EDE8E0" stroke="#E8846B" stroke-width="1.5"/>
+  <circle cx="550" cy="245" r="3" fill="#E8846B"/>
+  <text x="550" y="233" font-size="4.5" fill="#E8846B" text-anchor="middle" opacity="0.7">VIA</text>
+  <text x="550" y="260" font-size="4" fill="#8C8680" text-anchor="middle" opacity="0.5">pure→rec</text>
+
+  <!-- U5: rank_and_summarize — BGA package (the big chip) -->
+  <rect x="610" y="190" width="80" height="48" rx="2" fill="#1A1A1A" opacity="0.9"/>
+  <!-- BGA ball grid (visible through underside) -->
+  <circle cx="625" cy="205" r="1.5" fill="#E8846B" opacity="0.25"/>
+  <circle cx="635" cy="205" r="1.5" fill="#E8846B" opacity="0.25"/>
+  <circle cx="645" cy="205" r="1.5" fill="#E8846B" opacity="0.25"/>
+  <circle cx="655" cy="205" r="1.5" fill="#E8846B" opacity="0.25"/>
+  <circle cx="665" cy="205" r="1.5" fill="#E8846B" opacity="0.25"/>
+  <circle cx="675" cy="205" r="1.5" fill="#E8846B" opacity="0.25"/>
+  <circle cx="625" cy="215" r="1.5" fill="#E8846B" opacity="0.25"/>
+  <circle cx="635" cy="215" r="1.5" fill="#E8846B" opacity="0.25"/>
+  <circle cx="645" cy="215" r="1.5" fill="#E8846B" opacity="0.25"/>
+  <circle cx="655" cy="215" r="1.5" fill="#E8846B" opacity="0.25"/>
+  <circle cx="665" cy="215" r="1.5" fill="#E8846B" opacity="0.25"/>
+  <circle cx="675" cy="215" r="1.5" fill="#E8846B" opacity="0.25"/>
+  <circle cx="625" cy="225" r="1.5" fill="#E8846B" opacity="0.25"/>
+  <circle cx="635" cy="225" r="1.5" fill="#E8846B" opacity="0.25"/>
+  <circle cx="645" cy="225" r="1.5" fill="#E8846B" opacity="0.25"/>
+  <circle cx="655" cy="225" r="1.5" fill="#E8846B" opacity="0.25"/>
+  <circle cx="665" cy="225" r="1.5" fill="#E8846B" opacity="0.25"/>
+  <circle cx="675" cy="225" r="1.5" fill="#E8846B" opacity="0.25"/>
+  <!-- The chosen ball (highlighted) -->
+  <circle cx="655" cy="205" r="2" fill="#E8846B" opacity="0.7"/>
+  <!-- Pin 1 marker (notch) -->
+  <path d="M 645 190 Q 650 185 655 190" fill="none" stroke="#E8846B" stroke-width="0.6" opacity="0.5"/>
+  <!-- IC label -->
+  <text x="650" y="216" font-size="7" fill="#F5F0E8" text-anchor="middle" opacity="0.85">U5</text>
+  <!-- Heat sink marking (it runs hot — the bottleneck) -->
+  <line x1="615" y1="238" x2="685" y2="238" stroke="#E8846B" stroke-width="0.3" opacity="0.15"/>
+  <line x1="615" y1="232" x2="685" y2="232" stroke="#E8846B" stroke-width="0.3" opacity="0.1"/>
+
+  <!-- J1: deliver — edge connector -->
+  <rect x="730" y="134" width="16" height="30" rx="1" fill="#1A1A1A" opacity="0.8"/>
+  <!-- Connector pins -->
+  <rect x="744" y="140" width="6" height="2" rx="0.5" fill="#D4944C" opacity="0.5"/>
+  <rect x="744" y="146" width="6" height="2" rx="0.5" fill="#D4944C" opacity="0.5"/>
+  <rect x="744" y="152" width="6" height="2" rx="0.5" fill="#D4944C" opacity="0.5"/>
+  <rect x="744" y="158" width="6" height="2" rx="0.5" fill="#D4944C" opacity="0.5"/>
+  <text x="738" y="152" font-size="4.5" fill="#F5F0E8" text-anchor="middle" opacity="0.8">J1</text>
+  <!-- Board edge cutout (connector goes to edge) -->
+  <rect x="748" y="132" width="46" height="34" rx="0" fill="#F5F0E8"/>
+  <rect x="748" y="132" width="2" height="34" fill="#D4CFC7" opacity="0.4"/>
+
+  <!-- ============================================= -->
+  <!-- SILK SCREEN ANNOTATIONS (on the board)        -->
+  <!-- ============================================= -->
+
+  <!-- Component designators (next to each IC) -->
+  <text x="301" y="88" font-size="5" fill="#8C8680" text-anchor="middle" opacity="0.5">fetch_rss</text>
+  <text x="301" y="193" font-size="5" fill="#8C8680" text-anchor="middle" opacity="0.5">fetch_rss</text>
+  <text x="306" y="291" font-size="5" fill="#8C8680" text-anchor="middle" opacity="0.5">fetch_api</text>
+  <text x="436" y="226" font-size="4.5" fill="#8C8680" text-anchor="middle" opacity="0.5">normalize</text>
+  <text x="650" y="186" font-size="5" fill="#8C8680" text-anchor="middle" opacity="0.5">rank_and_summarize</text>
+  <text x="738" y="130" font-size="4.5" fill="#8C8680" text-anchor="middle" opacity="0.5">deliver</text>
+
+  <!-- Parallel bracket -->
+  <text x="258" y="98" font-size="4.5" fill="#8C8680" opacity="0.4">┌</text>
+  <line x1="262" y1="100" x2="262" y2="320" stroke="#8C8680" stroke-width="0.3" opacity="0.2"/>
+  <text x="258" y="324" font-size="4.5" fill="#8C8680" opacity="0.4">└</text>
+  <text x="250" y="210" font-size="4" fill="#8C8680" opacity="0.3" transform="rotate(-90, 250, 210)">3× parallel</text>
+
+  <!-- Bottleneck dimension line -->
+  <line x1="610" y1="245" x2="610" y2="265" stroke="#8C8680" stroke-width="0.3" stroke-dasharray="1,1.5" opacity="0.3"/>
+  <line x1="690" y1="245" x2="690" y2="265" stroke="#8C8680" stroke-width="0.3" stroke-dasharray="1,1.5" opacity="0.3"/>
+  <line x1="610" y1="262" x2="690" y2="262" stroke="#8C8680" stroke-width="0.3" opacity="0.3"/>
+  <text x="650" y="275" font-size="5" fill="#8C8680" text-anchor="middle" opacity="0.4">8.4s — 47% (bottleneck)</text>
+
+  <!-- ================================================================ -->
+  <!-- BOTTOM — Board legend (silk screen)                              -->
+  <!-- ================================================================ -->
+  <line x1="230" y1="400" x2="800" y2="400" stroke="#D4CFC7" stroke-width="0.2"/>
+
+  <text x="250" y="418" font-size="6" fill="#8C8680" letter-spacing="0.04em" opacity="0.5">COMPONENTS</text>
+
+  <!-- IC + amber -->
+  <rect x="250" y="425" width="14" height="10" rx="1" fill="#1A1A1A" opacity="0.7"/>
+  <rect x="246" y="428" width="5" height="1.5" rx="0.5" fill="#D4944C" opacity="0.4"/>
+  <rect x="263" y="428" width="5" height="1.5" rx="0.5" fill="#D4944C" opacity="0.4"/>
+  <text x="274" y="434" font-size="6" fill="#8C8680">I/O</text>
+
+  <!-- IC + teal -->
+  <rect x="310" y="425" width="14" height="10" rx="1" fill="#1A1A1A" opacity="0.7"/>
+  <rect x="306" y="428" width="5" height="1.5" rx="0.5" fill="#2B8A8E" opacity="0.4"/>
+  <rect x="323" y="428" width="5" height="1.5" rx="0.5" fill="#2B8A8E" opacity="0.4"/>
+  <text x="334" y="434" font-size="6" fill="#8C8680">Pure</text>
+
+  <!-- IC + coral (BGA) -->
+  <rect x="380" y="425" width="14" height="10" rx="1" fill="#1A1A1A" opacity="0.7"/>
+  <circle cx="385" cy="430" r="1" fill="#E8846B" opacity="0.4"/>
+  <circle cx="389" cy="430" r="1" fill="#E8846B" opacity="0.4"/>
+  <text x="400" y="434" font-size="6" fill="#8C8680">LLM</text>
+
+  <text x="470" y="418" font-size="6" fill="#8C8680" letter-spacing="0.04em" opacity="0.5">TRACES</text>
+
+  <line x1="470" y1="430" x2="495" y2="430" stroke="#D4944C" stroke-width="3" opacity="0.3"/>
+  <text x="502" y="434" font-size="6" fill="#8C8680">I/O</text>
+
+  <line x1="530" y1="430" x2="555" y2="430" stroke="#2B8A8E" stroke-width="3" opacity="0.3"/>
+  <text x="562" y="434" font-size="6" fill="#8C8680">Pure</text>
+
+  <line x1="600" y1="430" x2="625" y2="430" stroke="#E8846B" stroke-width="4" opacity="0.3"/>
+  <text x="632" y="434" font-size="6" fill="#8C8680">LLM (wide = bottleneck)</text>
+
+  <text x="250" y="458" font-size="6" fill="#8C8680" letter-spacing="0.04em" opacity="0.5">MARKERS</text>
+
+  <circle cx="260" cy="468" r="5" fill="#EDE8E0" stroke="#E8846B" stroke-width="1"/>
+  <circle cx="260" cy="468" r="2" fill="#E8846B"/>
+  <text x="270" y="472" font-size="6" fill="#8C8680">Via (determinism transition)</text>
+
+  <!-- Manuscript note -->
+  <text x="470" y="458" font-size="6" fill="#8C8680" letter-spacing="0.04em" opacity="0.5">READING</text>
+  <text x="470" y="472" font-size="6" fill="#8C8680">Board = structure &amp; flow  |  Margins = content &amp; meaning  |  Leaders connect the two</text>
+</svg>

@@ -211,3 +211,11 @@ This pack may require external executors (ports/containers/remote workers).
 - [Inoreader](https://www.inoreader.com/) — RSS reader with filtering/search.
 - [Readwise Reader](https://readwise.io/read) — Read-it-later + RSS.
 - [Hacker News API](https://github.com/HackerNews/API) — Official HN JSON API.
+
+### Vector search candidates
+
+When Radar moves beyond TF-IDF to embedding-based clustering and semantic deduplication (IR3/IR4), an in-process vector database will be needed. Current best candidate:
+
+- **[zvec](https://github.com/alibaba/zvec)** — Alibaba's embedded vector database (C++/Proxima). Has Elixir NIF bindings on hex.pm (`{:zvec, "~> 0.2.0"}`). In-process, no server, hybrid search (vector + field filters), dirty-scheduler-safe. Fits the "zero external dependencies" principle. Full evaluation: [docs/research/zvec.md](../../research/zvec.md).
+- [LanceDB](https://lancedb.com/) — file-based embedded vector DB (Rust). No Elixir bindings; would require a sidecar.
+- [pgvector](https://github.com/pgvector/pgvector) — PostgreSQL extension. Only if Postgres is already present for Oban.

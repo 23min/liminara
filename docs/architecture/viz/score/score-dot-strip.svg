@@ -1,0 +1,157 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 200" font-family="'IBM Plex Mono', 'Courier New', monospace">
+  <rect width="900" height="200" fill="#F5F0E8"/>
+
+  <text x="32" y="24" font-size="11" fill="#2C2C2C" letter-spacing="0.08em">SCORE AT SCALE — SOFTWARE FACTORY (847 OPS)</text>
+  <text x="32" y="38" font-size="8" fill="#8C8680">At far zoom the score becomes a rhythm pattern. Dense clusters = parallel bursts. Gaps = rests.</text>
+  <line x1="32" y1="46" x2="868" y2="46" stroke="#2C2C2C" stroke-width="0.5" opacity="0.2"/>
+
+  <!-- Five staff lines per group, 3 groups stacked -->
+
+  <!-- Staff group 1: I/O + Fetch -->
+  <text x="20" y="72" font-size="6" fill="#D4944C">I/O</text>
+  <line x1="40" y1="66" x2="868" y2="66" stroke="#D4CFC7" stroke-width="0.2"/>
+  <line x1="40" y1="72" x2="868" y2="72" stroke="#D4CFC7" stroke-width="0.2"/>
+  <line x1="40" y1="78" x2="868" y2="78" stroke="#D4CFC7" stroke-width="0.2"/>
+
+  <!-- Staff group 2: Pure -->
+  <text x="20" y="100" font-size="6" fill="#2B8A8E">PURE</text>
+  <line x1="40" y1="94" x2="868" y2="94" stroke="#D4CFC7" stroke-width="0.2"/>
+  <line x1="40" y1="100" x2="868" y2="100" stroke="#D4CFC7" stroke-width="0.2"/>
+  <line x1="40" y1="106" x2="868" y2="106" stroke="#D4CFC7" stroke-width="0.2"/>
+
+  <!-- Staff group 3: LLM -->
+  <text x="20" y="128" font-size="6" fill="#E8846B">LLM</text>
+  <line x1="40" y1="122" x2="868" y2="122" stroke="#D4CFC7" stroke-width="0.2"/>
+  <line x1="40" y1="128" x2="868" y2="128" stroke="#D4CFC7" stroke-width="0.2"/>
+  <line x1="40" y1="134" x2="868" y2="134" stroke="#D4CFC7" stroke-width="0.2"/>
+
+  <!-- ===== Movement I: Planning (coral-heavy, sparse) ===== -->
+  <text x="75" y="58" font-size="7" fill="#8C8680">I. Planning</text>
+
+  <!-- LLM staff: many coral notes -->
+  <ellipse cx="60" cy="128" rx="4" ry="2.5" fill="#E8846B"/>
+  <ellipse cx="72" cy="122" rx="4" ry="2.5" fill="#E8846B"/>
+  <ellipse cx="84" cy="128" rx="6" ry="2.5" fill="#E8846B"/>
+  <ellipse cx="100" cy="122" rx="4" ry="2.5" fill="#E8846B"/>
+  <ellipse cx="112" cy="128" rx="5" ry="2.5" fill="#E8846B"/>
+  <!-- Pure staff: occasional -->
+  <ellipse cx="76" cy="100" rx="3" ry="2.5" fill="#2B8A8E"/>
+  <ellipse cx="104" cy="94" rx="3" ry="2.5" fill="#2B8A8E"/>
+  <!-- Gate (rest) -->
+  <rect x="122" y="126" width="6" height="3" fill="#C45B4A"/>
+
+  <!-- Bar line -->
+  <line x1="140" y1="64" x2="140" y2="136" stroke="#D4CFC7" stroke-width="0.3"/>
+
+  <!-- ===== Movement II: Implementation (dense, teal-heavy, parallel) ===== -->
+  <text x="280" y="58" font-size="7" fill="#8C8680">II. Implementation</text>
+
+  <!-- Dense cluster of pure ops across all three staves -->
+  <!-- Pure staff: VERY dense -->
+  <ellipse cx="160" cy="94" rx="3" ry="2" fill="#2B8A8E"/>
+  <ellipse cx="168" cy="100" rx="3" ry="2" fill="#2B8A8E"/>
+  <ellipse cx="176" cy="94" rx="3" ry="2" fill="#2B8A8E"/>
+  <ellipse cx="184" cy="106" rx="3" ry="2" fill="#2B8A8E"/>
+  <ellipse cx="192" cy="94" rx="3" ry="2" fill="#2B8A8E"/>
+  <ellipse cx="200" cy="100" rx="3" ry="2" fill="#2B8A8E"/>
+  <ellipse cx="208" cy="94" rx="4" ry="2" fill="#2B8A8E"/>
+  <ellipse cx="218" cy="100" rx="3" ry="2" fill="#2B8A8E"/>
+  <ellipse cx="226" cy="106" rx="3" ry="2" fill="#2B8A8E"/>
+  <ellipse cx="234" cy="94" rx="3" ry="2" fill="#2B8A8E"/>
+  <ellipse cx="242" cy="100" rx="3" ry="2" fill="#2B8A8E"/>
+  <ellipse cx="250" cy="94" rx="3" ry="2" fill="#E8846B"/>
+  <ellipse cx="258" cy="106" rx="3" ry="2" fill="#2B8A8E"/>
+  <ellipse cx="266" cy="94" rx="3" ry="2" fill="#2B8A8E"/>
+  <ellipse cx="274" cy="100" rx="3" ry="2" fill="#2B8A8E"/>
+  <ellipse cx="282" cy="94" rx="3" ry="2" fill="#2B8A8E"/>
+  <ellipse cx="290" cy="106" rx="3" ry="2" fill="#2B8A8E"/>
+  <ellipse cx="298" cy="94" rx="3" ry="2" fill="#2B8A8E"/>
+  <ellipse cx="306" cy="100" rx="3" ry="2" fill="#D4944C"/>
+  <ellipse cx="314" cy="94" rx="3" ry="2" fill="#2B8A8E"/>
+  <ellipse cx="322" cy="106" rx="3" ry="2" fill="#2B8A8E"/>
+  <ellipse cx="330" cy="94" rx="3" ry="2" fill="#2B8A8E"/>
+  <ellipse cx="338" cy="100" rx="3" ry="2" fill="#2B8A8E"/>
+  <ellipse cx="346" cy="94" rx="3" ry="2" fill="#E8846B"/>
+  <ellipse cx="354" cy="100" rx="4" ry="2" fill="#2B8A8E"/>
+  <ellipse cx="364" cy="94" rx="3" ry="2" fill="#2B8A8E"/>
+  <ellipse cx="372" cy="106" rx="3" ry="2" fill="#2B8A8E"/>
+  <ellipse cx="380" cy="94" rx="3" ry="2" fill="#2B8A8E"/>
+  <ellipse cx="388" cy="100" rx="3" ry="2" fill="#D4944C"/>
+  <ellipse cx="396" cy="94" rx="3" ry="2" fill="#2B8A8E"/>
+  <ellipse cx="404" cy="106" rx="3" ry="2" fill="#2B8A8E"/>
+
+  <!-- I/O staff: occasional amber notes -->
+  <ellipse cx="172" cy="72" rx="4" ry="2" fill="#D4944C"/>
+  <ellipse cx="220" cy="66" rx="4" ry="2" fill="#D4944C"/>
+  <ellipse cx="280" cy="72" rx="4" ry="2" fill="#D4944C"/>
+  <ellipse cx="340" cy="66" rx="5" ry="2" fill="#D4944C"/>
+  <ellipse cx="392" cy="72" rx="4" ry="2" fill="#D4944C"/>
+
+  <!-- LLM staff: occasional coral notes -->
+  <ellipse cx="195" cy="128" rx="5" ry="2" fill="#E8846B"/>
+  <ellipse cx="260" cy="122" rx="4" ry="2" fill="#E8846B"/>
+  <ellipse cx="350" cy="128" rx="6" ry="2" fill="#E8846B"/>
+  <ellipse cx="400" cy="122" rx="4" ry="2" fill="#E8846B"/>
+
+  <!-- Bar line -->
+  <line x1="420" y1="64" x2="420" y2="136" stroke="#D4CFC7" stroke-width="0.3"/>
+
+  <!-- ===== Movement III: Testing (mixed) ===== -->
+  <text x="480" y="58" font-size="7" fill="#8C8680">III. Testing</text>
+
+  <!-- Mixed density -->
+  <ellipse cx="440" cy="94" rx="3" ry="2" fill="#2B8A8E"/>
+  <ellipse cx="448" cy="72" rx="4" ry="2" fill="#D4944C"/>
+  <ellipse cx="456" cy="100" rx="3" ry="2" fill="#2B8A8E"/>
+  <ellipse cx="464" cy="66" rx="4" ry="2" fill="#D4944C"/>
+  <ellipse cx="472" cy="94" rx="3" ry="2" fill="#2B8A8E"/>
+  <ellipse cx="480" cy="100" rx="3" ry="2" fill="#D4944C"/>
+  <ellipse cx="488" cy="72" rx="4" ry="2" fill="#D4944C"/>
+  <ellipse cx="496" cy="94" rx="3" ry="2" fill="#2B8A8E"/>
+  <ellipse cx="504" cy="106" rx="3" ry="2" fill="#D4944C"/>
+  <!-- Failure: red X-shaped note -->
+  <ellipse cx="512" cy="94" rx="3" ry="2" fill="#C45B4A"/>
+  <line x1="509" y1="91" x2="515" y2="97" stroke="#C45B4A" stroke-width="0.5"/>
+  <line x1="515" y1="91" x2="509" y2="97" stroke="#C45B4A" stroke-width="0.5"/>
+  <ellipse cx="520" cy="72" rx="3" ry="2" fill="#2B8A8E"/>
+  <ellipse cx="528" cy="100" rx="3" ry="2" fill="#D4944C"/>
+  <ellipse cx="536" cy="94" rx="3" ry="2" fill="#2B8A8E"/>
+
+  <line x1="550" y1="64" x2="550" y2="136" stroke="#D4CFC7" stroke-width="0.3"/>
+
+  <!-- ===== Movement IV: Review + Fix ===== -->
+  <text x="615" y="58" font-size="7" fill="#8C8680">IV. Review</text>
+
+  <ellipse cx="565" cy="128" rx="4" ry="2" fill="#E8846B"/>
+  <ellipse cx="575" cy="94" rx="3" ry="2" fill="#2B8A8E"/>
+  <ellipse cx="585" cy="122" rx="5" ry="2" fill="#E8846B"/>
+
+  <!-- Gate rest (the big pause) -->
+  <rect x="600" y="126" width="8" height="4" fill="#C45B4A"/>
+  <circle cx="604" cy="118" r="1.5" fill="#C45B4A"/>
+  <path d="M 596 120 Q 604 114 612 120" stroke="#C45B4A" stroke-width="0.5" fill="none"/>
+
+  <!-- Long silence (empty measures) -->
+  <line x1="625" y1="64" x2="625" y2="136" stroke="#D4CFC7" stroke-width="0.15"/>
+  <line x1="660" y1="64" x2="660" y2="136" stroke="#D4CFC7" stroke-width="0.15"/>
+  <line x1="695" y1="64" x2="695" y2="136" stroke="#D4CFC7" stroke-width="0.15"/>
+  <line x1="730" y1="64" x2="730" y2="136" stroke="#D4CFC7" stroke-width="0.15"/>
+
+  <!-- Resume after gate -->
+  <line x1="745" y1="64" x2="745" y2="136" stroke="#D4CFC7" stroke-width="0.3"/>
+  <ellipse cx="760" cy="94" rx="3" ry="2" fill="#2B8A8E"/>
+  <ellipse cx="768" cy="100" rx="3" ry="2" fill="#2B8A8E"/>
+  <ellipse cx="776" cy="128" rx="4" ry="2" fill="#E8846B"/>
+  <ellipse cx="784" cy="94" rx="3" ry="2" fill="#2B8A8E"/>
+  <ellipse cx="792" cy="66" rx="4" ry="2" fill="#D4944C"/>
+  <ellipse cx="800" cy="94" rx="3" ry="2" fill="#2B8A8E"/>
+
+  <!-- Double bar line -->
+  <line x1="818" y1="64" x2="818" y2="136" stroke="#2C2C2C" stroke-width="0.5"/>
+  <line x1="822" y1="64" x2="822" y2="136" stroke="#2C2C2C" stroke-width="1.5"/>
+
+  <!-- Rhythm analysis -->
+  <text x="32" y="162" font-size="8" fill="#8C8680">The score has a rhythm you can read:</text>
+  <text x="32" y="176" font-size="8" fill="#8C8680">I. Sparse, deliberate (planning)  II. Dense, fast (parallel burst)  III. Steady, mixed (testing)  IV. Pause... then coda (review + fix)</text>
+  <text x="32" y="192" font-size="8" fill="#8C8680">The rhythm IS the story of the run. A visual tempo.</text>
+</svg>

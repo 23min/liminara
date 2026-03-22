@@ -1,0 +1,153 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 340" font-family="'IBM Plex Mono', 'Courier New', monospace">
+  <defs>
+    <filter id="grain">
+      <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" result="noise"/>
+      <feColorMatrix type="saturate" values="0" in="noise" result="gray"/>
+      <feBlend in="SourceGraphic" in2="gray" mode="multiply" result="blend"/>
+      <feComponentTransfer in="blend">
+        <feFuncA type="linear" slope="0.03"/>
+      </feComponentTransfer>
+      <feComposite in="SourceGraphic" in2="blend" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Board surface -->
+  <rect width="720" height="340" fill="#F5F0E8" filter="url(#grain)"/>
+  <rect x="12" y="12" width="696" height="316" rx="4" fill="none" stroke="#D4CFC7" stroke-width="0.6"/>
+
+  <text x="30" y="32" font-size="10" fill="#2C2C2C" letter-spacing="0.08em" opacity="0.6">GATE — UNPOPULATED → POPULATED SEQUENCE</text>
+  <line x1="30" y1="42" x2="690" y2="42" stroke="#D4CFC7" stroke-width="0.3"/>
+
+  <!-- ===== STAGE 1: Unpopulated footprint ===== -->
+  <text x="60" y="68" font-size="7" fill="#8C8680" letter-spacing="0.04em">1. AWAITING HUMAN INPUT</text>
+
+  <!-- Empty footprint (dashed outline — component not placed) -->
+  <rect x="42" y="80" width="160" height="70" rx="3" fill="none" stroke="#C45B4A" stroke-width="0.8" stroke-dasharray="4,3" opacity="0.5"/>
+
+  <!-- Silk screen outline (what goes here) -->
+  <text x="52" y="96" font-size="6" fill="#C45B4A" opacity="0.6" letter-spacing="0.04em">G1 — approve_briefing</text>
+  <line x1="52" y1="100" x2="185" y2="100" stroke="#C45B4A" stroke-width="0.2" opacity="0.3"/>
+
+  <!-- The prompt (silk screen text — the question) -->
+  <text x="52" y="114" font-size="8" fill="#2C2C2C" opacity="0.5">"Approve briefing</text>
+  <text x="52" y="126" font-size="8" fill="#2C2C2C" opacity="0.5"> for distribution?"</text>
+
+  <!-- Empty pads (ready for component, but no solder yet) -->
+  <circle cx="42" cy="115" r="3" fill="none" stroke="#C45B4A" stroke-width="0.5" opacity="0.4"/>
+  <circle cx="202" cy="115" r="3" fill="none" stroke="#C45B4A" stroke-width="0.5" opacity="0.4"/>
+
+  <!-- Input trace (signal arrived, waiting at the pad) -->
+  <path d="M 20 115 L 39 115" stroke="#E8846B" stroke-width="1.5" fill="none" opacity="0.3"/>
+  <circle cx="30" cy="115" r="2" fill="#E8846B" opacity="0.4"/>
+
+  <!-- Waiting indicator: gentle pulse rings -->
+  <circle cx="122" cy="115" r="20" fill="none" stroke="#C45B4A" stroke-width="0.2" opacity="0.15"/>
+  <circle cx="122" cy="115" r="30" fill="none" stroke="#C45B4A" stroke-width="0.15" opacity="0.08"/>
+
+  <!-- Output trace (empty, no signal yet) -->
+  <path d="M 205 115 L 230 115" stroke="#D4CFC7" stroke-width="1" fill="none" opacity="0.2" stroke-dasharray="2,2"/>
+
+  <!-- Time gap annotation -->
+  <text x="52" y="160" font-size="5.5" fill="#8C8680">waiting... (12m 34s)</text>
+
+  <!-- ===== STAGE 2: Component dropping in ===== -->
+  <text x="290" y="68" font-size="7" fill="#8C8680" letter-spacing="0.04em">2. HUMAN RESPONDS</text>
+
+  <!-- Component dropping in (solid outline appearing) -->
+  <rect x="270" y="80" width="160" height="70" rx="3" fill="#FDFBF7" stroke="#C45B4A" stroke-width="0.6" opacity="0.6"/>
+
+  <!-- Partial glow (solder reflow starting) -->
+  <rect x="268" y="78" width="164" height="74" rx="4" fill="none" stroke="#D4944C" stroke-width="0.3" opacity="0.2"/>
+
+  <!-- Designation -->
+  <text x="280" y="96" font-size="6" fill="#8C8680" letter-spacing="0.04em">G1 — approve_briefing</text>
+  <circle cx="277" cy="89" r="1.5" fill="#C45B4A" opacity="0.4"/>
+
+  <!-- The human's words materializing -->
+  <text x="280" y="114" font-size="8.5" fill="#2C2C2C" opacity="0.7">"Looks good, but</text>
+  <text x="280" y="127" font-size="8.5" fill="#2C2C2C" opacity="0.5"> flag the SCB data</text>
+  <text x="280" y="140" font-size="8.5" fill="#2C2C2C" opacity="0.3"> as preliminary"</text>
+
+  <!-- Pads connecting -->
+  <circle cx="270" cy="115" r="3" fill="#C45B4A" opacity="0.3"/>
+  <circle cx="270" cy="115" r="1.2" fill="#C45B4A" opacity="0.5"/>
+  <circle cx="430" cy="115" r="3" fill="#C45B4A" opacity="0.2"/>
+
+  <!-- Input trace (connected) -->
+  <path d="M 248 115 L 267 115" stroke="#E8846B" stroke-width="1.5" fill="none" opacity="0.4"/>
+  <circle cx="255" cy="115" r="2" fill="#E8846B" opacity="0.5"/>
+
+  <!-- ===== STAGE 3: Fully populated ===== -->
+  <text x="520" y="68" font-size="7" fill="#8C8680" letter-spacing="0.04em">3. GATE RESOLVED</text>
+
+  <!-- Fully populated component -->
+  <rect x="500" y="80" width="175" height="70" rx="3" fill="#FDFBF7" stroke="#C45B4A" stroke-width="1"/>
+
+  <!-- Pin 1 -->
+  <circle cx="507" cy="89" r="2" fill="#C45B4A" opacity="0.4"/>
+
+  <!-- Designation + decision marker -->
+  <text x="515" y="96" font-size="6" fill="#8C8680" letter-spacing="0.04em">G1 — approve_briefing</text>
+  <circle cx="663" cy="89" r="3" fill="#C45B4A" opacity="0.5"/>
+  <text x="663" y="82" font-size="4.5" fill="#C45B4A" text-anchor="middle">HUMAN</text>
+
+  <!-- The human's actual words (fully visible) -->
+  <text x="515" y="114" font-size="8.5" fill="#2C2C2C">"Looks good, but</text>
+  <text x="515" y="127" font-size="8.5" fill="#2C2C2C"> flag the SCB data</text>
+  <text x="515" y="140" font-size="8.5" fill="#2C2C2C"> as preliminary"</text>
+
+  <!-- Timing bar (the long wait is visible) -->
+  <rect x="515" y="148" width="100" height="2" rx="1" fill="#C45B4A" opacity="0.2"/>
+  <text x="620" y="151" font-size="5.5" fill="#8C8680">12m 34s wait</text>
+
+  <!-- Connected pads (solid) -->
+  <circle cx="500" cy="115" r="3.5" fill="#C45B4A" opacity="0.3"/>
+  <circle cx="500" cy="115" r="1.5" fill="#C45B4A" opacity="0.6"/>
+  <circle cx="675" cy="115" r="3.5" fill="#C45B4A" opacity="0.3"/>
+  <circle cx="675" cy="115" r="1.5" fill="#C45B4A" opacity="0.6"/>
+
+  <!-- Traces connected and flowing -->
+  <path d="M 478 115 L 497 115" stroke="#E8846B" stroke-width="1.5" fill="none" opacity="0.5"/>
+  <circle cx="485" cy="115" r="2" fill="#E8846B" opacity="0.6"/>
+  <path d="M 678 115 L 700 115" stroke="#C45B4A" stroke-width="1.5" fill="none" opacity="0.4"/>
+  <circle cx="690" cy="115" r="2" fill="#C45B4A" opacity="0.5"/>
+
+  <!-- ===== Bottom: The time gap on the board ===== -->
+  <line x1="30" y1="190" x2="690" y2="190" stroke="#D4CFC7" stroke-width="0.3"/>
+  <text x="30" y="210" font-size="7" fill="#8C8680" letter-spacing="0.04em">TIME GAP ON THE BOARD</text>
+
+  <!-- Board section showing the wide gap -->
+  <rect x="30" y="220" width="660" height="80" rx="3" fill="none" stroke="#D4CFC7" stroke-width="0.4"/>
+
+  <!-- Pre-gate component -->
+  <rect x="50" y="240" width="60" height="32" rx="2" fill="#FDFBF7" stroke="#E8846B" stroke-width="0.6"/>
+  <text x="58" y="256" font-size="5.5" fill="#8C8680">U5 rank</text>
+  <text x="58" y="266" font-size="6" fill="#2C2C2C">8.4s</text>
+  <circle cx="110" cy="256" r="2.5" fill="#E8846B" opacity="0.4"/>
+
+  <!-- Trace to gate -->
+  <path d="M 113 256 L 160 256" stroke="#E8846B" stroke-width="1" fill="none" opacity="0.3"/>
+
+  <!-- THE GAP: wide empty space on the board -->
+  <rect x="160" y="235" width="360" height="42" rx="2" fill="none" stroke="#C45B4A" stroke-width="0.4" stroke-dasharray="4,3" opacity="0.25"/>
+
+  <!-- Ghost footprint in the middle of the gap -->
+  <rect x="290" y="242" width="90" height="28" rx="2" fill="none" stroke="#C45B4A" stroke-width="0.3" stroke-dasharray="3,2" opacity="0.3"/>
+  <text x="300" y="258" font-size="5.5" fill="#C45B4A" opacity="0.3">G1 approve</text>
+  <text x="300" y="268" font-size="5" fill="#8C8680" opacity="0.3">12m 34s</text>
+
+  <!-- Wide gap annotation (silk screen measurement) -->
+  <line x1="160" y1="285" x2="160" y2="298" stroke="#8C8680" stroke-width="0.3"/>
+  <line x1="520" y1="285" x2="520" y2="298" stroke="#8C8680" stroke-width="0.3"/>
+  <line x1="160" y1="295" x2="520" y2="295" stroke="#8C8680" stroke-width="0.3"/>
+  <text x="340" y="306" font-size="6" fill="#8C8680" text-anchor="middle">12m 34s — empty board space = human wait time</text>
+
+  <!-- Trace from gate to deliver -->
+  <path d="M 520 256 L 570 256" stroke="#C45B4A" stroke-width="1" fill="none" opacity="0.3"/>
+
+  <!-- Post-gate component -->
+  <rect x="570" y="240" width="60" height="32" rx="2" fill="#FDFBF7" stroke="#D4944C" stroke-width="0.6"/>
+  <text x="578" y="256" font-size="5.5" fill="#8C8680">J1 deliver</text>
+  <text x="578" y="266" font-size="6" fill="#2C2C2C">0.3s</text>
+  <circle cx="570" cy="256" r="2.5" fill="#D4944C" opacity="0.4"/>
+</svg>

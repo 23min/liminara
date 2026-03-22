@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Metro Map Layout — from arbitrary DAG</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #2C2C2C;
+    color: #F5F0E8;
+    font-family: 'IBM Plex Mono', 'Courier New', monospace;
+    padding: 16px;
+  }
+  h1 { font-size: 13px; letter-spacing: 0.08em; color: #D4CFC7; margin-bottom: 4px; }
+  .subtitle { font-size: 9px; color: #8C8680; margin-bottom: 12px; }
+  .controls {
+    display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; align-items: center;
+  }
+  button {
+    background: #F5F0E8; color: #2C2C2C; border: none;
+    padding: 5px 12px; font-family: inherit; font-size: 10px;
+    letter-spacing: 0.04em; cursor: pointer; border-radius: 3px;
+  }
+  button:hover { background: #E8E3DB; }
+  label { font-size: 9px; color: #8C8680; }
+  select { font-family: inherit; font-size: 9px; }
+  .map-container {
+    background: #F5F0E8;
+    border-radius: 6px;
+    overflow: auto;
+    max-height: 80vh;
+  }
+  svg { display: block; }
+  .info { font-size: 8px; color: #8C8680; margin-top: 8px; }
+</style>
+</head>
+<body>
+
+<h1>METRO MAP LAYOUT — ALGORITHMIC DAG RENDERING</h1>
+<p class="subtitle">Route-based octilinear layout. Strictly horizontal + 45° segments. No vertical lines. Try different DAGs.</p>
+
+<div class="controls">
+  <label>DAG:</label>
+  <select id="dagSelect">
+    <option value="radar">Radar Briefing (6 ops)</option>
+    <option value="factory_small">Software Factory — small (24 ops)</option>
+    <option value="factory" selected>Software Factory — full (67 ops)</option>
+    <option value="diamond">Diamond pattern (16 ops)</option>
+    <option value="wide">Wide parallel (40 ops)</option>
+    <option value="deep">Deep chain (30 ops)</option>
+    <option value="random">Random DAG (50 ops)</option>
+  </select>
+  <button id="btnRegen">Regenerate</button>
+</div>
+
+<div class="map-container" id="mapContainer"></div>
+<div class="info" id="info"></div>
+
+<script>
+// ================================================================
+// COLORS & CONSTANTS
+// ================================================================
+const C = {
+  paper: '#F5F0E8', ink: '#2C2C2C', muted: '#8C8680', border: '#D4CFC7',
+  teal: '#2B8A8E', coral: '#E8846B', amber: '#D4944C', red: '#C45B4A',
+};
+const CLASS_COLOR = { pure: C.teal, recordable: C.coral, side_effecting: C.amber, gate: C.red };
+
+// ================================================================
+// DAG DEFINITIONS
+// ================================================================
+function n(id, label, cls) { return { id, label: label || id, cls: cls || 'pure' }; }
+
+const DAGS = {
+  radar: () => ({
+    nodes: [
+      n('fetch_dn','fetch_dn','side_effecting'), n('fetch_svd','fetch_svd','side_effecting'),
+      n('fetch_scb','fetch_scb','side_effecting'), n('normalize','normalize','pure'),
+      n('rank','rank_summarize','recordable'), n('deliver','deliver','side_effecting'),
+    ],
+    edges: [
+      ['fetch_dn','normalize'],['fetch_svd','normalize'],['fetch_scb','normalize'],
+      ['normalize','rank'],['rank','deliver'],
+    ]
+  }),
+
+  factory_small: () => ({
+    nodes: [
+      n('parse','parse_req','recordable'), n('analyze','analyze','recordable'),
+      n('decompose','decompose','recordable'), n('plan_impl','plan_impl','recordable'),
+      n('plan_test','plan_test','recordable'), n('approve','approve','gate'),
+      n('scaffold','scaffold','pure'), n('gen_core','gen_core','pure'),
+      n('gen_api','gen_api','pure'), n('gen_ui','gen_ui','pure'),
+      n('gen_db','gen_db','side_effecting'), n('config','config','side_effecting'),
+      n('compile','compile','pure'), n('link','link','pure'), n('merge','merge','pure'),
+      n('test_unit','test_unit','pure'), n('test_integ','test_integ','side_effecting'),
+      n('test_e2e','test_e2e','side_effecting'), n('lint','lint','pure'),
+      n('all_pass','all_pass','pure'), n('review','llm_review','recordable'),
+      n('approve2','approve','gate'), n('deploy','deploy','side_effecting'),
+      n('notify','notify','side_effecting'),
+    ],
+    edges: [
+      ['parse','analyze'],['analyze','decompose'],['decompose','plan_impl'],['decompose','plan_test'],
+      ['plan_impl','approve'],['plan_test','approve'],['approve','scaffold'],
+      ['scaffold','gen_core'],['scaffold','gen_api'],['scaffold','gen_ui'],['scaffold','gen_db'],['scaffold','config'],
+      ['gen_core','compile'],['gen_api','compile'],['config','compile'],
+      ['gen_ui','link'],['compile','link'],['gen_db','link'],
+      ['link','merge'],['merge','test_unit'],['merge','test_integ'],['merge','test_e2e'],['merge','lint'],
+      ['test_unit','all_pass'],['test_integ','all_pass'],['test_e2e','all_pass'],['lint','all_pass'],
+      ['all_pass','review'],['review','approve2'],['approve2','deploy'],['deploy','notify'],
+    ]
+  }),
+
+  factory: () => ({
+    nodes: [
+      n('parse','parse_req','recordable'), n('analyze','analyze','recordable'),
+      n('decompose','decompose','recordable'), n('plan_impl','plan_impl','recordable'),
+      n('plan_test','plan_test','recordable'), n('arch_review','arch_review','recordable'),
+      n('deps','deps','recordable'), n('arch_plan','arch_plan','recordable'),
+      n('coverage','coverage','recordable'), n('approve','approve_plan','gate'),
+      n('begin','begin_impl','pure'), n('scaffold','scaffold','pure'),
+      n('gen_core','gen_core','pure'), n('gen_types','gen_types','pure'),
+      n('gen_logic','gen_logic','pure'), n('compile','compile','pure'),
+      n('link','link','pure'), n('schema','schema','pure'), n('models','models','pure'),
+      n('validate','validate','pure'), n('serialize','serialize','pure'), n('index','index','pure'),
+      n('routes','routes','pure'), n('handlers','handlers','pure'),
+      n('middleware','middleware','pure'), n('auth','auth','pure'),
+      n('layout','layout','pure'), n('components','components','pure'),
+      n('pages','pages','pure'), n('styles','styles','pure'),
+      n('storybook','storybook','pure'), n('a11y','a11y','pure'), n('ui_bundle','ui_bundle','pure'),
+      n('forms','forms','pure'), n('tables','tables','pure'), n('charts','charts','pure'),
+      n('env_conf','env_conf','side_effecting'), n('docker','docker','side_effecting'),
+      n('ci_conf','ci_conf','side_effecting'), n('secrets','secrets','side_effecting'),
+      n('deploy_conf','deploy_conf','side_effecting'),
+      n('migrate','migrate','side_effecting'), n('db_tables','db_tables','side_effecting'),
+      n('db_indexes','db_indexes','side_effecting'), n('constraints','constraints','side_effecting'),
+      n('triggers','triggers','side_effecting'), n('db_verify','db_verify','side_effecting'),
+      n('seed_ref','seed_ref','side_effecting'), n('seed_test','seed_test','side_effecting'),
+      n('seed_demo','seed_demo','side_effecting'), n('db_ready','db_ready','side_effecting'),
+      n('refactor','refactor','recordable'), n('optimize','optimize','recordable'),
+      n('gen_docs','gen_docs','recordable'), n('merge_all','merge_all','pure'),
+      n('begin_test','begin_test','pure'), n('test_setup','test_setup','pure'),
+      n('unit_core','unit_core','pure'), n('lint','lint','pure'),
+      n('format','format','pure'), n('typecheck','typecheck','pure'),
+      n('integ_api','integ_api','side_effecting'), n('integ_db','integ_db','side_effecting'),
+      n('integ_auth','integ_auth','side_effecting'),
+      n('all_pass','all_pass','pure'), n('llm_review','llm_review','recordable'),
+      n('review','review','gate'), n('deploy','deploy','side_effecting'),
+      n('verify','verify','side_effecting'), n('notify','notify','side_effecting'),
+      n('log_run','log','side_effecting'),
+    ],
+    edges: [
+      ['parse','analyze'],['analyze','decompose'],
+      ['decompose','plan_impl'],['decompose','plan_test'],['decompose','arch_review'],
+      ['arch_review','deps'],['deps','arch_plan'],['plan_test','coverage'],
+      ['plan_impl','approve'],['coverage','approve'],['arch_plan','approve'],
+      ['approve','begin'],
+      ['begin','scaffold'],['begin','schema'],['begin','routes'],['begin','layout'],
+      ['begin','env_conf'],['begin','migrate'],
+      ['scaffold','gen_core'],['gen_core','gen_types'],['gen_types','gen_logic'],
+      ['gen_logic','compile'],['compile','link'],
+      ['schema','models'],['models','validate'],['validate','serialize'],['serialize','index'],
+      ['routes','handlers'],['handlers','middleware'],['middleware','auth'],
+      ['layout','components'],['components','pages'],['pages','styles'],
+      ['components','forms'],['components','tables'],['components','charts'],
+      ['styles','storybook'],['storybook','a11y'],['a11y','ui_bundle'],
+      ['forms','storybook'],['tables','storybook'],['charts','storybook'],
+      ['env_conf','docker'],['docker','ci_conf'],['ci_conf','secrets'],['secrets','deploy_conf'],
+      ['migrate','db_tables'],['db_tables','db_indexes'],['db_indexes','constraints'],
+      ['constraints','triggers'],['triggers','db_verify'],
+      ['constraints','seed_ref'],['seed_ref','seed_test'],['seed_test','seed_demo'],
+      ['seed_demo','db_ready'],['db_verify','db_ready'],
+      ['gen_logic','refactor'],['refactor','optimize'],['optimize','link'],
+      ['compile','gen_docs'],
+      ['link','merge_all'],['index','merge_all'],['auth','merge_all'],
+      ['ui_bundle','merge_all'],['deploy_conf','merge_all'],['db_ready','merge_all'],
+      ['gen_docs','merge_all'],
+      ['merge_all','begin_test'],['begin_test','test_setup'],
+      ['test_setup','unit_core'],['test_setup','lint'],['test_setup','integ_api'],['test_setup','integ_db'],
+      ['lint','format'],['format','typecheck'],
+      ['unit_core','all_pass'],['typecheck','all_pass'],['integ_api','integ_auth'],
+      ['integ_auth','all_pass'],['integ_db','all_pass'],
+      ['all_pass','llm_review'],['llm_review','review'],
+      ['review','deploy'],['deploy','verify'],['deploy','notify'],['notify','log_run'],
+    ]
+  }),
+
+  diamond: () => {
+    const nodes = [n('start','start','pure')];
+    const edges = [];
+    for (let i = 0; i < 6; i++) {
+      nodes.push(n(`p${i}`,`process_${i}`,['pure','side_effecting','recordable'][i%3]));
+      edges.push(['start', `p${i}`]);
+    }
+    for (let i = 0; i < 3; i++) {
+      nodes.push(n(`m${i}`,`merge_${i}`,'pure'));
+      edges.push([`p${i*2}`, `m${i}`]); edges.push([`p${i*2+1}`, `m${i}`]);
+    }
+    for (let i = 0; i < 3; i++) {
+      nodes.push(n(`s${i}a`,`sub_${i}a`,'pure'));
+      nodes.push(n(`s${i}b`,`sub_${i}b`,'side_effecting'));
+      edges.push([`m${i}`, `s${i}a`]); edges.push([`m${i}`, `s${i}b`]);
+    }
+    nodes.push(n('final','final_merge','pure'));
+    for (let i = 0; i < 3; i++) { edges.push([`s${i}a`,'final']); edges.push([`s${i}b`,'final']); }
+    return { nodes, edges };
+  },
+
+  wide: () => {
+    const nodes = [n('init','initialize','pure')]; const edges = [];
+    for (let i = 0; i < 10; i++) {
+      const cls = ['pure','side_effecting','recordable'][i%3];
+      for (let j = 0; j < 3; j++) {
+        nodes.push(n(`w${i}_${j}`,`work_${i}_${j}`,cls));
+        edges.push(j===0 ? ['init',`w${i}_${j}`] : [`w${i}_${j-1}`,`w${i}_${j}`]);
+      }
+    }
+    for (let i = 0; i < 5; i++) {
+      nodes.push(n(`mg${i}`,`merge_${i}`,'pure'));
+      edges.push([`w${i*2}_2`,`mg${i}`]); edges.push([`w${i*2+1}_2`,`mg${i}`]);
+    }
+    nodes.push(n('done','complete','pure'));
+    for (let i = 0; i < 5; i++) edges.push([`mg${i}`,'done']);
+    return { nodes, edges };
+  },
+
+  deep: () => {
+    const nodes = []; const edges = [];
+    for (let i = 0; i < 30; i++) {
+      const cls = i<5?'recordable':i<22?'pure':i<27?'side_effecting':'recordable';
+      nodes.push(n(`s${i}`,`step_${i}`,cls));
+      if (i>0) edges.push([`s${i-1}`,`s${i}`]);
+      if (i%7===3 && i+3<30) {
+        nodes.push(n(`b${i}`,`branch_${i}`,'side_effecting'));
+        edges.push([`s${i}`,`b${i}`]); edges.push([`b${i}`,`s${i+3}`]);
+      }
+    }
+    return { nodes, edges };
+  },
+
+  random: () => {
+    const N=50, nodes=[], edges=[], cls=['pure','pure','pure','side_effecting','side_effecting','recordable'];
+    for (let i=0;i<N;i++) nodes.push(n(`r${i}`,`op_${i}`,cls[Math.floor(Math.random()*cls.length)]));
+    for (let i=0;i<N-1;i++) {
+      const j=i+1+Math.floor(Math.random()*Math.min(3,N-i-1));
+      if(j<N) edges.push([`r${i}`,`r${j}`]);
+      if(Math.random()<0.3){const k=i+2+Math.floor(Math.random()*Math.min(5,N-i-2));if(k<N&&k!==j)edges.push([`r${i}`,`r${k}`]);}
+    }
+    return { nodes, edges };
+  },
+};
+
+// ================================================================
+// LAYOUT ALGORITHM v3 — Route-based metro map
+// ================================================================
+
+function layoutMetro(dag) {
+  const { nodes, edges } = dag;
+  const nodeMap = new Map(nodes.map(n => [n.id, n]));
+  const childrenOf = new Map(), parentsOf = new Map();
+  nodes.forEach(n => { childrenOf.set(n.id, []); parentsOf.set(n.id, []); });
+  edges.forEach(([f, t]) => { childrenOf.get(f).push(t); parentsOf.get(t).push(f); });
+
+  // ── STEP 1: Topological sort + layer assignment ──
+  const layer = new Map();
+  const inDeg = new Map();
+  nodes.forEach(nd => inDeg.set(nd.id, parentsOf.get(nd.id).length));
+  const queue = nodes.filter(nd => inDeg.get(nd.id) === 0).map(nd => nd.id);
+  queue.forEach(id => layer.set(id, 0));
+  const topo = [];
+  while (queue.length) {
+    const u = queue.shift(); topo.push(u);
+    for (const v of childrenOf.get(u)) {
+      layer.set(v, Math.max(layer.get(v)||0, layer.get(u)+1));
+      inDeg.set(v, inDeg.get(v)-1);
+      if (inDeg.get(v)===0) queue.push(v);
+    }
+  }
+
+  // ── STEP 2: Extract routes (greedy longest-path decomposition) ──
+  // A route is a chain of UNASSIGNED nodes, optionally bookended by
+  // interchange nodes (already-assigned nodes that connect to the chain).
+
+  function longestPathIn(nodeSet) {
+    const dist = new Map(), prev = new Map();
+    nodeSet.forEach(id => { dist.set(id, 0); prev.set(id, null); });
+    for (const u of topo) {
+      if (!nodeSet.has(u)) continue;
+      for (const v of childrenOf.get(u)) {
+        if (!nodeSet.has(v)) continue;
+        if (dist.get(u) + 1 > dist.get(v)) {
+          dist.set(v, dist.get(u) + 1); prev.set(v, u);
+        }
+      }
+    }
+    let best = -1, end = null;
+    nodeSet.forEach(id => { if (dist.get(id) > best) { best = dist.get(id); end = id; }});
+    if (end === null) return [];
+    const path = [];
+    for (let c = end; c !== null; c = prev.get(c)) path.unshift(c);
+    return path;
+  }
+
+  const routes = [];
+  const assigned = new Set();
+  const nodeRoute = new Map(); // nodeId → primary route index
+
+  // Route 0: longest overall path (trunk)
+  const trunk = longestPathIn(new Set(topo));
+  routes.push({ nodes: trunk, lane: 0 });
+  trunk.forEach(id => { assigned.add(id); nodeRoute.set(id, 0); });
+
+  // Subsequent routes: find branches
+  let safety = 0;
+  while (assigned.size < nodes.length && safety++ < 300) {
+    // 1) Collect unassigned nodes
+    const unassigned = [];
+    nodes.forEach(nd => { if (!assigned.has(nd.id)) unassigned.push(nd.id); });
+    if (unassigned.length === 0) break;
+
+    // 2) Find longest path through ONLY unassigned nodes
+    const unassignedSet = new Set(unassigned);
+    let bestPath = longestPathIn(unassignedSet);
+    if (bestPath.length === 0) {
+      // Isolated nodes — assign them individually
+      unassigned.forEach(id => { assigned.add(id); nodeRoute.set(id, 0); });
+      break;
+    }
+
+    // 3) Extend path: prepend an interchange (assigned parent of first node)
+    const firstNode = bestPath[0];
+    const assignedParents = parentsOf.get(firstNode).filter(p => assigned.has(p));
+    if (assignedParents.length > 0) {
+      bestPath.unshift(assignedParents[0]);
+    }
+
+    // Append an interchange (assigned child of last node)
+    const lastNode = bestPath[bestPath.length - 1];
+    const assignedChildren = childrenOf.get(lastNode).filter(c => assigned.has(c));
+    if (assignedChildren.length > 0) {
+      bestPath.push(assignedChildren[0]);
+    }
+
+    const ri = routes.length;
+    routes.push({ nodes: bestPath, lane: 0 });
+    bestPath.forEach(id => {
+      if (!assigned.has(id)) { assigned.add(id); nodeRoute.set(id, ri); }
+    });
+  }
+
+  // ── STEP 3: Assign lanes (tree-based, convergence-aware, lane reuse) ──
+
+  // 3a: Build route parent map (which route does each branch fork from?)
+  const routeParent = new Map();
+  routeParent.set(0, -1);
+  for (let ri = 1; ri < routes.length; ri++) {
+    const entry = routes[ri].nodes[0]; // interchange node from parent route
+    const pRi = nodeRoute.get(entry);
+    routeParent.set(ri, (pRi !== undefined && pRi !== ri) ? pRi : 0);
+  }
+
+  // 3b: Layer range per route (full range including interchanges)
+  const routeLayerRange = routes.map(route => {
+    let min = Infinity, max = -Infinity;
+    route.nodes.forEach(id => {
+      const l = layer.get(id);
+      if (l < min) min = l;
+      if (l > max) max = l;
+    });
+    return [min, max];
+  });
+
+  // 3c: Convergence slack — how many layers between route's last own node
+  // and its end interchange. Low slack = needs a close lane.
+  const routeSlack = routes.map((route, ri) => {
+    if (ri === 0) return Infinity;
+    const lastNode = route.nodes[route.nodes.length - 1];
+    const isInterchange = (nodeRoute.get(lastNode) !== ri);
+    if (!isInterchange) return Infinity; // route doesn't converge back
+    // Find last own node
+    for (let i = route.nodes.length - 2; i >= 0; i--) {
+      if (nodeRoute.get(route.nodes[i]) === ri) {
+        return layer.get(lastNode) - layer.get(route.nodes[i]);
+      }
+    }
+    return Infinity;
+  });
+
+  // 3d: Lane occupancy tracker (allows reuse at non-overlapping layer ranges)
+  const laneRanges = new Map();
+  function canUseLane(lane, sL, eL) {
+    if (!laneRanges.has(lane)) return true;
+    for (const [s, e] of laneRanges.get(lane)) {
+      if (sL <= e && eL >= s) return false; // overlap
+    }
+    return true;
+  }
+  function claimLane(lane, sL, eL) {
+    if (!laneRanges.has(lane)) laneRanges.set(lane, []);
+    laneRanges.get(lane).push([sL, eL]);
+  }
+
+  // 3e: BFS from trunk — assign lanes to each route's children
+  routes[0].lane = 0;
+  claimLane(0, routeLayerRange[0][0], routeLayerRange[0][1]);
+
+  const childRoutesOf = new Map();
+  for (let ri = 1; ri < routes.length; ri++) {
+    const pi = routeParent.get(ri) ?? 0;
+    if (!childRoutesOf.has(pi)) childRoutesOf.set(pi, []);
+    childRoutesOf.get(pi).push(ri);
+  }
+
+  // Sort: tightest convergence first → gets closest lane
+  for (const [, children] of childRoutesOf) {
+    children.sort((a, b) => routeSlack[a] - routeSlack[b]);
+  }
+
+  // Collect ALL non-trunk routes, sort globally by slack (tightest first → closest lane)
+  const allBranches = [];
+  for (let ri = 1; ri < routes.length; ri++) allBranches.push(ri);
+  allBranches.sort((a, b) => routeSlack[a] - routeSlack[b]);
+
+  let dir = -1; // alternate above/below trunk
+  for (const ci of allBranches) {
+    const [sL, eL] = routeLayerRange[ci];
+    let lane = null;
+    // Search outward from lane 0 (trunk center), keeping everything compact
+    for (let dist = 1; dist <= 30 && lane === null; dist++) {
+      const t1 = dir * dist;
+      if (canUseLane(t1, sL, eL)) { lane = t1; break; }
+      const t2 = -dir * dist;
+      if (canUseLane(t2, sL, eL)) { lane = t2; break; }
+    }
+    if (lane === null) lane = dir; // fallback
+    routes[ci].lane = lane;
+    claimLane(lane, sL, eL);
+    dir = -dir; // alternate
+  }
+
+  // ── STEP 4: Position nodes ──
+  const laneSpacing = 28;
+  const margin = { top: 60, left: 60, bottom: 100, right: 40 };
+
+  // Each node's Y = its primary route's lane
+  const nodeLane = new Map();
+  nodes.forEach(nd => {
+    const ri = nodeRoute.get(nd.id);
+    nodeLane.set(nd.id, (ri !== undefined) ? routes[ri].lane : 0);
+  });
+
+  // ── STEP 4b: Layer promotion — push nodes forward when lane span exceeds layer span ──
+  // This avoids inflating global layerSpacing. Instead, add "empty" layers for diagonals.
+  let promoted = true, promoIter = 0;
+  while (promoted && promoIter++ < 100) {
+    promoted = false;
+    // Check all edges
+    for (const [f, t] of edges) {
+      const laneDist = Math.abs(nodeLane.get(t) - nodeLane.get(f));
+      if (laneDist === 0) continue;
+      const needed = Math.ceil(laneDist * 1.2);
+      if (needed > layer.get(t) - layer.get(f)) {
+        layer.set(t, layer.get(f) + needed);
+        promoted = true;
+      }
+    }
+    // Check route segments (interchange transitions)
+    for (const route of routes) {
+      for (let i = 1; i < route.nodes.length; i++) {
+        const f = route.nodes[i-1], t = route.nodes[i];
+        const laneDist = Math.abs(nodeLane.get(t) - nodeLane.get(f));
+        if (laneDist === 0) continue;
+        const needed = Math.ceil(laneDist * 1.2);
+        if (needed > layer.get(t) - layer.get(f)) {
+          layer.set(t, layer.get(f) + needed);
+          promoted = true;
+        }
+      }
+    }
+    // Propagate: maintain topo ordering (child >= parent + 1)
+    for (const u of topo) {
+      for (const v of childrenOf.get(u)) {
+        if (layer.get(v) < layer.get(u) + 1) {
+          layer.set(v, layer.get(u) + 1);
+          promoted = true;
+        }
+      }
+    }
+  }
+
+  // Recompute maxLayer after promotion
+  const maxLayer = Math.max(...topo.map(id => layer.get(id)));
+
+  // Dynamic layerSpacing: should now be close to laneSpacing thanks to promotion
+  let maxRatio = 1.0;
+  edges.forEach(([f, t]) => {
+    const ld = layer.get(t) - layer.get(f);
+    const nd = Math.abs((nodeLane.get(t) || 0) - (nodeLane.get(f) || 0));
+    if (ld > 0 && nd > 0) maxRatio = Math.max(maxRatio, nd / ld);
+  });
+  routes.forEach(route => {
+    for (let i = 1; i < route.nodes.length; i++) {
+      const f = route.nodes[i-1], t = route.nodes[i];
+      const ld = layer.get(t) - layer.get(f);
+      const nd = Math.abs((nodeLane.get(t) || 0) - (nodeLane.get(f) || 0));
+      if (ld > 0 && nd > 0) maxRatio = Math.max(maxRatio, nd / ld);
+    }
+  });
+  const layerSpacing = Math.ceil(laneSpacing * maxRatio * 1.15);
+
+  let minLane = 0, maxLane = 0;
+  nodes.forEach(nd => {
+    const l = nodeLane.get(nd.id);
+    if (l < minLane) minLane = l;
+    if (l > maxLane) maxLane = l;
+  });
+
+  const positions = new Map();
+  nodes.forEach(nd => {
+    positions.set(nd.id, {
+      x: margin.left + layer.get(nd.id) * layerSpacing,
+      y: margin.top + (nodeLane.get(nd.id) - minLane) * laneSpacing,
+    });
+  });
+
+  const width = margin.left + (maxLayer + 1) * layerSpacing + margin.right;
+  const height = margin.top + (maxLane - minLane + 1) * laneSpacing + margin.bottom;
+
+  // ── STEP 5: Build route paths (strict H + 45° only) ──
+  function octiPath(px, py, qx, qy) {
+    const dx = qx - px, dy = qy - py;
+    if (Math.abs(dy) < 0.5) {
+      return `L ${qx} ${qy}`;
+    }
+    const absDy = Math.abs(dy);
+    // dx is guaranteed >= absDy by the layerSpacing calculation
+    // H → 45° → H (jog at the start for a metro look — depart early)
+    const hb = (dx - absDy) / 2;
+    return `L ${px + hb} ${py} L ${px + hb + absDy} ${qy} L ${qx} ${qy}`;
+  }
+
+  const routePaths = routes.map((route, ri) => {
+    const pts = route.nodes.map(id => ({ ...positions.get(id), id }));
+    const ownNodes = route.nodes.filter(id => nodeRoute.get(id) === ri);
+    const color = CLASS_COLOR[dominantClass(ownNodes, nodeMap)] || C.teal;
+    const thickness = ri === 0 ? 4.5 : (ownNodes.length > 4 ? 3.5 : 2.5);
+    const opacity = ri === 0 ? 0.5 : (ownNodes.length > 4 ? 0.42 : 0.35);
+    const segments = [];
+
+    for (let i = 1; i < pts.length; i++) {
+      const p = pts[i-1], q = pts[i];
+      const srcNode = nodeMap.get(p.id);
+      const segColor = CLASS_COLOR[srcNode?.cls] || color;
+      const segDashed = srcNode?.cls === 'gate';
+      const d = `M ${p.x} ${p.y} ` + octiPath(p.x, p.y, q.x, q.y);
+      segments.push({ d, color: segColor, thickness, opacity, dashed: segDashed });
+    }
+    return segments;
+  });
+
+  // Edges not covered by any route
+  const routeEdgeSet = new Set();
+  routes.forEach(route => {
+    for (let i = 1; i < route.nodes.length; i++)
+      routeEdgeSet.add(`${route.nodes[i-1]}→${route.nodes[i]}`);
+  });
+
+  const extraEdges = [];
+  edges.forEach(([f, t]) => {
+    if (routeEdgeSet.has(`${f}→${t}`)) return;
+    const p = positions.get(f), q = positions.get(t);
+    if (!p || !q) return;
+    const srcNode = nodeMap.get(f);
+    const color = CLASS_COLOR[srcNode?.cls] || C.teal;
+    const d = `M ${p.x} ${p.y} ` + octiPath(p.x, p.y, q.x, q.y);
+    extraEdges.push({ d, color, thickness: 2.2, opacity: 0.28, dashed: srcNode?.cls === 'gate' });
+  });
+
+  return { positions, routePaths, extraEdges, width, height, maxLayer, routes, nodeLane, minLane, maxLane, laneSpacing };
+}
+
+function dominantClass(nodeIds, nodeMap) {
+  const counts = {};
+  nodeIds.forEach(id => {
+    const cls = nodeMap.get(id)?.cls || 'pure';
+    counts[cls] = (counts[cls] || 0) + 1;
+  });
+  let best = 'pure', bestCount = 0;
+  for (const [cls, count] of Object.entries(counts)) {
+    if (count > bestCount) { best = cls; bestCount = count; }
+  }
+  return best;
+}
+
+// ================================================================
+// SVG RENDERING
+// ================================================================
+
+function renderSVG(dag, layout) {
+  const { positions, routePaths, extraEdges, width, height, routes, nodeLane, minLane, maxLane, laneSpacing } = layout;
+  const nodeMap = new Map(dag.nodes.map(n => [n.id, n]));
+  const inDeg = new Map(), outDeg = new Map();
+  dag.nodes.forEach(nd => { inDeg.set(nd.id, 0); outDeg.set(nd.id, 0); });
+  dag.edges.forEach(([f, t]) => { outDeg.set(f, outDeg.get(f)+1); inDeg.set(t, inDeg.get(t)+1); });
+
+  let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" font-family="'IBM Plex Mono', 'Courier New', monospace">\n`;
+  svg += `<rect width="${width}" height="${height}" fill="${C.paper}"/>\n`;
+
+  // Title
+  svg += `<text x="24" y="22" font-size="10" fill="${C.ink}" letter-spacing="0.06em" opacity="0.5">${dag.nodes.length} OPS — METRO LAYOUT</text>\n`;
+  svg += `<text x="24" y="34" font-size="6.5" fill="${C.muted}">Route-based. Strictly horizontal + 45° segments. No vertical lines.</text>\n`;
+
+  // ── ROUTE LINES (behind everything) ──
+  // Extra edges first (thinnest, most transparent)
+  extraEdges.forEach(seg => {
+    svg += `<path d="${seg.d}" stroke="${seg.color}" stroke-width="${seg.thickness}" fill="none" `;
+    svg += `stroke-linecap="round" stroke-linejoin="round" opacity="${seg.opacity}"`;
+    if (seg.dashed) svg += ` stroke-dasharray="4,3"`;
+    svg += `/>\n`;
+  });
+
+  // Route segments (grouped per route for visual consistency)
+  routePaths.forEach(segments => {
+    segments.forEach(seg => {
+      svg += `<path d="${seg.d}" stroke="${seg.color}" stroke-width="${seg.thickness}" fill="none" `;
+      svg += `stroke-linecap="round" stroke-linejoin="round" opacity="${seg.opacity}"`;
+      if (seg.dashed) svg += ` stroke-dasharray="4,3"`;
+      svg += `/>\n`;
+    });
+  });
+
+  // ── STATIONS (on top of lines) ──
+  dag.nodes.forEach(nd => {
+    const pos = positions.get(nd.id);
+    if (!pos) return;
+    const color = CLASS_COLOR[nd.cls] || C.teal;
+    const isInterchange = (inDeg.get(nd.id) > 1 || outDeg.get(nd.id) > 1);
+    const isGate = nd.cls === 'gate';
+    const r = isInterchange ? 5 : 3.5;
+
+    // Station circle
+    svg += `<circle cx="${pos.x.toFixed(1)}" cy="${pos.y.toFixed(1)}" r="${r}" `;
+    svg += `fill="${C.paper}" stroke="${color}" stroke-width="${isGate ? 2 : 1.6}"`;
+    if (isGate) svg += ` stroke-dasharray="2,1.5"`;
+    svg += `/>\n`;
+
+    // Inner dot for interchanges
+    if (isInterchange && !isGate) {
+      svg += `<circle cx="${pos.x.toFixed(1)}" cy="${pos.y.toFixed(1)}" r="1.8" fill="${color}" opacity="0.3"/>\n`;
+    }
+    if (isGate) {
+      svg += `<circle cx="${pos.x.toFixed(1)}" cy="${pos.y.toFixed(1)}" r="2" fill="${C.red}" opacity="0.4"/>\n`;
+    }
+
+    // Label — alternate above/below based on lane parity
+    const lane = nodeLane.get(nd.id);
+    const labelAbove = (lane % 2 === 0);
+    const labelY = labelAbove ? pos.y - r - 3 : pos.y + r + 8;
+    svg += `<text x="${pos.x.toFixed(1)}" y="${labelY.toFixed(1)}" `;
+    svg += `font-size="5" fill="${C.ink}" text-anchor="middle" opacity="0.55">${nd.label}</text>\n`;
+  });
+
+  // ── LEGEND ──
+  const ly = height - 65;
+  svg += `<line x1="24" y1="${ly}" x2="${width-24}" y2="${ly}" stroke="${C.border}" stroke-width="0.3"/>\n`;
+
+  const lines = [
+    ['Pure computation', C.teal], ['I/O (side-effecting)', C.amber],
+    ['LLM (recordable)', C.coral], ['Gate (human)', C.red],
+  ];
+  lines.forEach(([label, color], i) => {
+    const x = 24 + i * 160;
+    svg += `<line x1="${x}" y1="${ly+16}" x2="${x+22}" y2="${ly+16}" stroke="${color}" stroke-width="3.5" opacity="0.5" stroke-linecap="round"`;
+    if (i === 3) svg += ` stroke-dasharray="4,3"`;
+    svg += `/>\n`;
+    svg += `<text x="${x+28}" y="${ly+19}" font-size="6.5" fill="${C.muted}">${label}</text>\n`;
+  });
+
+  // Station legend
+  const sx = 680;
+  svg += `<circle cx="${sx}" cy="${ly+16}" r="3.5" fill="${C.paper}" stroke="${C.ink}" stroke-width="1.4"/>\n`;
+  svg += `<text x="${sx+8}" y="${ly+19}" font-size="6.5" fill="${C.muted}">Station</text>\n`;
+  svg += `<circle cx="${sx+70}" cy="${ly+16}" r="4.5" fill="${C.paper}" stroke="${C.ink}" stroke-width="1.4"/>\n`;
+  svg += `<circle cx="${sx+70}" cy="${ly+16}" r="1.8" fill="${C.ink}" opacity="0.3"/>\n`;
+  svg += `<text x="${sx+78}" y="${ly+19}" font-size="6.5" fill="${C.muted}">Interchange</text>\n`;
+
+  // Stats
+  const gateCount = dag.nodes.filter(nd => nd.cls === 'gate').length;
+  svg += `<text x="24" y="${ly+38}" font-size="6" fill="${C.muted}">${dag.nodes.length} ops | ${dag.edges.length} edges | ${routes.length} routes | ${gateCount} gates | lanes: ${minLane} to ${maxLane}</text>\n`;
+
+  svg += `</svg>`;
+  return svg;
+}
+
+// ================================================================
+// MAIN
+// ================================================================
+function render() {
+  const dagName = document.getElementById('dagSelect').value;
+  const dag = DAGS[dagName]();
+  const layout = layoutMetro(dag);
+  document.getElementById('mapContainer').innerHTML = renderSVG(dag, layout);
+  document.getElementById('info').textContent =
+    `${dag.nodes.length} nodes, ${dag.edges.length} edges, ${layout.routes.length} routes | All segments: 0° or 45° only`;
+}
+
+document.getElementById('dagSelect').addEventListener('change', render);
+document.getElementById('btnRegen').addEventListener('click', render);
+render();
+</script>
+</body>
+</html>

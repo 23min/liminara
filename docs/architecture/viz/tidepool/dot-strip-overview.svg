@@ -1,0 +1,188 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 180" font-family="'IBM Plex Mono', 'Courier New', monospace">
+  <rect width="900" height="180" fill="#F5F0E8"/>
+
+  <text x="32" y="24" font-size="11" fill="#2C2C2C" letter-spacing="0.08em">DOT STRIP — FAR ZOOM (SOFTWARE FACTORY, 847 OPS)</text>
+  <line x1="32" y1="32" x2="868" y2="32" stroke="#2C2C2C" stroke-width="0.5" opacity="0.3"/>
+
+  <!-- Lane lines -->
+  <line x1="32" y1="60" x2="868" y2="60" stroke="#D4CFC7" stroke-width="0.2"/>
+  <line x1="32" y1="76" x2="868" y2="76" stroke="#D4CFC7" stroke-width="0.2"/>
+  <line x1="32" y1="92" x2="868" y2="92" stroke="#D4CFC7" stroke-width="0.2"/>
+  <line x1="32" y1="108" x2="868" y2="108" stroke="#D4CFC7" stroke-width="0.2"/>
+  <line x1="32" y1="124" x2="868" y2="124" stroke="#D4CFC7" stroke-width="0.2"/>
+
+  <!-- Phase 1: Planning (sparse, coral-heavy — lots of LLM decisions) -->
+  <circle cx="50" cy="76" r="2.5" fill="#E8846B"/>
+  <circle cx="62" cy="76" r="2.5" fill="#E8846B"/>
+  <circle cx="74" cy="92" r="2.5" fill="#E8846B"/>
+  <circle cx="80" cy="76" r="2.5" fill="#2B8A8E"/>
+  <circle cx="92" cy="76" r="2.5" fill="#E8846B"/>
+  <circle cx="98" cy="92" r="2.5" fill="#E8846B"/>
+  <circle cx="110" cy="60" r="2.5" fill="#E8846B"/>
+  <circle cx="116" cy="76" r="2.5" fill="#C45B4A"/> <!-- gate -->
+  <circle cx="128" cy="76" r="2.5" fill="#E8846B"/>
+  <circle cx="140" cy="92" r="2.5" fill="#2B8A8E"/>
+
+  <!-- Phase label -->
+  <text x="90" y="144" font-size="7" fill="#8C8680" text-anchor="middle">planning</text>
+  <text x="90" y="153" font-size="7" fill="#E8846B" text-anchor="middle">decision-heavy</text>
+
+  <!-- Phase divider -->
+  <line x1="160" y1="48" x2="160" y2="130" stroke="#D4CFC7" stroke-width="0.3" stroke-dasharray="2,4"/>
+
+  <!-- Phase 2: Implementation (dense, teal-heavy, many parallel lanes) -->
+  <!-- Lane 1 -->
+  <circle cx="175" cy="60" r="2.5" fill="#2B8A8E"/>
+  <circle cx="183" cy="60" r="2.5" fill="#2B8A8E"/>
+  <circle cx="191" cy="60" r="2.5" fill="#2B8A8E"/>
+  <circle cx="199" cy="60" r="2.5" fill="#D4944C"/>
+  <circle cx="207" cy="60" r="2.5" fill="#2B8A8E"/>
+  <circle cx="215" cy="60" r="2.5" fill="#2B8A8E"/>
+  <circle cx="223" cy="60" r="2.5" fill="#2B8A8E"/>
+  <circle cx="231" cy="60" r="2.5" fill="#2B8A8E"/>
+  <circle cx="239" cy="60" r="2.5" fill="#E8846B"/>
+  <circle cx="247" cy="60" r="2.5" fill="#2B8A8E"/>
+  <circle cx="255" cy="60" r="2.5" fill="#2B8A8E"/>
+  <circle cx="263" cy="60" r="2.5" fill="#2B8A8E"/>
+  <circle cx="271" cy="60" r="2.5" fill="#2B8A8E"/>
+  <circle cx="279" cy="60" r="2.5" fill="#D4944C"/>
+  <circle cx="287" cy="60" r="2.5" fill="#2B8A8E"/>
+  <circle cx="295" cy="60" r="2.5" fill="#2B8A8E"/>
+  <circle cx="303" cy="60" r="2.5" fill="#2B8A8E"/>
+  <circle cx="311" cy="60" r="2.5" fill="#2B8A8E"/>
+  <circle cx="319" cy="60" r="2.5" fill="#2B8A8E"/>
+  <circle cx="327" cy="60" r="2.5" fill="#E8846B"/>
+  <circle cx="335" cy="60" r="2.5" fill="#2B8A8E"/>
+  <!-- Lane 2 -->
+  <circle cx="175" cy="76" r="2.5" fill="#2B8A8E"/>
+  <circle cx="183" cy="76" r="2.5" fill="#2B8A8E"/>
+  <circle cx="191" cy="76" r="2.5" fill="#D4944C"/>
+  <circle cx="199" cy="76" r="2.5" fill="#2B8A8E"/>
+  <circle cx="207" cy="76" r="2.5" fill="#2B8A8E"/>
+  <circle cx="215" cy="76" r="2.5" fill="#2B8A8E"/>
+  <circle cx="223" cy="76" r="2.5" fill="#2B8A8E"/>
+  <circle cx="231" cy="76" r="2.5" fill="#E8846B"/>
+  <circle cx="239" cy="76" r="2.5" fill="#2B8A8E"/>
+  <circle cx="247" cy="76" r="2.5" fill="#2B8A8E"/>
+  <circle cx="255" cy="76" r="2.5" fill="#2B8A8E"/>
+  <circle cx="263" cy="76" r="2.5" fill="#2B8A8E"/>
+  <circle cx="271" cy="76" r="2.5" fill="#2B8A8E"/>
+  <circle cx="279" cy="76" r="2.5" fill="#2B8A8E"/>
+  <circle cx="287" cy="76" r="2.5" fill="#E8846B"/>
+  <circle cx="295" cy="76" r="2.5" fill="#2B8A8E"/>
+  <circle cx="303" cy="76" r="2.5" fill="#2B8A8E"/>
+  <circle cx="311" cy="76" r="2.5" fill="#D4944C"/>
+  <circle cx="319" cy="76" r="2.5" fill="#2B8A8E"/>
+  <circle cx="327" cy="76" r="2.5" fill="#2B8A8E"/>
+  <circle cx="335" cy="76" r="2.5" fill="#2B8A8E"/>
+  <!-- Lane 3 -->
+  <circle cx="183" cy="92" r="2.5" fill="#2B8A8E"/>
+  <circle cx="191" cy="92" r="2.5" fill="#2B8A8E"/>
+  <circle cx="199" cy="92" r="2.5" fill="#2B8A8E"/>
+  <circle cx="207" cy="92" r="2.5" fill="#2B8A8E"/>
+  <circle cx="215" cy="92" r="2.5" fill="#E8846B"/>
+  <circle cx="223" cy="92" r="2.5" fill="#2B8A8E"/>
+  <circle cx="231" cy="92" r="2.5" fill="#2B8A8E"/>
+  <circle cx="239" cy="92" r="2.5" fill="#2B8A8E"/>
+  <circle cx="247" cy="92" r="2.5" fill="#D4944C"/>
+  <circle cx="255" cy="92" r="2.5" fill="#2B8A8E"/>
+  <circle cx="263" cy="92" r="2.5" fill="#2B8A8E"/>
+  <circle cx="271" cy="92" r="2.5" fill="#2B8A8E"/>
+  <circle cx="279" cy="92" r="2.5" fill="#2B8A8E"/>
+  <circle cx="287" cy="92" r="2.5" fill="#2B8A8E"/>
+  <circle cx="295" cy="92" r="2.5" fill="#2B8A8E"/>
+  <circle cx="303" cy="92" r="2.5" fill="#E8846B"/>
+  <circle cx="311" cy="92" r="2.5" fill="#2B8A8E"/>
+  <circle cx="319" cy="92" r="2.5" fill="#2B8A8E"/>
+  <circle cx="327" cy="92" r="2.5" fill="#2B8A8E"/>
+  <!-- Lane 4 (shorter) -->
+  <circle cx="199" cy="108" r="2.5" fill="#2B8A8E"/>
+  <circle cx="207" cy="108" r="2.5" fill="#2B8A8E"/>
+  <circle cx="215" cy="108" r="2.5" fill="#2B8A8E"/>
+  <circle cx="223" cy="108" r="2.5" fill="#D4944C"/>
+  <circle cx="231" cy="108" r="2.5" fill="#2B8A8E"/>
+  <circle cx="239" cy="108" r="2.5" fill="#2B8A8E"/>
+  <circle cx="247" cy="108" r="2.5" fill="#2B8A8E"/>
+  <circle cx="255" cy="108" r="2.5" fill="#2B8A8E"/>
+  <circle cx="263" cy="108" r="2.5" fill="#E8846B"/>
+  <circle cx="271" cy="108" r="2.5" fill="#2B8A8E"/>
+  <circle cx="279" cy="108" r="2.5" fill="#2B8A8E"/>
+
+  <text x="255" y="144" font-size="7" fill="#8C8680" text-anchor="middle">implementation</text>
+  <text x="255" y="153" font-size="7" fill="#2B8A8E" text-anchor="middle">computation-heavy, parallel</text>
+
+  <!-- Phase divider -->
+  <line x1="355" y1="48" x2="355" y2="130" stroke="#D4CFC7" stroke-width="0.3" stroke-dasharray="2,4"/>
+
+  <!-- Phase 3: Testing (teal + amber, medium density) -->
+  <circle cx="370" cy="60" r="2.5" fill="#2B8A8E"/>
+  <circle cx="378" cy="60" r="2.5" fill="#D4944C"/>
+  <circle cx="386" cy="76" r="2.5" fill="#2B8A8E"/>
+  <circle cx="394" cy="60" r="2.5" fill="#D4944C"/>
+  <circle cx="402" cy="76" r="2.5" fill="#2B8A8E"/>
+  <circle cx="410" cy="60" r="2.5" fill="#2B8A8E"/>
+  <circle cx="418" cy="92" r="2.5" fill="#D4944C"/>
+  <circle cx="426" cy="60" r="2.5" fill="#2B8A8E"/>
+  <circle cx="434" cy="76" r="2.5" fill="#D4944C"/>
+  <circle cx="442" cy="60" r="2.5" fill="#2B8A8E"/>
+  <circle cx="450" cy="92" r="2.5" fill="#D4944C"/>
+  <circle cx="458" cy="60" r="2.5" fill="#C45B4A"/> <!-- failure! -->
+  <circle cx="466" cy="76" r="2.5" fill="#2B8A8E"/>
+  <circle cx="474" cy="60" r="2.5" fill="#2B8A8E"/>
+  <circle cx="370" cy="76" r="2.5" fill="#2B8A8E"/>
+  <circle cx="378" cy="76" r="2.5" fill="#2B8A8E"/>
+  <circle cx="394" cy="76" r="2.5" fill="#D4944C"/>
+  <circle cx="410" cy="76" r="2.5" fill="#D4944C"/>
+  <circle cx="426" cy="76" r="2.5" fill="#2B8A8E"/>
+  <circle cx="442" cy="76" r="2.5" fill="#D4944C"/>
+  <circle cx="458" cy="76" r="2.5" fill="#2B8A8E"/>
+  <circle cx="474" cy="76" r="2.5" fill="#D4944C"/>
+
+  <text x="420" y="144" font-size="7" fill="#8C8680" text-anchor="middle">testing</text>
+  <text x="420" y="153" font-size="7" fill="#D4944C" text-anchor="middle">I/O + computation</text>
+
+  <!-- Red dot annotation -->
+  <line x1="458" y1="63" x2="458" y2="50" stroke="#C45B4A" stroke-width="0.3"/>
+  <text x="458" y="47" font-size="6" fill="#C45B4A" text-anchor="middle">test failure</text>
+
+  <line x1="494" y1="48" x2="494" y2="130" stroke="#D4CFC7" stroke-width="0.3" stroke-dasharray="2,4"/>
+
+  <!-- Phase 4: Review gate + fix + final (sparse, has a gate) -->
+  <circle cx="510" cy="76" r="2.5" fill="#E8846B"/>
+  <circle cx="518" cy="76" r="2.5" fill="#2B8A8E"/>
+  <circle cx="526" cy="76" r="2.5" fill="#E8846B"/>
+  <!-- Gate: larger, red, with gap after it -->
+  <circle cx="550" cy="76" r="4" fill="none" stroke="#C45B4A" stroke-width="1"/>
+  <circle cx="550" cy="76" r="1.5" fill="#C45B4A"/>
+  <!-- Long gap (waiting for human) -->
+  <circle cx="650" cy="76" r="2.5" fill="#2B8A8E"/>
+  <circle cx="658" cy="76" r="2.5" fill="#2B8A8E"/>
+  <circle cx="666" cy="76" r="2.5" fill="#E8846B"/>
+  <circle cx="674" cy="76" r="2.5" fill="#2B8A8E"/>
+  <circle cx="682" cy="60" r="2.5" fill="#D4944C"/>
+  <circle cx="690" cy="76" r="2.5" fill="#2B8A8E"/>
+
+  <text x="600" y="90" font-size="7" fill="#C45B4A" text-anchor="middle">human review</text>
+  <text x="600" y="99" font-size="7" fill="#8C8680" text-anchor="middle">(12 min wait)</text>
+
+  <!-- Right edge: running frontier -->
+  <line x1="706" y1="48" x2="706" y2="130" stroke="#2B8A8E" stroke-width="0.5" opacity="0.3"/>
+  <!-- Running dots (pulsing) -->
+  <circle cx="714" cy="60" r="3" fill="#2B8A8E" opacity="0.6"/>
+  <circle cx="720" cy="60" r="5" fill="none" stroke="#2B8A8E" stroke-width="0.3" opacity="0.3"/>
+  <circle cx="714" cy="76" r="3" fill="#E8846B" opacity="0.6"/>
+  <circle cx="720" cy="76" r="5" fill="none" stroke="#E8846B" stroke-width="0.3" opacity="0.3"/>
+
+  <text x="725" y="70" font-size="7" fill="#2B8A8E">now</text>
+
+  <!-- Summary stats -->
+  <text x="32" y="173" font-size="8" fill="#8C8680">847 ops  |  </text>
+  <circle cx="120" cy="170" r="3" fill="#2B8A8E"/>
+  <text x="128" y="173" font-size="8" fill="#8C8680">612 pure  </text>
+  <circle cx="204" cy="170" r="3" fill="#E8846B"/>
+  <text x="212" y="173" font-size="8" fill="#8C8680">89 recordable  </text>
+  <circle cx="320" cy="170" r="3" fill="#D4944C"/>
+  <text x="328" y="173" font-size="8" fill="#8C8680">143 side-effect  </text>
+  <circle cx="440" cy="170" r="3" fill="#C45B4A"/>
+  <text x="448" y="173" font-size="8" fill="#8C8680">3 gates  |  1 failure  |  72% pure  |  wall clock: 24m</text>
+</svg>
