@@ -1,0 +1,45 @@
+{"id":"anthropic_news","name":"Anthropic News","type":"rss","feed_url":"https://raw.githubusercontent.com/taobojlen/anthropic-rss-feed/main/anthropic_news_rss.xml","tags":["ai","llm","anthropic"],"enabled":true}
+{"id":"anthropic_eng","name":"Anthropic Engineering","type":"rss","feed_url":"https://raw.githubusercontent.com/conoro/anthropic-engineering-rss-feed/main/anthropic_engineering_rss.xml","tags":["ai","llm","engineering"],"enabled":true}
+{"id":"openai_blog","name":"OpenAI Blog","type":"rss","feed_url":"https://openai.com/news/rss.xml","tags":["ai","llm","openai"],"enabled":true}
+{"id":"deepmind_blog","name":"Google DeepMind Blog","type":"rss","feed_url":"https://deepmind.google/blog/rss.xml","tags":["ai","research"],"enabled":true}
+{"id":"huggingface_blog","name":"Hugging Face Blog","type":"rss","feed_url":"https://huggingface.co/blog/feed.xml","tags":["ai","ml","open-source"],"enabled":true}
+{"id":"langchain_blog","name":"LangChain Blog","type":"rss","feed_url":"https://blog.langchain.com/rss","tags":["ai","orchestration","agents"],"enabled":true}
+{"id":"simon_willison","name":"Simon Willison's Weblog","type":"rss","feed_url":"https://simonwillison.net/atom/everything/","tags":["ai","llm","tooling"],"enabled":true}
+{"id":"arxiv_cs_ai","name":"arXiv cs.AI","type":"rss","feed_url":"https://rss.arxiv.org/rss/cs.AI","tags":["ai","research","academic"],"enabled":true}
+{"id":"arxiv_cs_cl","name":"arXiv cs.CL","type":"rss","feed_url":"https://rss.arxiv.org/rss/cs.CL","tags":["ai","nlp","research"],"enabled":true}
+{"id":"elixir_forum","name":"Elixir Forum","type":"rss","feed_url":"https://elixirforum.com/latest.rss","tags":["elixir","community"],"enabled":true}
+{"id":"elixir_blog","name":"Official Elixir Blog","type":"rss","feed_url":"https://elixir-lang.org/blog/atom.xml","tags":["elixir","releases"],"enabled":true}
+{"id":"beam_bloggers","name":"BEAM Bloggers Webring","type":"rss","feed_url":"https://beambloggers.com/feed.xml","tags":["elixir","erlang","beam"],"enabled":true}
+{"id":"underjord","name":"Underjord","type":"rss","feed_url":"https://underjord.io/feed.xml","tags":["elixir","beam"],"enabled":true}
+{"id":"fly_blog","name":"Fly.io Blog","type":"rss","feed_url":"https://fly.io/blog/feed.xml","tags":["elixir","phoenix","infra"],"enabled":true}
+{"id":"fly_phoenix","name":"Fly.io Phoenix Files","type":"rss","feed_url":"https://fly.io/phoenix-files/feed.xml","tags":["elixir","phoenix","liveview"],"enabled":true}
+{"id":"planet_erlang","name":"Planet Erlang","type":"rss","feed_url":"http://www.planeterlang.com/rss20.xml","tags":["erlang","aggregator"],"enabled":true}
+{"id":"beam_radio","name":"BEAM Radio Podcast","type":"rss","feed_url":"https://feeds.fireside.fm/beamradio/rss","tags":["elixir","erlang"],"enabled":true}
+{"id":"elixir_status","name":"Elixir Status","type":"rss","feed_url":"https://elixirstatus.com/rss","tags":["elixir","community"],"enabled":true}
+{"id":"eea_press","name":"EEA Press Releases","type":"rss","feed_url":"https://www.eea.europa.eu/en/newsroom/rss-feeds/eeas-press-releases-rss","tags":["eu","environment"],"enabled":true}
+{"id":"eea_articles","name":"EEA Featured Articles","type":"rss","feed_url":"https://www.eea.europa.eu/en/newsroom/rss-feeds/featured-articles-rss","tags":["eu","environment"],"enabled":true}
+{"id":"eea_publications","name":"EEA Publications","type":"rss","feed_url":"https://www.eea.europa.eu/en/newsroom/rss-feeds/publications-rss","tags":["eu","environment"],"enabled":true}
+{"id":"dvc_blog","name":"DVC Blog","type":"rss","feed_url":"https://dvc.org/blog/rss.xml","tags":["reproducibility","ml"],"enabled":true}
+{"id":"lobsters_elixir_ai","name":"Lobsters (elixir+ai+ml)","type":"rss","feed_url":"https://lobste.rs/t/elixir,ai,ml.rss","tags":["tech","curated"],"enabled":true}
+{"id":"lobsters_distributed","name":"Lobsters (distributed)","type":"rss","feed_url":"https://lobste.rs/t/distributed.rss","tags":["tech","distributed"],"enabled":true}
+{"id":"hn_elixir","name":"HN: Elixir","type":"rss","feed_url":"https://hnrss.org/newest?q=elixir&points=5","tags":["elixir","hn"],"enabled":true}
+{"id":"hn_llm","name":"HN: LLM orchestration","type":"rss","feed_url":"https://hnrss.org/newest?q=LLM+orchestration+OR+LangChain+OR+LangGraph&points=5","tags":["ai","orchestration","hn"],"enabled":true}
+{"id":"hn_reproducibility","name":"HN: Reproducibility","type":"rss","feed_url":"https://hnrss.org/newest?q=reproducible+computation+OR+reproducible+builds+OR+content-addressed&points=5","tags":["reproducibility","hn"],"enabled":true}
+{"id":"hn_eu_compliance","name":"HN: EU compliance","type":"rss","feed_url":"https://hnrss.org/newest?q=CSRD+OR+ESRS+OR+digital+product+passport+OR+EU+AI+Act&points=3","tags":["eu","compliance","hn"],"enabled":true}
+{"id":"hn_dag_workflows","name":"HN: DAG workflows","type":"rss","feed_url":"https://hnrss.org/newest?q=Dagster+OR+Prefect+OR+Temporal+OR+workflow+orchestration&points=5","tags":["orchestration","hn"],"enabled":true}
+{"id":"hn_erlang","name":"HN: Erlang/BEAM","type":"rss","feed_url":"https://hnrss.org/newest?q=erlang+OR+BEAM+OR+OTP&points=5","tags":["erlang","beam","hn"],"enabled":true}
+{"id":"swedish_tech","name":"Swedish Tech News","type":"rss","feed_url":"https://www.swedishtechnews.com/rss","tags":["swedish","startups"],"enabled":true}
+{"id":"efrag_news","name":"EFRAG News","type":"web","url":"https://www.efrag.org/en/news-and-calendar/news","tags":["esrs","vsme","standards"],"enabled":true}
+{"id":"esg_today","name":"ESG Today","type":"web","url":"https://www.esgtoday.com/","tags":["esg","csrd","regulation"],"enabled":true}
+{"id":"ec_environment","name":"EC Environment News","type":"web","url":"https://environment.ec.europa.eu/news_en","tags":["eu","csrd","eudr","dpp"],"enabled":true}
+{"id":"circularise_blog","name":"Circularise Blog","type":"web","url":"https://www.circularise.com/blogs/","tags":["dpp","supply-chain"],"enabled":true}
+{"id":"coolset_academy","name":"Coolset Academy","type":"web","url":"https://www.coolset.com/academy/","tags":["esrs","csrd","eudr"],"enabled":true}
+{"id":"esg_dive","name":"ESG Dive","type":"web","url":"https://www.esgdive.com/","tags":["esg","regulation"],"enabled":true}
+{"id":"dagster_blog","name":"Dagster Blog","type":"web","url":"https://dagster.io/blog","tags":["dag","orchestration"],"enabled":true}
+{"id":"prefect_blog","name":"Prefect Blog","type":"web","url":"https://www.prefect.io/blog","tags":["orchestration"],"enabled":true}
+{"id":"temporal_blog","name":"Temporal Blog","type":"web","url":"https://temporal.io/blog","tags":["durable-execution","replay"],"enabled":true}
+{"id":"mlflow_blog","name":"MLflow Blog","type":"web","url":"https://mlflow.org/blog","tags":["experiment-tracking","ml"],"enabled":true}
+{"id":"nordic_web","name":"The Nordic Web","type":"web","url":"https://thenordicweb.com/","tags":["nordic","startups"],"enabled":true}
+{"id":"arctic_startup","name":"Arctic Startup","type":"web","url":"https://arcticstartup.com/","tags":["nordic","startups"],"enabled":true}
+{"id":"erlang_news","name":"Erlang/OTP News","type":"web","url":"https://www.erlang.org/news","tags":["erlang","otp"],"enabled":true}
+{"id":"erlang_solutions","name":"Erlang Solutions Blog","type":"web","url":"https://www.erlang-solutions.com/blog/","tags":["elixir","erlang"],"enabled":true}

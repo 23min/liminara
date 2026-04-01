@@ -32,6 +32,9 @@ __pycache__/
 *.pyc
 .venv/
 
+# Runtime data (persistent, local)
+runtime/data/
+
 # Node
 node_modules/
 
