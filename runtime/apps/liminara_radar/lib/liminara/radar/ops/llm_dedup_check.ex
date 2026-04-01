@@ -1,0 +1,11 @@
+defmodule Liminara.Radar.Ops.LlmDedupCheck do
+  @behaviour Liminara.Op
+
+  def name, do: "radar_llm_dedup"
+  def version, do: "1.0"
+  def determinism, do: :recordable
+  def executor, do: :port
+  def python_op, do: "radar_llm_dedup"
+
+  def execute(_inputs), do: raise("executed via :port")
+end

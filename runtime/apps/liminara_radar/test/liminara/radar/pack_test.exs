@@ -40,22 +40,24 @@ defmodule Liminara.Radar.PackTest do
   end
 
   describe "plan/1" do
-    test "builds plan with one fetch node per source + collect node" do
+    test "builds plan with fetch + pipeline nodes" do
       sources = [@rss_source, @web_source]
       plan = Radar.plan(sources)
 
       assert %Plan{} = plan
       nodes = Plan.nodes(plan)
 
-      # 2 fetch nodes + 1 collect node = 3
-      assert map_size(nodes) == 3
+      # 2 fetch + collect + normalize + embed + dedup + llm_dedup_check + merge_results = 8
+      assert map_size(nodes) == 8
 
-      # Fetch nodes exist
       assert Map.has_key?(nodes, "fetch_src_rss")
       assert Map.has_key?(nodes, "fetch_src_web")
-
-      # Collect node exists
       assert Map.has_key?(nodes, "collect_items")
+      assert Map.has_key?(nodes, "normalize")
+      assert Map.has_key?(nodes, "embed")
+      assert Map.has_key?(nodes, "dedup")
+      assert Map.has_key?(nodes, "llm_dedup_check")
+      assert Map.has_key?(nodes, "merge_results")
     end
 
     test "RSS sources get FetchRss op module" do
@@ -77,7 +79,6 @@ defmodule Liminara.Radar.PackTest do
       plan = Radar.plan(sources)
       collect = Plan.get_node(plan, "collect_items")
 
-      # Collect inputs should reference both fetch nodes
       input_refs =
         collect.inputs
         |> Map.values()
@@ -87,12 +88,39 @@ defmodule Liminara.Radar.PackTest do
       assert "fetch_src_web" in input_refs
     end
 
-    test "empty source list produces plan with only collect node" do
+    test "normalize follows collect" do
+      plan = Radar.plan([@rss_source])
+      normalize = Plan.get_node(plan, "normalize")
+      assert normalize.inputs["items"] == {:ref, "collect_items", "items"}
+    end
+
+    test "embed follows normalize" do
+      plan = Radar.plan([@rss_source])
+      embed = Plan.get_node(plan, "embed")
+      assert embed.inputs["items"] == {:ref, "normalize", "items"}
+    end
+
+    test "dedup follows embed" do
+      plan = Radar.plan([@rss_source])
+      dedup = Plan.get_node(plan, "dedup")
+      assert dedup.inputs["items"] == {:ref, "embed", "items"}
+    end
+
+    test "merge_results combines dedup new + llm kept" do
+      plan = Radar.plan([@rss_source])
+      merge = Plan.get_node(plan, "merge_results")
+      assert merge.inputs["dedup_result"] == {:ref, "dedup", "result"}
+      assert merge.inputs["llm_kept_items"] == {:ref, "llm_dedup_check", "items"}
+    end
+
+    test "empty source list produces plan with pipeline nodes only" do
       plan = Radar.plan([])
       nodes = Plan.nodes(plan)
 
-      assert map_size(nodes) == 1
+      # collect + normalize + embed + dedup + llm_dedup_check + merge_results = 6
+      assert map_size(nodes) == 6
       assert Map.has_key?(nodes, "collect_items")
+      assert Map.has_key?(nodes, "merge_results")
     end
 
     test "plan validates successfully" do
