@@ -32,11 +32,11 @@ Shared decision log. Active decisions that guide implementation choices.
 **Decision:** Use `Port.open/2` with `{packet, 4}` length-framed JSON. Zero Elixir dependencies. Spawn-per-call for V1; upgrade to NimblePool long-running workers for V2 when spawn overhead matters. Include correlation IDs from day 1.
 **Consequences:** No library risk. Protocol is future-proof (V2 is internal swap). Python side uses a generic dispatcher (`liminara_op_runner.py`).
 
-## D-2026-04-01-006: Embedding provider TBD, decide during M-RAD-02
+## D-2026-04-01-006: Local embeddings via model2vec, not API
 **Status:** active
-**Context:** No OpenAI API key available. Anthropic does not offer embeddings API. Need API-based embeddings (no local compute). Options: Voyage AI (Anthropic partner), Jina AI (1M tokens free/mo), Google Gemini ($0.004/1M), Cohere.
-**Decision:** Defer selection to M-RAD-02 milestone. Provider will be swappable via protocol. Evaluate cost, quality, and free tier during implementation.
-**Consequences:** M-RAD-02 spec must include provider evaluation as first task. Source config and dedup pipeline must not hardcode provider.
+**Context:** Evaluated API options (Voyage AI, Jina, Gemini, Cohere) and local options (model2vec, fastembed, sentence-transformers). Local avoids API keys and costs. model2vec (potion-base-8M) is 152MB installed, no PyTorch, no ONNX, 6.6ms for 100 items. Quality sufficient for news dedup (threshold ~0.35 cleanly separates duplicates).
+**Decision:** Use model2vec with `minishlab/potion-base-8M` (256 dims). Swappable via EmbeddingProvider protocol — can upgrade to fastembed or Voyage AI if quality insufficient.
+**Consequences:** Zero API cost for embeddings. Works offline. Dedup thresholds lower than transformer models (0.55 dup / 0.35 ambiguous vs 0.92/0.7). Model auto-downloads on first run (~59MB).
 
 ## D-2026-04-01-007: Tavily as primary search provider for serendipity
 **Status:** active
