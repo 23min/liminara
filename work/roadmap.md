@@ -33,9 +33,9 @@
 
 ## Phase 5: Radar — Planning
 
-- [ ] E-10 Port Executor (prerequisite — `:port` executor for Python ops via Erlang Ports)
-  - [ ] M-PORT-01 Port protocol + executor + Python runner
-  - [ ] M-PORT-02 Integration test (all determinism classes)
+- [x] E-10 Port Executor (prerequisite — `:port` executor for Python ops via Erlang Ports)
+  - [x] M-PORT-01 Port protocol + executor + Python runner
+  - [x] M-PORT-02 Integration test (all determinism classes)
 - [ ] E-11 Radar Pack (daily intelligence briefing pipeline)
   - [ ] M-RAD-01 Pack + source config + fetch (~47 sources)
   - [ ] M-RAD-02 Extract + embed + dedup (embedding provider TBD)

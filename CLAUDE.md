@@ -247,7 +247,9 @@ One paragraph: overall assessment (approve / request changes).
 <!-- Updated by start-milestone and wrap-milestone skills. -->
 
 - **Phase 4** (Observation Layer): **complete** — E-09 done, in `work/done/`
-- **Phase 5** (Radar): **next** — epic not yet drafted
+- **Phase 5** (Radar): **in progress**
+  - **E-10 Port Executor:** **done** — `work/epics/E-10-port-executor/epic.md`
+  - **E-11 Radar Pack:** next — `work/epics/E-11-radar/epic.md`
 - **Branch:** `main`
 - **Project-specific rules:** `.ai-repo/rules/liminara.md` (READ THIS — contains domain context)
 - **Path overrides:** `.ai-repo/rules/paths-override.md`
