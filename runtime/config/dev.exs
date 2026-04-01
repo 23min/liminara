@@ -9,4 +9,9 @@ config :liminara_web, LiminaraWeb.Endpoint,
 # A2UI WebSocket endpoint
 config :liminara_observation, a2ui_port: 4006
 
+# Persistent storage — survives container restarts
+config :liminara_core,
+  store_root: Path.expand("../data/store", __DIR__),
+  runs_root: Path.expand("../data/runs", __DIR__)
+
 config :logger, :console, level: :info
