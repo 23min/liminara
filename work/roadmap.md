@@ -31,9 +31,17 @@
   - [x] M-OBS-05a Gate demo + LiveView gate interaction
   - [x] M-OBS-05b A2UI exploration + integration
 
-## Phase 5: Radar — Not started
+## Phase 5: Radar — Planning
 
-*Epics not yet drafted.*
+- [ ] E-10 Port Executor (prerequisite — `:port` executor for Python ops via Erlang Ports)
+  - [ ] M-PORT-01 Port protocol + executor + Python runner
+  - [ ] M-PORT-02 Integration test (all determinism classes)
+- [ ] E-11 Radar Pack (daily intelligence briefing pipeline)
+  - [ ] M-RAD-01 Pack + source config + fetch (~47 sources)
+  - [ ] M-RAD-02 Extract + embed + dedup (embedding provider TBD)
+  - [ ] M-RAD-03 Cluster + rank + render (Haiku summaries)
+  - [ ] M-RAD-04 Web UI + scheduler (LiveView + GenServer)
+  - [ ] M-RAD-05 Serendipity exploration (Tavily, enhancement)
 
 ## Phase 6: Oban + Postgres — Not started
 
