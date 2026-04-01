@@ -104,6 +104,63 @@ defmodule Liminara.Plan do
     |> Hash.hash_bytes()
   end
 
+  # ── Serialization ────────────────────────────────────────────────
+
+  @doc "Serialize a plan to a JSON-encodable map."
+  @spec to_map(%__MODULE__{}) :: map()
+  def to_map(%__MODULE__{insert_order: order} = plan) do
+    nodes =
+      Enum.map(order, fn node_id ->
+        node = Map.fetch!(plan.nodes, node_id)
+
+        %{
+          "node_id" => node_id,
+          "op_module" => Atom.to_string(node.op_module),
+          "inputs" => serialize_inputs(node.inputs)
+        }
+      end)
+
+    %{"nodes" => nodes}
+  end
+
+  @doc "Deserialize a plan from a JSON-decoded map."
+  @spec from_map(map()) :: %__MODULE__{}
+  def from_map(%{"nodes" => nodes}) do
+    Enum.reduce(nodes, new(), fn node_map, plan ->
+      node_id = node_map["node_id"]
+      # Use to_atom instead of to_existing_atom — the module may not be loaded
+      # in all runtime contexts (e.g. test ops viewed from the web app).
+      # Safe here: input comes from our own event store, not untrusted sources.
+      op_module = String.to_atom(node_map["op_module"])
+      inputs = deserialize_inputs(node_map["inputs"])
+      add_node(plan, node_id, op_module, inputs)
+    end)
+  end
+
+  defp deserialize_inputs(inputs) do
+    Map.new(inputs, fn
+      {name, %{"type" => "literal", "value" => value_str}} ->
+        {name, {:literal, deserialize_literal(value_str)}}
+
+      {name, %{"type" => "ref", "ref" => ref_id, "key" => key}} ->
+        {name, {:ref, ref_id, key}}
+
+      {name, %{"type" => "ref", "ref" => ref_id}} ->
+        {name, {:ref, ref_id}}
+    end)
+  end
+
+  defp deserialize_literal(value_str) do
+    # Literal values were serialized with inspect/1. For simple strings,
+    # they look like: "\"hello\"". Try to parse as Elixir term.
+    try do
+      {value, _} = Code.eval_string(value_str)
+      value
+    rescue
+      _ -> value_str
+    end
+  end
+
   # ── Private ──────────────────────────────────────────────────────
 
   defp node_ready?(%Node{inputs: inputs}, completed) do

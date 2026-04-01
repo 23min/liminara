@@ -20,9 +20,16 @@
 
 - [x] E-08 OTP Runtime (supervision tree, Run.Server GenServer, :pg broadcasting, crash recovery, property-based stress testing, toy pack)
 
-## Phase 4: Observation Layer — Not started
+## Phase 4: Observation Layer — Complete
 
-- [ ] E-09 Observation Layer (Observation.Server, Phoenix LiveView UI, DAG visualization, inspectors, A2UI experimental renderer)
+- [x] E-09 Observation Layer (Observation.Server, Phoenix LiveView UI, DAG visualization, inspectors, A2UI experimental renderer)
+  - [x] M-OBS-01 Observation Server — renderer-agnostic event projection
+  - [x] M-OBS-02 Phoenix scaffolding + runs dashboard
+  - [x] M-OBS-03 SVG DAG visualization with real-time updates
+  - [x] M-OBS-04a Node inspector + artifact viewer + dashboard layout
+  - [x] M-OBS-04b Event timeline + decision viewer
+  - [x] M-OBS-05a Gate demo + LiveView gate interaction
+  - [x] M-OBS-05b A2UI exploration + integration
 
 ## Phase 5: Radar — Not started
 

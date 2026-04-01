@@ -159,3 +159,39 @@ This pack may require external executors (ports/containers/remote workers).
 - [EvoPrompt paper](https://arxiv.org/abs/2309.08532) — Evolutionary prompt optimization.
 - [GAAPO paper (Frontiers 2025)](https://www.frontiersin.org/journals/artificial-intelligence/articles/10.3389/frai.2025.1613007/full) — GA applied to prompt optimization.
 - [Nevergrad](https://facebookresearch.github.io/nevergrad/) — Ask/tell optimization patterns.
+
+---
+
+## Appendix: Agentic Algorithm Engineering (AAE) — Adjacent Pattern
+
+**Source:** [CHSZLab/AgenticAlgorithmEngineering](https://github.com/CHSZLab/AgenticAlgorithmEngineering), Christian Schulz, Heidelberg University (2025). Based on Sanders (2009) Algorithm Engineering methodology.
+
+AAE deploys Claude Code as an autonomous performance engineer running an indefinite optimization loop: hypothesize → implement → benchmark → evaluate (keep/discard) → repeat. It is *not* a genetic algorithm — it uses **reasoned mutation** (LLM hypothesizes *why* a change should help) instead of random mutation.
+
+### Relationship to this pack
+
+| | Evolutionary Factory | AAE |
+|---|---|---|
+| **Search strategy** | Population-based (GA: mutation + crossover + selection) | Single-candidate, hypothesis-driven |
+| **Candidate generation** | Random/guided mutation of population | LLM reasons about bottleneck, proposes targeted change |
+| **Why it works** | Diversity explores the search space broadly | LLM's training data encodes known optimization techniques |
+| **Weakness** | Expensive (many evaluations per generation) | Can get stuck in local optima (no population diversity) |
+| **Memory** | Lineage in decision records (`decision.ga_step.v1`) | results.tsv + LLM context window |
+
+They share the **generate → evaluate → select → iterate** loop. A hybrid combining GA-style population diversity with LLM-guided mutation (instead of random mutation) could outperform either alone.
+
+### What AAE contributes to pack design
+
+1. **Hypothesis as a structured decision record.** AAE requires every experiment to have a specific, falsifiable hypothesis with predicted direction and magnitude. This is more disciplined than "the LLM chose X." Liminara's decision records for `evo.propose` and `evo.select_mutate` should capture not just *what* was chosen but *why* — the hypothesis and prediction, not just the output.
+
+2. **Correctness assertions as gate ops.** AAE checks invariants before benchmarking (valid partition, sorted output, finite loss). In Liminara terms, these are `pure` validation ops that gate the expensive `side_effecting` benchmark — saving compute when a mutation produces invalid output.
+
+3. **results.tsv as a primitive event log.** AAE logs commit hash, metric, resource usage, status, and hypothesis per experiment. This is a hand-rolled, fragile version of Liminara's event log. It validates the pattern while showing what formalization gains: hash chaining, replay, caching, observation.
+
+4. **The iteration pattern.** AAE's indefinite loop is exactly the pattern that Liminara's planned iteration primitive (FAUST-style unrolling, see `docs/research/dataflow_systems_and_liminara.md` Gap 6) would support — each iteration as observable nodes in the DAG rather than an opaque agent loop.
+
+### Potential hybrid: AAE + Evolutionary Factory
+
+Use the Evolutionary Factory's population-based search for diversity, but replace random mutation with AAE-style hypothesis-driven mutation. Each candidate in the population gets an LLM-generated hypothesis. The GA handles exploration (population diversity, crossover); the LLM handles exploitation (informed mutation). Decision records capture both the GA selection decisions and the LLM hypotheses.
+
+This is not a current build target — it's a design direction to keep in mind when the iteration primitive exists.

@@ -35,3 +35,5 @@ node_modules/
 
 # Original brainstorm export (contents are in docs/brainstorm/)
 agent_runtime_specs.zip
+.claude/worktrees/
+.claude-sessions-backup/

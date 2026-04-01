@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="csrf-token" content={get_csrf_token()} />
+    <title>Liminara</title>
+    <link rel="stylesheet" href="/assets/css/dag-map.css" />
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        font-family: 'IBM Plex Mono', 'Courier New', monospace;
+        background: var(--dm-paper);
+        color: var(--dm-ink);
+      }
+      /* Page chrome */
+      .page { padding: 24px; max-width: 1400px; margin: 0 auto; }
+      .page nav { margin-bottom: 16px; }
+      .page nav a {
+        font-size: 11px; color: var(--dm-muted); text-decoration: none;
+        letter-spacing: 0.06em; text-transform: uppercase;
+      }
+      .page nav a:hover { color: var(--dm-ink); }
+      .page h1 {
+        font-size: 14px; font-weight: 500; letter-spacing: 0.04em;
+        color: var(--dm-ink); margin-bottom: 12px; opacity: 0.7;
+      }
+      .run-meta {
+        display: flex; gap: 24px; flex-wrap: wrap;
+        font-size: 11px; color: var(--dm-muted);
+        margin-bottom: 16px; padding-bottom: 12px;
+        border-bottom: 1px solid var(--dm-border);
+      }
+      .run-meta dt { font-weight: 500; letter-spacing: 0.04em; }
+      .run-meta dd { margin-left: 0; }
+      /* dag-container: intentionally minimal — let SVG render at natural size */
+      /* Status badges */
+      .status { display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: 10px; letter-spacing: 0.04em; }
+      .status--running { background: #e3f2fd; color: #1565c0; }
+      .status--completed { background: #e8f5e9; color: #2e7d32; }
+      .status--failed { background: #ffebee; color: #c62828; }
+      .status--pending { background: #f5f5f5; color: #757575; }
+      .status--waiting { background: #fff3e0; color: #e65100; }
+      /* Gate action buttons */
+      .gate-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px solid var(--dm-border);
+      }
+      .gate-btn {
+        font-family: inherit;
+        font-size: 10px;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        border: 1px solid var(--dm-border);
+        border-radius: 3px;
+        padding: 4px 14px;
+        cursor: pointer;
+        transition: all 0.15s;
+        background: none;
+      }
+      .gate-btn--approve {
+        border-color: var(--dm-cls-pure, #2B8A8E);
+        color: var(--dm-cls-pure, #2B8A8E);
+      }
+      .gate-btn--approve:hover {
+        background: var(--dm-cls-pure, #2B8A8E);
+        color: var(--dm-paper);
+      }
+      .gate-btn--reject {
+        border-color: var(--dm-cls-gate, #C45B4A);
+        color: var(--dm-cls-gate, #C45B4A);
+      }
+      .gate-btn--reject:hover {
+        background: var(--dm-cls-gate, #C45B4A);
+        color: var(--dm-paper);
+      }
+      /* Gate banner — fixed-height slot, no layout shift */
+      .gate-banner-slot {
+        height: 36px;
+        margin-bottom: 4px;
+      }
+      .gate-banner {
+        font-size: 11px;
+        padding: 8px 12px;
+        border: 1px solid var(--dm-cls-gate, #C45B4A);
+        border-radius: 4px;
+        background: color-mix(in srgb, var(--dm-cls-gate, #C45B4A) 10%, var(--dm-paper));
+        color: var(--dm-ink);
+        cursor: pointer;
+      }
+      .gate-banner:hover {
+        background: color-mix(in srgb, var(--dm-cls-gate, #C45B4A) 18%, var(--dm-paper));
+      }
+      .gate-banner code {
+        font-weight: 600;
+      }
+      /* Run detail layout */
+      .run-detail-layout {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 16px;
+        align-items: start;
+      }
+      .dag-area { min-width: 0; }
+      /* Node inspector panel */
+      .node-inspector {
+        width: 320px;
+        border: 1px solid var(--dm-border);
+        border-radius: 4px;
+        font-size: 11px;
+        background: var(--dm-paper);
+      }
+      .inspector-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px;
+        border-bottom: 1px solid var(--dm-border);
+      }
+      .inspector-title { font-weight: 500; letter-spacing: 0.03em; }
+      .inspector-close { background: none; border: none; cursor: pointer; font-size: 12px; color: var(--dm-muted); }
+      .inspector-body { padding: 8px; }
+      .inspector-fields { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; }
+      .inspector-fields dt { color: var(--dm-muted); font-weight: 500; }
+      .inspector-section { margin-top: 12px; }
+      .inspector-section h4 { font-size: 10px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--dm-muted); margin-bottom: 6px; }
+      .hash-link { background: none; border: none; cursor: pointer; padding: 0; text-align: left; color: inherit; font-family: inherit; font-size: inherit; }
+      .hash-link:hover .hash-short { text-decoration: underline; }
+      .hash-short { font-size: 10px; color: var(--dm-muted); }
+      .decision-entry { display: flex; gap: 8px; margin-bottom: 4px; }
+      /* Artifact viewer */
+      .artifact-viewer { padding: 8px; }
+      .artifact-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+      .back-btn { background: none; border: none; cursor: pointer; font-size: 11px; color: var(--dm-muted); padding: 0; }
+      .artifact-hash { font-size: 9px; word-break: break-all; }
+      .artifact-content pre { font-size: 10px; white-space: pre-wrap; word-break: break-all; max-height: 400px; overflow: auto; }
+      .artifact-type-badge { display: inline-block; font-size: 9px; background: #e3f2fd; color: #1565c0; padding: 1px 5px; border-radius: 3px; margin-bottom: 4px; }
+      /* Timeline panel */
+      .timeline-panel {
+        margin-top: 16px;
+        border: 1px solid var(--dm-border);
+        border-radius: 4px;
+        font-size: 11px;
+        background: var(--dm-paper);
+      }
+      .timeline--collapsed .timeline-events,
+      .timeline--collapsed .timeline-filters,
+      .timeline--collapsed .decision-viewer { display: none; }
+      .timeline-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 12px;
+        border-bottom: 1px solid var(--dm-border);
+      }
+      .timeline-title {
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--dm-muted);
+      }
+      .timeline-toggle {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 11px;
+        color: var(--dm-muted);
+        font-family: inherit;
+        padding: 2px 6px;
+      }
+      .timeline-toggle:hover { color: var(--dm-ink); }
+      /* Filter pills */
+      .timeline-filters {
+        display: flex;
+        gap: 4px;
+        padding: 8px 12px;
+        border-bottom: 1px solid var(--dm-border);
+        flex-wrap: wrap;
+      }
+      .filter-btn {
+        font-family: inherit;
+        font-size: 9px;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        background: none;
+        border: 1px solid var(--dm-border);
+        border-radius: 3px;
+        padding: 2px 8px;
+        cursor: pointer;
+        color: var(--dm-muted);
+        transition: all 0.15s;
+      }
+      .filter-btn:hover {
+        border-color: var(--dm-ink);
+        color: var(--dm-ink);
+      }
+      .filter-btn--clear {
+        border-color: var(--dm-cls-pure, #2B8A8E);
+        color: var(--dm-cls-pure, #2B8A8E);
+      }
+      .filter-btn--clear:hover {
+        background: var(--dm-cls-pure, #2B8A8E);
+        color: var(--dm-paper);
+      }
+      /* Event rows */
+      .timeline-events {
+        max-height: 300px;
+        overflow-y: auto;
+      }
+      .timeline-event {
+        display: flex;
+        gap: 12px;
+        padding: 4px 12px;
+        border-bottom: 1px solid color-mix(in srgb, var(--dm-border) 50%, transparent);
+        align-items: baseline;
+      }
+      .timeline-event:last-child { border-bottom: none; }
+      .timeline-event--clickable {
+        cursor: pointer;
+      }
+      .timeline-event--clickable:hover {
+        background: color-mix(in srgb, var(--dm-border) 30%, transparent);
+      }
+      .timeline-event--selected {
+        background: color-mix(in srgb, var(--dm-cls-pure, #2B8A8E) 12%, transparent);
+        border-left: 2px solid var(--dm-cls-pure, #2B8A8E);
+        padding-left: 10px;
+      }
+      .timeline-event-type {
+        font-size: 10px;
+        font-weight: 500;
+        min-width: 100px;
+        color: var(--dm-ink);
+      }
+      .timeline-event-ts {
+        font-size: 9px;
+        color: var(--dm-muted);
+        min-width: 80px;
+      }
+      .timeline-event-node {
+        font-size: 10px;
+        color: var(--dm-muted);
+      }
+      /* Decision viewer */
+      .decision-viewer {
+        padding: 8px 12px;
+        border-top: 1px solid var(--dm-border);
+      }
+      .decision-viewer-title {
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--dm-muted);
+        margin-bottom: 6px;
+      }
+      .decision-entry {
+        display: flex;
+        gap: 8px;
+        padding: 3px 0;
+        cursor: pointer;
+        font-size: 10px;
+        align-items: baseline;
+      }
+      .decision-entry:hover {
+        background: color-mix(in srgb, var(--dm-border) 30%, transparent);
+      }
+      .decision-entry code {
+        font-size: 9px;
+        color: var(--dm-muted);
+      }
+      @media (max-width: 768px) {
+        .run-detail-layout { grid-template-columns: 1fr; }
+        .node-inspector { width: 100%; }
+        .timeline-events { max-height: 200px; }
+      }
+    </style>
+  </head>
+  <body>
+    {@inner_content}
+    <script src="https://cdn.jsdelivr.net/npm/phoenix@1.8.5/priv/static/phoenix.min.js">
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/phoenix_live_view@1.1.27/priv/static/phoenix_live_view.min.js">
+    </script>
+    <script src="/assets/js/dag-map-bundle.js?v=0.3.1">
+    </script>
+    <script>
+      // -- DagMap LiveView Hook --
+      let Hooks = {};
+      Hooks.DagMap = {
+        mounted() {
+          this.selectedNodeId = null;
+          this.renderDag();
+        },
+        updated() {
+          this.renderDag();
+          // Sync highlight from server-side selection (timeline click, etc.)
+          let serverSelected = this.el.dataset.selectedNode || "";
+          if (serverSelected && serverSelected !== this.selectedNodeId) {
+            this.selectNode(serverSelected);
+          } else if (!serverSelected && this.selectedNodeId) {
+            this.clearSelection();
+            this.selectedNodeId = null;
+          }
+        },
+        renderDag() {
+          let dagJson = this.el.dataset.dag;
+          if (!dagJson) return;
+
+          let dagData = JSON.parse(dagJson);
+          let nodes = dagData.nodes.map(function(n) {
+            var node = { id: n.id, label: n.label, cls: n.cls };
+            if (n.dim) node.dim = true;
+            return node;
+          });
+          let edges = dagData.edges;
+          let dag = { nodes: nodes, edges: edges };
+
+          let layout = DagMap.layoutMetro(dag, {
+            routing: 'bezier',
+            theme: 'cream',
+            scale: 1.5,
+            lineGap: 0
+          });
+
+          let title = dagData.title || 'RUN';
+          let svg = DagMap.renderSVG(dag, layout, {
+            title: title,
+            legendLabels: {
+              pure: 'Deterministic',
+              recordable: 'Nondeterministic',
+              side_effecting: 'Side-effecting',
+              gate: 'Gate'
+            }
+          });
+
+          this.el.innerHTML = svg;
+          this.bindClickHandlers();
+        },
+        bindClickHandlers() {
+          let self = this;
+          this.el.querySelectorAll('circle[data-id]').forEach(function(circle) {
+            circle.style.cursor = 'pointer';
+            circle.addEventListener('click', function(e) {
+              let nodeId = e.currentTarget.dataset.id;
+              self.selectNode(nodeId);
+              self.pushEvent("select_node", {"node-id": nodeId});
+            });
+          });
+          if (this.selectedNodeId) {
+            this.highlightNode(this.selectedNodeId);
+          }
+        },
+        selectNode(nodeId) {
+          this.clearSelection();
+          this.selectedNodeId = nodeId;
+          this.highlightNode(nodeId);
+        },
+        highlightNode(nodeId) {
+          let circle = this.el.querySelector('circle[data-id="' + nodeId + '"]');
+          if (circle) {
+            circle.setAttribute('data-selected', 'true');
+            circle.dataset.origStrokeWidth = circle.getAttribute('stroke-width');
+            circle.setAttribute('stroke-width', parseFloat(circle.getAttribute('stroke-width')) * 2);
+          }
+        },
+        clearSelection() {
+          this.el.querySelectorAll('circle[data-selected]').forEach(function(c) {
+            if (c.dataset.origStrokeWidth) {
+              c.setAttribute('stroke-width', c.dataset.origStrokeWidth);
+            }
+            c.removeAttribute('data-selected');
+          });
+        }
+      };
+
+      // -- PanelResize LiveView Hook --
+      Hooks.PanelResize = {
+        mounted() {},
+        updated() {}
+      };
+
+      let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content");
+      let liveSocket = new window.LiveView.LiveSocket("/live", window.Phoenix.Socket, {
+        params: {_csrf_token: csrfToken},
+        hooks: Hooks
+      });
+      liveSocket.connect();
+    </script>
+  </body>
+</html>

@@ -224,8 +224,8 @@ defmodule Liminara.Run.CrashRecoveryTest do
       {:ok, events_b} = Event.Store.read_all(run_b)
 
       # Both should have events
-      assert length(events_a) > 0
-      assert length(events_b) > 0
+      assert events_a != []
+      assert events_b != []
 
       # Both should have valid, independent hash chains
       assert {:ok, _} = Event.Store.verify(run_a)

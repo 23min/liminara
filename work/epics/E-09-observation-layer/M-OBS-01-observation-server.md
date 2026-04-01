@@ -1,7 +1,7 @@
 ---
 id: M-OBS-01-observation-server
 epic: E-09-observation-layer
-status: draft
+status: done
 ---
 
 # M-OBS-01: Observation Server
@@ -14,16 +14,16 @@ This is the contract that all observation UIs depend on.
 
 ## Acceptance criteria
 
-- [ ] `Observation.Server` GenServer starts for a given run_id, subscribes to its `:pg` events
-- [ ] Maintains a view model containing: DAG structure (nodes + edges), node states (pending/running/completed/failed/waiting), node timing (start/end/duration), artifact references per node, decision references per node, run status, run timing
-- [ ] View model updates on every event received from `:pg`
-- [ ] Provides `get_state/1` API returning the full view model snapshot
-- [ ] Provides `get_node/2` API returning detailed info for a single node
-- [ ] Publishes updates via Phoenix.PubSub on a topic per run (for LiveView consumption)
-- [ ] Multiple Observation.Servers can observe the same run concurrently
-- [ ] Observation.Server crash does not affect the Run.Server
-- [ ] Observation.Server can attach to an already-running run (catches up from event log, then receives live events)
-- [ ] Observation.Server can observe an already-completed run (loads from event log)
+- [x] `Observation.Server` GenServer starts for a given run_id, subscribes to its `:pg` events
+- [x] Maintains a view model containing: DAG structure (nodes + edges), node states (pending/running/completed/failed/waiting), node timing (start/end/duration), artifact references per node, decision references per node, run status, run timing
+- [x] View model updates on every event received from `:pg`
+- [x] Provides `get_state/1` API returning the full view model snapshot
+- [x] Provides `get_node/2` API returning detailed info for a single node
+- [x] Publishes updates via Phoenix.PubSub on a topic per run (for LiveView consumption)
+- [x] Multiple Observation.Servers can observe the same run concurrently
+- [x] Observation.Server crash does not affect the Run.Server
+- [x] Observation.Server can attach to an already-running run (catches up from event log, then receives live events)
+- [x] Observation.Server can observe an already-completed run (loads from event log)
 
 ## Tests
 

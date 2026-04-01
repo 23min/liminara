@@ -46,7 +46,62 @@ defmodule Liminara.Event.Store do
     GenServer.call(__MODULE__, {:write_seal, run_id})
   end
 
+  @doc "List all run IDs via the supervised process."
+  @spec list_run_ids() :: [String.t()]
+  def list_run_ids do
+    GenServer.call(__MODULE__, :list_run_ids)
+  end
+
+  @doc "Touch the events.jsonl file to update its mtime via the supervised process."
+  @spec touch(String.t()) :: :ok
+  def touch(run_id) when is_binary(run_id) do
+    GenServer.call(__MODULE__, {:touch, run_id})
+  end
+
+  @doc "Write the plan for a run via the supervised process."
+  @spec write_plan(String.t(), Liminara.Plan.t()) :: :ok
+  def write_plan(run_id, plan) when is_binary(run_id) do
+    GenServer.call(__MODULE__, {:write_plan, run_id, plan})
+  end
+
+  @doc "Read the plan for a run via the supervised process."
+  @spec read_plan(String.t()) :: {:ok, Liminara.Plan.t()} | {:error, :not_found}
+  def read_plan(run_id) when is_binary(run_id) do
+    GenServer.call(__MODULE__, {:read_plan, run_id})
+  end
+
   # ── Direct API (stateless, explicit runs_root) ──────────────────
+
+  @doc """
+  List all run IDs by scanning the runs directory for subdirectories.
+
+  Returns a sorted list of run ID strings.
+  """
+  @spec list_run_ids(Path.t()) :: [String.t()]
+  def list_run_ids(runs_root) do
+    if File.dir?(runs_root) do
+      runs_root
+      |> File.ls!()
+      |> Enum.filter(fn name -> File.dir?(Path.join(runs_root, name)) end)
+      |> Enum.sort()
+    else
+      []
+    end
+  end
+
+  @doc """
+  Touch the events.jsonl file to update its mtime (direct API).
+  """
+  @spec touch(Path.t(), String.t()) :: :ok
+  def touch(runs_root, run_id) do
+    path = events_path(runs_root, run_id)
+
+    if File.exists?(path) do
+      File.touch!(path)
+    end
+
+    :ok
+  end
 
   @doc """
   Append an event to the log. Returns `{:ok, event}` with computed hash and timestamp.
@@ -167,6 +222,30 @@ defmodule Liminara.Event.Store do
     {:ok, seal}
   end
 
+  @doc "Write the plan as JSON to the run directory."
+  @spec write_plan(Path.t(), String.t(), Liminara.Plan.t()) :: :ok
+  def write_plan(runs_root, run_id, plan) do
+    run_dir = Path.join(runs_root, run_id)
+    File.mkdir_p!(run_dir)
+    plan_path = Path.join(run_dir, "plan.json")
+    File.write!(plan_path, Liminara.Plan.to_map(plan) |> Jason.encode!(pretty: true))
+    :ok
+  end
+
+  @doc "Read the plan from the run directory."
+  @spec read_plan(Path.t(), String.t()) :: {:ok, Liminara.Plan.t()} | {:error, :not_found}
+  def read_plan(runs_root, run_id) do
+    plan_path = Path.join([runs_root, run_id, "plan.json"])
+
+    case File.read(plan_path) do
+      {:ok, content} ->
+        {:ok, content |> Jason.decode!() |> Liminara.Plan.from_map()}
+
+      {:error, :enoent} ->
+        {:error, :not_found}
+    end
+  end
+
   # ── GenServer callbacks ─────────────────────────────────────────
 
   @impl true
@@ -194,6 +273,22 @@ defmodule Liminara.Event.Store do
 
   def handle_call({:write_seal, run_id}, _from, %{runs_root: root} = state) do
     {:reply, write_seal(root, run_id), state}
+  end
+
+  def handle_call(:list_run_ids, _from, %{runs_root: root} = state) do
+    {:reply, list_run_ids(root), state}
+  end
+
+  def handle_call({:touch, run_id}, _from, %{runs_root: root} = state) do
+    {:reply, touch(root, run_id), state}
+  end
+
+  def handle_call({:write_plan, run_id, plan}, _from, %{runs_root: root} = state) do
+    {:reply, write_plan(root, run_id, plan), state}
+  end
+
+  def handle_call({:read_plan, run_id}, _from, %{runs_root: root} = state) do
+    {:reply, read_plan(root, run_id), state}
   end
 
   # ── Private ─────────────────────────────────────────────────────

@@ -375,7 +375,7 @@ defmodule Liminara.Observation.ServerTest do
       run_id = unique_run_id()
       plan = simple_plan()
 
-      topic = "observation:#{run_id}"
+      topic = "observation:#{run_id}:state"
       Phoenix.PubSub.subscribe(Liminara.Observation.PubSub, topic)
 
       {:ok, pid} = Server.start_link(run_id: run_id, plan: plan)
@@ -396,18 +396,18 @@ defmodule Liminara.Observation.ServerTest do
       })
 
       # Should receive a PubSub message with the current view model state
-      assert_receive {:observation_update, ^run_id, view_state}, 500
+      assert_receive {:state_update, ^run_id, view_state}, 500
       assert is_struct(view_state)
       assert view_state.__struct__ == ViewModel
 
       GenServer.stop(pid)
     end
 
-    test "PubSub topic format is 'observation:{run_id}'" do
+    test "PubSub state topic format is 'observation:{run_id}:state'" do
       run_id = unique_run_id()
       plan = simple_plan()
 
-      topic = "observation:#{run_id}"
+      topic = "observation:#{run_id}:state"
       Phoenix.PubSub.subscribe(Liminara.Observation.PubSub, topic)
 
       {:ok, pid} = Server.start_link(run_id: run_id, plan: plan)
@@ -428,11 +428,11 @@ defmodule Liminara.Observation.ServerTest do
       })
 
       # Different run_id topic should NOT receive this message
-      wrong_topic = "observation:wrong-run"
+      wrong_topic = "observation:wrong-run:state"
       Phoenix.PubSub.subscribe(Liminara.Observation.PubSub, wrong_topic)
 
-      assert_receive {:observation_update, ^run_id, _state}, 500
-      refute_receive {:observation_update, _, _}, 100
+      assert_receive {:state_update, ^run_id, _state}, 500
+      refute_receive {:state_update, _, _}, 100
 
       GenServer.stop(pid)
     end
@@ -441,7 +441,7 @@ defmodule Liminara.Observation.ServerTest do
       run_id = unique_run_id()
       plan = simple_plan()
 
-      topic = "observation:#{run_id}"
+      topic = "observation:#{run_id}:state"
       Phoenix.PubSub.subscribe(Liminara.Observation.PubSub, topic)
 
       {:ok, pid} = Server.start_link(run_id: run_id, plan: plan)
@@ -475,8 +475,8 @@ defmodule Liminara.Observation.ServerTest do
         timestamp: "2026-03-19T14:00:01.000Z"
       })
 
-      assert_receive {:observation_update, ^run_id, _state1}, 500
-      assert_receive {:observation_update, ^run_id, _state2}, 500
+      assert_receive {:state_update, ^run_id, _state1}, 500
+      assert_receive {:state_update, ^run_id, _state2}, 500
 
       GenServer.stop(pid)
     end

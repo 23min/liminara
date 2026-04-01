@@ -30,7 +30,9 @@ defmodule LiminaraObservation.MixProject do
     [
       {:liminara_core, in_umbrella: true},
       {:phoenix_pubsub, "~> 2.1"},
-      {:jason, "~> 1.4"}
+      {:jason, "~> 1.4"},
+      {:ex_a2ui, path: "../../../ex_a2ui"},
+      {:gun, "~> 2.1", only: :test}
     ]
   end
 end

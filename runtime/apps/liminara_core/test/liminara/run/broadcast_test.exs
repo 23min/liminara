@@ -45,7 +45,7 @@ defmodule Liminara.Run.BroadcastTest do
       {:ok, _result} = Run.Server.await(run_id)
 
       events = collect_events(run_id)
-      assert length(events) > 0
+      assert events != []
 
       # All events should be maps with event_type
       for event <- events do
@@ -147,7 +147,7 @@ defmodule Liminara.Run.BroadcastTest do
       assert_receive {:sub1_events, events1}, 1000
       assert_receive {:sub2_events, events2}, 1000
 
-      assert length(events1) > 0
+      assert events1 != []
       assert length(events1) == length(events2)
     end
 
@@ -210,7 +210,7 @@ defmodule Liminara.Run.BroadcastTest do
 
       # We should still have received events
       events = collect_events(run_id)
-      assert length(events) > 0
+      assert events != []
     end
   end
 

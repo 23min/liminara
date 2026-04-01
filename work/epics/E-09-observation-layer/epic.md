@@ -1,7 +1,7 @@
 ---
 id: E-09-observation-layer
 phase: 4
-status: draft
+status: done
 ---
 
 # E-09: Observation Layer
@@ -35,11 +35,13 @@ Build the real-time observation infrastructure for Liminara runs. When this epic
 
 | ID | Milestone | Status |
 |----|-----------|--------|
-| M-OBS-01-observation-server | Observation Server — renderer-agnostic event projection | draft |
-| M-OBS-02-phoenix-scaffold | Phoenix scaffolding + runs dashboard | draft |
-| M-OBS-03-dag-visualization | SVG DAG visualization with real-time updates | draft |
-| M-OBS-04-inspectors | Node inspector, artifact viewer, event timeline | draft |
-| M-OBS-05-a2ui-renderer | A2UI experimental renderer | draft |
+| M-OBS-01-observation-server | Observation Server — renderer-agnostic event projection | done |
+| M-OBS-02-phoenix-scaffold | Phoenix scaffolding + runs dashboard | done |
+| M-OBS-03-dag-visualization | SVG DAG visualization with real-time updates | done |
+| M-OBS-04a-inspector | Node inspector + artifact viewer + dashboard layout | done |
+| M-OBS-04b-timeline | Event timeline + decision viewer | done |
+| M-OBS-05a-gate-demo | Gate demo + LiveView gate interaction | done |
+| M-OBS-05b-a2ui | A2UI exploration + integration | done |
 
 ## Success criteria
 
@@ -59,4 +61,4 @@ Build the real-time observation infrastructure for Liminara runs. When this epic
 - Spec: `docs/architecture/03_PHASE3_REFERENCE.md §Event broadcasting`
 - Research: `docs/research/a2ui_finding.md`
 - Research: `docs/research/graph_execution_patterns.md §7 Visualization`
-- ADRs: none yet
+- ADR: `docs/decisions/ADR-007-visual-execution-states.md` (draft — pending/cached/replay visual states, deferred to future phase)

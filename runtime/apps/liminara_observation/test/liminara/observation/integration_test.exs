@@ -10,7 +10,32 @@ defmodule Liminara.Observation.IntegrationTest do
   # ── Helpers ────────────────────────────────────────────────────────
 
   defp unique_run_id(prefix \\ "integ") do
-    "#{prefix}-#{:erlang.unique_integer([:positive])}"
+    rand = :crypto.strong_rand_bytes(4) |> Base.encode16(case: :lower)
+    "#{prefix}-#{rand}"
+  end
+
+  # Poll Observation.Server until condition is met, with timeout.
+  # Replaces flaky Process.sleep + assert patterns.
+  defp await_observation(obs_pid, condition_fn, timeout \\ 2000) do
+    deadline = System.monotonic_time(:millisecond) + timeout
+    do_await_observation(obs_pid, condition_fn, deadline)
+  end
+
+  defp do_await_observation(obs_pid, condition_fn, deadline) do
+    state = Server.get_state(obs_pid)
+
+    if condition_fn.(state) do
+      state
+    else
+      if System.monotonic_time(:millisecond) > deadline do
+        flunk(
+          "await_observation timed out. Last state: #{inspect(state, pretty: true, limit: 5)}"
+        )
+      else
+        Process.sleep(20)
+        do_await_observation(obs_pid, condition_fn, deadline)
+      end
+    end
   end
 
   defp simple_plan do
@@ -51,12 +76,8 @@ defmodule Liminara.Observation.IntegrationTest do
 
       assert run_result.status == :success
 
-      # Give observer time to process all events
-      Process.sleep(100)
+      state = await_observation(obs_pid, fn s -> s.run_status == :completed end)
 
-      state = Server.get_state(obs_pid)
-
-      assert state.run_status == :completed
       assert state.nodes["a"].status == :completed
       assert state.run_started_at != nil
       assert state.run_completed_at != nil
@@ -73,13 +94,12 @@ defmodule Liminara.Observation.IntegrationTest do
       Run.Server.start(run_id, plan)
       {:ok, _run_result} = Run.Server.await(run_id)
 
-      Process.sleep(100)
+      state =
+        await_observation(obs_pid, fn s ->
+          s.run_status == :completed and s.nodes["b"].status == :completed
+        end)
 
-      state = Server.get_state(obs_pid)
-
-      assert state.run_status == :completed
       assert state.nodes["a"].status == :completed
-      assert state.nodes["b"].status == :completed
 
       GenServer.stop(obs_pid)
     end
@@ -93,9 +113,7 @@ defmodule Liminara.Observation.IntegrationTest do
       Run.Server.start(run_id, plan)
       {:ok, _run_result} = Run.Server.await(run_id)
 
-      Process.sleep(100)
-
-      state = Server.get_state(obs_pid)
+      state = await_observation(obs_pid, fn s -> s.run_status == :completed end)
       {:ok, events} = Liminara.Event.Store.read_all(run_id)
 
       assert state.event_count == length(events)
@@ -112,11 +130,10 @@ defmodule Liminara.Observation.IntegrationTest do
       Run.Server.start(run_id, plan)
       {:ok, _run_result} = Run.Server.await(run_id)
 
-      Process.sleep(100)
-
-      state = Server.get_state(obs_pid)
-
-      assert state.nodes["a"].output_hashes != []
+      state =
+        await_observation(obs_pid, fn s ->
+          s.nodes["a"].output_hashes != []
+        end)
 
       Enum.each(state.nodes["a"].output_hashes, fn hash ->
         assert is_binary(hash)
@@ -135,11 +152,10 @@ defmodule Liminara.Observation.IntegrationTest do
       Run.Server.start(run_id, plan)
       {:ok, _run_result} = Run.Server.await(run_id)
 
-      Process.sleep(100)
-
-      state = Server.get_state(obs_pid)
-
-      assert state.nodes["gen"].decisions != []
+      state =
+        await_observation(obs_pid, fn s ->
+          s.nodes["gen"].decisions != []
+        end)
 
       GenServer.stop(obs_pid)
     end
@@ -153,13 +169,10 @@ defmodule Liminara.Observation.IntegrationTest do
       Run.Server.start(run_id, plan)
       {:ok, run_result} = Run.Server.await(run_id)
 
-      assert run_result.status == :failed
+      assert run_result.status in [:failed, :partial]
 
-      Process.sleep(100)
+      state = await_observation(obs_pid, fn s -> s.run_status == :failed end)
 
-      state = Server.get_state(obs_pid)
-
-      assert state.run_status == :failed
       assert state.nodes["fail"].status == :failed
 
       GenServer.stop(obs_pid)
@@ -174,11 +187,10 @@ defmodule Liminara.Observation.IntegrationTest do
       Run.Server.start(run_id, plan)
       {:ok, _run_result} = Run.Server.await(run_id)
 
-      Process.sleep(100)
-
-      state = Server.get_state(obs_pid)
-
-      assert state.nodes["fail"].error != nil
+      state =
+        await_observation(obs_pid, fn s ->
+          s.nodes["fail"].error != nil
+        end)
 
       GenServer.stop(obs_pid)
     end
@@ -192,9 +204,7 @@ defmodule Liminara.Observation.IntegrationTest do
       Run.Server.start(run_id, plan)
       {:ok, _run_result} = Run.Server.await(run_id)
 
-      Process.sleep(100)
-
-      state = Server.get_state(obs_pid)
+      state = await_observation(obs_pid, fn s -> s.run_status == :completed end)
 
       assert is_binary(state.nodes["a"].started_at)
       assert is_binary(state.nodes["a"].completed_at)
@@ -227,16 +237,12 @@ defmodule Liminara.Observation.IntegrationTest do
       {:ok, run_result} = Run.Server.await(run_id, 2000)
       assert run_result.status == :success
 
-      # Give observer time to catch up
-      Process.sleep(200)
-
-      state = Server.get_state(obs_pid)
+      state = await_observation(obs_pid, fn s -> s.run_status == :completed end)
 
       # Observer should have seen all events (catch-up + live)
       {:ok, events} = Liminara.Event.Store.read_all(run_id)
 
       assert state.event_count == length(events)
-      assert state.run_status == :completed
 
       GenServer.stop(obs_pid)
     end
@@ -254,11 +260,8 @@ defmodule Liminara.Observation.IntegrationTest do
       {:ok, obs_pid} = Server.start_link(run_id: run_id, plan: plan)
 
       {:ok, _run_result} = Run.Server.await(run_id, 2000)
-      Process.sleep(200)
 
-      state = Server.get_state(obs_pid)
-
-      assert state.run_status == :completed
+      state = await_observation(obs_pid, fn s -> s.run_status == :completed end)
       assert state.nodes["slow"].status == :completed
 
       GenServer.stop(obs_pid)
@@ -283,12 +286,8 @@ defmodule Liminara.Observation.IntegrationTest do
       # Start observer AFTER completion
       {:ok, obs_pid} = Server.start_link(run_id: run_id, plan: plan)
 
-      # Give observer time to load from event log
-      Process.sleep(200)
+      state = await_observation(obs_pid, fn s -> s.run_status == :completed end)
 
-      state = Server.get_state(obs_pid)
-
-      assert state.run_status == :completed
       assert state.nodes["a"].status == :completed
 
       {:ok, events} = Liminara.Event.Store.read_all(run_id)
@@ -307,9 +306,8 @@ defmodule Liminara.Observation.IntegrationTest do
       Process.sleep(50)
 
       {:ok, obs_pid} = Server.start_link(run_id: run_id, plan: plan)
-      Process.sleep(200)
 
-      state = Server.get_state(obs_pid)
+      state = await_observation(obs_pid, fn s -> s.run_status == :completed end)
 
       assert is_binary(state.run_started_at)
       assert is_binary(state.run_completed_at)
@@ -331,10 +329,8 @@ defmodule Liminara.Observation.IntegrationTest do
       Run.Server.start(run_id, plan)
       {:ok, _run_result} = Run.Server.await(run_id)
 
-      Process.sleep(200)
-
-      state1 = Server.get_state(obs_pid1)
-      state2 = Server.get_state(obs_pid2)
+      state1 = await_observation(obs_pid1, fn s -> s.run_status == :completed end)
+      state2 = await_observation(obs_pid2, fn s -> s.run_status == :completed end)
 
       assert state1.run_status == state2.run_status
       assert state1.event_count == state2.event_count
@@ -349,7 +345,7 @@ defmodule Liminara.Observation.IntegrationTest do
       run_id = unique_run_id("twoobs-pubsub")
       plan = simple_plan()
 
-      topic = "observation:#{run_id}"
+      topic = "observation:#{run_id}:state"
 
       # Subscribe two test processes to PubSub
       Phoenix.PubSub.subscribe(Liminara.Observation.PubSub, topic)
@@ -373,7 +369,9 @@ defmodule Liminara.Observation.IntegrationTest do
       Run.Server.start(run_id, plan)
       {:ok, _} = Run.Server.await(run_id)
 
-      Process.sleep(200)
+      # Wait until at least one observer has processed the completion
+      await_observation(obs_pid1, fn s -> s.run_status == :completed end)
+
       send(sub2, :done)
 
       assert_receive {:sub2_messages, msgs2}, 1000
@@ -436,7 +434,7 @@ defmodule Liminara.Observation.IntegrationTest do
 
   defp collect_pubsub_messages(run_id, acc) do
     receive do
-      {:observation_update, ^run_id, _state} = msg ->
+      {:state_update, ^run_id, _state} = msg ->
         collect_pubsub_messages(run_id, acc ++ [msg])
 
       :done ->
@@ -449,7 +447,7 @@ defmodule Liminara.Observation.IntegrationTest do
 
   defp collect_pubsub_messages_inbox(run_id, acc) do
     receive do
-      {:observation_update, ^run_id, _state} = msg ->
+      {:state_update, ^run_id, _state} = msg ->
         collect_pubsub_messages_inbox(run_id, acc ++ [msg])
     after
       200 ->

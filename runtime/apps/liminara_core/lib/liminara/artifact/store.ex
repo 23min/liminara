@@ -75,7 +75,7 @@ defmodule Liminara.Artifact.Store do
 
     case File.read(path) do
       {:ok, content} -> {:ok, content}
-      {:error, :enoent} -> {:error, :not_found}
+      {:error, _reason} -> {:error, :not_found}
     end
   end
 

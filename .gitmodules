@@ -1,3 +1,9 @@
 [submodule "dag-map"]
 	path = dag-map
 	url = https://github.com/23min/DAG-map.git
+[submodule "proliminal.net"]
+	path = proliminal.net
+	url = https://github.com/23min/proliminal.net.git
+[submodule "ex_a2ui"]
+	path = ex_a2ui
+	url = https://github.com/23min/ex_a2ui.git

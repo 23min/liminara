@@ -5,13 +5,17 @@
   },
   "postCreateCommand": "bash .devcontainer/post-create.sh",
   "remoteUser": "vscode",
+  "mounts": [
+    "source=${localEnv:CLAUDE_CONFIG_DIR},target=/home/vscode/.claude,type=bind,consistency=cached"
+  ],
   "customizations": {
     "vscode": {
       "extensions": [
         "jakebecker.elixir-ls",
         "ms-python.python",
         "charliermarsh.ruff",
-        "phoenixframework.phoenix"
+        "phoenixframework.phoenix",
+        "anthropics.claude-code"
       ],
       "settings": {
         "[elixir]": {

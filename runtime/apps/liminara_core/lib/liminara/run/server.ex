@@ -79,7 +79,7 @@ defmodule Liminara.Run.Server do
         end
 
       [] ->
-        {:error, :not_found}
+        result_from_event_log(run_id)
     end
   end
 
@@ -156,6 +156,9 @@ defmodule Liminara.Run.Server do
 
   @impl true
   def handle_continue(:start_run, state) do
+    # Persist the plan as a first-class artifact of the run
+    Event.Store.write_plan(state.run_id, state.plan)
+
     state =
       emit_event(state, "run_started", %{
         "run_id" => state.run_id,
@@ -177,6 +180,11 @@ defmodule Liminara.Run.Server do
     cond do
       last_type in ["run_completed", "run_failed"] ->
         # Run was already finished — just report the result
+        # Touch events.jsonl so mtime-based run lists reflect recent access
+        Event.Store.touch(state.run_id)
+        # Broadcast all events (atom-keyed) so live observers receive the full run
+        Enum.each(events, fn e -> broadcast(state.run_id, atomize_event(e)) end)
+
         status = if last_type == "run_completed", do: :success, else: :failed
 
         failed_nodes =
@@ -342,19 +350,16 @@ defmodule Liminara.Run.Server do
 
       _ ->
         # Dispatch all pending_ready nodes in this batch, then re-check.
-        state =
-          Enum.reduce(pending_ready, state, fn node_id, acc ->
-            if acc.node_states[node_id] == :pending do
-              dispatch_node(acc, node_id)
-            else
-              acc
-            end
-          end)
+        state = Enum.reduce(pending_ready, state, &dispatch_if_pending/2)
 
         # Re-check: synchronous completions (cache hits) may have
         # unblocked new nodes.
         dispatch_ready(state)
     end
+  end
+
+  defp dispatch_if_pending(node_id, acc) do
+    if acc.node_states[node_id] == :pending, do: dispatch_node(acc, node_id), else: acc
   end
 
   defp dispatch_node(state, node_id) do
@@ -578,27 +583,28 @@ defmodule Liminara.Run.Server do
 
   defp maybe_complete(state) do
     completed = completed_set(state)
-    all_done = Plan.all_complete?(state.plan, completed)
-    any_running = Enum.any?(state.node_states, fn {_, s} -> s == :running end)
-    any_waiting = Enum.any?(state.node_states, fn {_, s} -> s == :waiting end)
-    any_failed = Enum.any?(state.node_states, fn {_, s} -> s == :failed end)
-    any_completed = Enum.any?(state.node_states, fn {_, s} -> s == :completed end)
 
-    # Check if we're stuck: no running/waiting tasks and not all complete
-    stuck = not any_running and not any_waiting and not all_done
+    if Plan.all_complete?(state.plan, completed) do
+      finish_run(state, :success)
+    else
+      maybe_complete_stuck(state)
+    end
+  end
 
-    any_pending = Enum.any?(state.node_states, fn {_, s} -> s == :pending end)
+  defp maybe_complete_stuck(state) do
+    statuses = Map.values(state.node_states)
+    any_running = :running in statuses
+    any_waiting = :waiting in statuses
+    any_failed = :failed in statuses
+    any_pending = :pending in statuses
+    any_completed = :completed in statuses
+    stuck = not any_running and not any_waiting
 
     cond do
-      all_done ->
-        finish_run(state, :success)
-
       stuck and any_failed and any_completed and not any_pending ->
-        # Some nodes completed, some failed, none blocked — partial success
         finish_run(state, :partial)
 
       stuck and any_failed ->
-        # Some nodes are still pending (blocked by failures) — failed
         finish_run(state, :failed)
 
       true ->
@@ -750,8 +756,13 @@ defmodule Liminara.Run.Server do
   end
 
   defp broadcast(run_id, event) do
+    msg = {:run_event, run_id, event}
+
     :pg.get_members(:liminara, {:run, run_id})
-    |> Enum.each(&send(&1, {:run_event, run_id, event}))
+    |> Enum.each(&send(&1, msg))
+
+    :pg.get_members(:liminara, :all_runs)
+    |> Enum.each(&send(&1, msg))
   end
 
   # ── Helpers ──────────────────────────────────────────────────────
@@ -761,5 +772,37 @@ defmodule Liminara.Run.Server do
     |> Enum.filter(fn {_, s} -> s == :completed end)
     |> Enum.map(fn {id, _} -> id end)
     |> MapSet.new()
+  end
+
+  defp atomize_event(%{"event_type" => _} = event) do
+    %{
+      event_hash: event["event_hash"],
+      event_type: event["event_type"],
+      payload: event["payload"],
+      prev_hash: event["prev_hash"],
+      timestamp: event["timestamp"]
+    }
+  end
+
+  defp atomize_event(event), do: event
+
+  defp result_from_event_log(run_id) do
+    with {:ok, [_ | _] = events} <- Event.Store.read_all(run_id),
+         last <- List.last(events),
+         t when t in ["run_completed", "run_failed"] <- last["event_type"] do
+      status = if t == "run_completed", do: :success, else: :failed
+
+      {:ok,
+       %Result{
+         run_id: run_id,
+         status: status,
+         outputs: %{},
+         event_count: length(events),
+         node_states: %{},
+         failed_nodes: []
+       }}
+    else
+      _ -> {:error, :not_found}
+    end
   end
 end
