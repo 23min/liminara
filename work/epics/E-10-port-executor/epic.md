@@ -1,7 +1,7 @@
 ---
 id: E-10-port-executor
 phase: 5
-status: not started
+status: done
 ---
 
 # E-10: Port Executor
@@ -67,8 +67,8 @@ The Elixir/OTP community converges on raw Erlang Ports with `{packet, 4}` length
 
 | ID | Title | Summary | Status |
 |----|-------|---------|--------|
-| M-PORT-01 | Port protocol + executor + Python runner | `{packet, 4}` JSON protocol, `Liminara.Executor.Port`, `liminara_op_runner.py`, `uv` project scaffold, echo op | not started |
-| M-PORT-02 | Integration test | End-to-end via Run.Server across all determinism classes. Artifacts stored, events logged, cache/replay honored. | not started |
+| M-PORT-01 | Port protocol + executor + Python runner | `{packet, 4}` JSON protocol, `Liminara.Executor.Port`, `liminara_op_runner.py`, `uv` project scaffold, echo op | done |
+| M-PORT-02 | Integration test | End-to-end via Run.Server across all determinism classes. Artifacts stored, events logged, cache/replay honored. | done |
 
 ## Design Notes
 

@@ -23,11 +23,17 @@ defmodule Liminara.Executor do
           | {:ok, map(), non_neg_integer(), list()}
           | {:error, term(), non_neg_integer()}
   def run(op_module, inputs, opts \\ []) do
-    executor = Keyword.get(opts, :executor, :inline)
+    executor =
+      Keyword.get_lazy(opts, :executor, fn ->
+        if function_exported?(op_module, :executor, 0),
+          do: op_module.executor(),
+          else: :inline
+      end)
 
     case executor do
       :inline -> run_inline(op_module, inputs)
       :task -> run_task(op_module, inputs, opts)
+      :port -> run_port(op_module, inputs, opts)
     end
   end
 
@@ -48,6 +54,15 @@ defmodule Liminara.Executor do
     {duration_us, result} = :timer.tc(fn -> Task.await(task) end)
     duration_ms = div(duration_us, 1000)
     wrap_result(result, duration_ms)
+  end
+
+  defp run_port(op_module, inputs, opts) do
+    op_name =
+      if function_exported?(op_module, :python_op, 0),
+        do: op_module.python_op(),
+        else: op_module.name()
+
+    Liminara.Executor.Port.run(op_name, inputs, opts)
   end
 
   defp wrap_result({:ok, outputs}, duration_ms), do: {:ok, outputs, duration_ms}
