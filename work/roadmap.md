@@ -1,26 +1,29 @@
 # Roadmap
 
-## Phase 0: Data Model — Complete
+Sequencing principle (D-013): `Radar correctness -> Radar hardening -> VSME -> platform generalization`.
+Status labels (D-014): items marked `[validated]`, `[decided next]`, or `[directional thesis]`.
+
+## Phase 0: Data Model — Complete [validated]
 
 - [x] E-01 Data Model Spec
 
-## Phase 1: Python SDK / Data Model Validation — Complete
+## Phase 1: Python SDK / Data Model Validation — Complete [validated]
 
 - [x] E-02 Python SDK (data model validation + demo artifact)
 - [x] E-03 LangChain Integration
 
-## Phase 2: Elixir Walking Skeleton — Complete
+## Phase 2: Elixir Walking Skeleton — Complete [validated]
 
 - [x] E-04 Elixir Project Scaffolding + Golden Fixtures
 - [x] E-05 Storage Layer (Artifact Store + Event Store + Decision Store)
 - [x] E-06 Execution Engine (Plan + Op + Run.Server + Cache)
 - [x] E-07 Integration and Replay (end-to-end, Pack behaviour, interop)
 
-## Phase 3: OTP Runtime Layer — Complete
+## Phase 3: OTP Runtime Layer — Complete [validated]
 
 - [x] E-08 OTP Runtime (supervision tree, Run.Server GenServer, :pg broadcasting, crash recovery, property-based stress testing, toy pack)
 
-## Phase 4: Observation Layer — Complete
+## Phase 4: Observation Layer — Complete [validated]
 
 - [x] E-09 Observation Layer (Observation.Server, Phoenix LiveView UI, DAG visualization, inspectors, A2UI experimental renderer)
   - [x] M-OBS-01 Observation Server — renderer-agnostic event projection
@@ -31,22 +34,122 @@
   - [x] M-OBS-05a Gate demo + LiveView gate interaction
   - [x] M-OBS-05b A2UI exploration + integration
 
-## Phase 5: Radar — Planning
+## Phase 5a: Radar Correctness — Not started [decided next]
+
+Fix the core contract before building on top of it. Liminara's moat is exact replay of recorded decisions — that layer must be sound before anything else.
+
+- [ ] E-11c Replay & Determinism Integrity
+  - [ ] Multi-decision replay — Decision.Store supports list of decisions per node; Run.Server replays all decisions for multi-output recordable ops (fixes summarize op)
+  - [ ] Rank determinism — pass reference timestamp as explicit plan input; rank op becomes genuinely pure (no `datetime.now()`)
+  - [ ] M-RAD-03 tracking accuracy — mark placeholders as known shortcuts (historical_centroid, run_id, source diversity scoring)
+  - [ ] End-to-end replay test — run full Radar pipeline, then replay and assert identical outputs
+  - [ ] Clean env whitelist (sandbox Layer 1) — ~20 lines in Executor.Port, fixes VIRTUAL_ENV leakage (reproducibility fix, not security feature)
+
+## Phase 5b: Radar Complete — Not started [decided next]
+
+Finish the Radar pack as a working local MVP.
 
 - [x] E-10 Port Executor (prerequisite — `:port` executor for Python ops via Erlang Ports)
   - [x] M-PORT-01 Port protocol + executor + Python runner
   - [x] M-PORT-02 Integration test (all determinism classes)
 - [ ] E-11 Radar Pack (daily intelligence briefing pipeline)
-  - [ ] M-RAD-01 Pack + source config + fetch (~47 sources)
-  - [ ] M-RAD-02 Extract + embed + dedup (embedding provider TBD)
-  - [ ] M-RAD-03 Cluster + rank + render (Haiku summaries)
-  - [ ] M-RAD-04 Web UI + scheduler (LiveView + GenServer)
+  - [x] M-RAD-01 Pack + source config + fetch (~47 sources)
+  - [x] M-RAD-02 Extract + embed + dedup pipeline
+  - [ ] M-RAD-03 Cluster + rank + render (finish: real historical centroid, real run_id, source diversity fix)
+  - [ ] M-RAD-04 Web UI + scheduler (LiveView + GenServer scheduler per D-008)
+
+## Phase 5c: Radar Hardening — Not started [decided next]
+
+Tightly scoped to capabilities Radar has already proven it needs for production deployment on a single VM.
+
+- [ ] Unified execution spec design — define the struct shape (identity, determinism, execution, isolation, contracts); migrate existing callbacks (`determinism/0`, `executor/0`); E-12 implements against this shape
+- [ ] E-12 Op Sandbox (Layers 2-3) — audit hooks, Landlock, capability declarations in execution spec `isolation` section, sandbox metadata in run events
+  - [ ] M-ISO-01 Executor isolation (audit hooks, Landlock)
+  - [ ] M-ISO-02 Provenance & documentation (sandbox config in events, docs)
+- [ ] Recovery mode — "resume from last success" (create new run from failed run, skip completed nodes)
+- [ ] Lightweight topic config — YAML/JSON config listing topics (sources, focus, schedule, paths); Radar.Pack.plan/1 takes topic config and namespaces file paths; GenServer scheduler iterates topics
+- [ ] Observation UI: topic filter — tag runs with topic ID, filter in dashboard
+
+*Scope rule (D-012): only items Radar has already proven it needs. No broad platform abstractions.*
+
+## Phase 6: VSME — Not started [decided next]
+
+First compliance pack. Validates that the hardened runtime works for a second pack with different domain pressures.
+
+- [ ] E-13 VSME Pack (SME sustainability reporting — CSRD/EFRAG VSME standard)
+
+What VSME should prove:
+- The pack model generalizes beyond Radar
+- Provenance and replay are valuable outside news/intelligence workflows
+- The hardening work was not Radar-specific glue
+
+*Pack plan: see [14_VSME_Pack_Plan.md](../docs/analysis/14_VSME_Pack_Plan.md)*
+
+## Phase 7: Platform Generalization — Not started [directional thesis]
+
+Promote only cross-pack-proven concerns into reusable runtime abstractions. Items move here from demand-driven when both Radar and VSME prove the need.
+
+- [ ] E-14 Persistence + Scheduling
+  - [ ] Postgres for event log + artifact metadata persistence
+  - [ ] Oban for job scheduling (one recurring job per pack instance)
+  - [ ] Artifact index separation — decouple artifact indexing from execution (Flyte DataCatalog / Bazel action cache pattern)
+- [ ] E-15 PackRegistry — generalize topic config into runtime-level pack instances
+  - [ ] PackRegistry with `register/1` API
+  - [ ] Pack behaviour evolution: `init/1` (config), `plan/2` (inputs, config)
+  - [ ] Instance-scoped storage partitioning at runtime level
+  - [ ] Observation UI: full instance selector, per-instance run timelines
+- [ ] E-16 Dynamic DAGs
+  - [ ] Add nodes to a running plan mid-execution
+  - [ ] Scheduler handles growing DAGs (find ready -> dispatch -> collect loop unchanged)
+  - [ ] New events: `nodes_added`, `plan_extended` in the event log
+  - [ ] Enables: Radar serendipity (M-RAD-05), House Compiler iterations
+- [ ] E-17 Container Executor + Pluggable Storage
+  - [ ] `:container` executor — Docker-based op execution with dependency isolation
+  - [ ] Pluggable artifact store interface (filesystem -> S3 backend)
+  - [ ] Op `resources/0` in execution spec `execution` section
+- [ ] E-xx Time-Travel Debugging UI
+  - [ ] Step through a run's event history, seeing DAG state at each event
+  - [ ] Inspect intermediate artifacts and decisions at any point in the run
+  - [ ] Visual diff between runs (same plan, different decisions)
+- [ ] E-11b Radar Serendipity (depends on E-16 dynamic DAGs)
   - [ ] M-RAD-05 Serendipity exploration (Tavily, enhancement)
 
-## Phase 6: Oban + Postgres — Not started
+## Phase 8: House Compiler — Not started [directional thesis]
 
-*Epics not yet drafted.*
+Second domain pack. Proves generality beyond LLM/text workflows (geometry, structural analysis, manufacturing).
 
-## Phase 7: House Compiler — Not started
+- [ ] E-18 House Compiler Pack (design -> manufacturing pipeline)
 
-*Epics not yet drafted.*
+## Demand-Driven (not sequenced — built when a customer needs it)
+
+### Scale Executors [directional thesis]
+- [ ] `:k8s_pod` executor — Kubernetes pod execution for isolated, GPU-capable ops
+- [ ] `:ray_task` executor — Ray cluster execution for distributed ML training/inference
+- [ ] `:slurm_job` executor — SLURM batch jobs for bare-metal HPC/GPU clusters
+
+### Formal Contracts (CUE) [directional thesis]
+*Trigger: when `:container` executor lands and multi-source constraints become load-bearing, or earlier if cross-pack composition demands it.*
+- [ ] CUE constraint schemas for op inputs/outputs and resource declarations
+- [ ] Cross-pack compatibility validation via lattice unification
+- [ ] Decision space schemas for recordable ops
+
+### Selective Re-Run [directional thesis]
+*Trigger: when daily Radar operation reveals the need, or when debugging complex packs.*
+- [ ] "Re-run from this node" — invalidate one node's cache, re-execute it and all downstream
+- [ ] Observation UI action: click a node -> "re-run from here"
+
+### Op Heartbeats [directional thesis]
+*Trigger: when ops legitimately run for minutes/hours (GPU training, heavy geometry computation).*
+- [ ] Long-running ops emit periodic liveness signals
+- [ ] Scheduler distinguishes "hung" from "slow but working"
+
+### Access Control [directional thesis]
+*Trigger: when multi-user deployments are real.*
+- [ ] Per-instance access rules (user -> instance ID mapping)
+- [ ] Observation UI filtered by user permissions
+
+*Research context:*
+- *[cue_language.md](../docs/research/cue_language.md) — CUE constraint language analysis*
+- *[flyte_architecture.md](../docs/research/flyte_architecture.md) — Flyte deep dive*
+- *[scale_and_distribution_strategy.md](../docs/research/scale_and_distribution_strategy.md) — scale and executor strategy*
+- *[16_Orchestration_Positioning.md](../docs/analysis/16_Orchestration_Positioning.md) — orchestration landscape positioning*
