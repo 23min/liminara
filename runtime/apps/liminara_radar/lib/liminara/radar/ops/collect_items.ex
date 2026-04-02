@@ -35,9 +35,10 @@ defmodule Liminara.Radar.Ops.CollectItems do
       all_items
       |> Enum.uniq_by(& &1["url"])
 
-    {:ok, %{
-      "items" => Jason.encode!(deduped),
-      "source_health" => Jason.encode!(Enum.reverse(health))
-    }}
+    {:ok,
+     %{
+       "items" => Jason.encode!(deduped),
+       "source_health" => Jason.encode!(Enum.reverse(health))
+     }}
   end
 end

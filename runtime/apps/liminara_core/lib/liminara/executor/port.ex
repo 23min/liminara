@@ -100,7 +100,11 @@ defmodule Liminara.Executor.Port do
           :exit_status,
           {:args, ["run", "--project", python_root, "python", "-u", runner]},
           {:cd, src_dir},
-          {:env, [{~c"PYTHONDONTWRITEBYTECODE", ~c"1"}]}
+          {:env,
+           [
+             {~c"PYTHONDONTWRITEBYTECODE", ~c"1"},
+             {~c"VIRTUAL_ENV", false}
+           ]}
         ]
       )
 
