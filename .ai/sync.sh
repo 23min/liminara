@@ -1,14 +1,21 @@
 #!/usr/bin/env bash
-# sync.sh — Idempotent sync of framework + repo-specific files into .github/ (for Copilot).
+# sync.sh — Idempotent sync of framework + repo-specific files into .github/ and .claude/.
 #
-# Copilot requires agents/skills to be physically in .github/.
-# This script generates stubs for framework agents/skills (.ai/) and overlays
-# repo-specific overrides (.ai-repo/) on top, then prunes stale entries.
+# Generates tool-specific outputs from platform-agnostic sources in .ai/:
+#   .ai/agents/*.md  → .github/agents/*.agent.md  (Copilot format)
+#                     → .claude/agents/*.md         (Claude Code format)
+#   .ai/skills/*.md  → .github/skills/*/SKILL.md   (Copilot format)
+#                     → .claude/skills/*/SKILL.md   (Agent Skills standard, with frontmatter)
+#   .ai/rules.md     → .github/copilot-instructions.md (Copilot entry point)
+#                     → .claude/rules/ai-framework.md   (Claude Code entry point)
+#                     → CLAUDE.md                        (Claude Code auto-loaded)
+#
+# Repo-specific overrides from .ai-repo/ are overlaid on top.
 #
 # Usage:  bash .ai/sync.sh
 #
 # Safe to run repeatedly. Only overwrites files that changed.
-# Removes .github/ entries that no longer have a source in .ai/ or .ai-repo/.
+# Removes generated entries that no longer have a source in .ai/ or .ai-repo/.
 #
 # Run after:
 #   - Updating the .ai submodule (new framework agents/skills)
@@ -88,13 +95,29 @@ rewrite_paths() {
     echo "$text"
 }
 
+# Rewrite .ai/ paths to .claude/ paths (for Claude Code output).
+rewrite_paths_claude() {
+    local text="$1"
+    # Rewrite .ai/agents/NAME.md → .claude/agents/NAME.md
+    text=$(echo "$text" | sed -E 's|\.ai/agents/([a-z_-]+)\.md|\.claude/agents/\1.md|g')
+    # Rewrite .ai/skills/NAME.md → .claude/skills/NAME/SKILL.md
+    text=$(echo "$text" | sed -E 's|\.ai/skills/([a-z_-]+)\.md|\.claude/skills/\1/SKILL.md|g')
+    # Rewrite generic directory references
+    text=$(echo "$text" | sed 's|\.ai/agents/|\.claude/agents/|g')
+    text=$(echo "$text" | sed 's|\.ai/skills/|\.claude/skills/|g')
+    echo "$text"
+}
+
 # --- Agents ---
-# 1. Generate inlined agents from framework sources (.ai/agents/*.md → .github/agents/*.agent.md)
-# 2. Overlay repo-specific agents (.ai-repo/agents/*.agent.md) on top — these override.
-# 3. Prune .github/agents/ entries that exist in neither source.
+# 1. Generate inlined agents from framework sources:
+#    .ai/agents/*.md → .github/agents/*.agent.md  (Copilot format)
+#    .ai/agents/*.md → .claude/agents/*.md          (Claude Code format)
+# 2. Overlay repo-specific agents (.ai-repo/agents/) on top — these override.
+# 3. Prune stale entries in both .github/agents/ and .claude/agents/.
 
 AI_DIR=".ai"
-EXPECTED_AGENTS=()  # track which agents should exist
+EXPECTED_AGENTS=()        # track which agents should exist (Copilot format: name.agent.md)
+EXPECTED_CLAUDE_AGENTS=() # track which agents should exist (Claude format: name.md)
 
 # --- Agent frontmatter (handoffs, tools, agents) ---
 # Returns extra YAML frontmatter lines for each agent.
@@ -180,17 +203,74 @@ FMEOF
     esac
 }
 
+# Returns Claude Code YAML frontmatter for each agent.
+# Claude uses a simpler format: name, description, tools.
+get_claude_agent_frontmatter() {
+    local agent_name="$1" agent_desc="$2"
+    case "$agent_name" in
+        coordinator)
+            cat <<FMEOF
+---
+name: coordinator
+description: "${agent_desc}"
+tools: Read, Edit, Write, Glob, Grep, Bash, Agent
+---
+FMEOF
+            ;;
+        planner)
+            cat <<FMEOF
+---
+name: planner
+description: "${agent_desc}"
+tools: Read, Glob, Grep, Bash, Agent
+---
+FMEOF
+            ;;
+        builder)
+            cat <<FMEOF
+---
+name: builder
+description: "${agent_desc}"
+tools: Read, Edit, Write, Glob, Grep, Bash, Agent
+---
+FMEOF
+            ;;
+        reviewer)
+            cat <<FMEOF
+---
+name: reviewer
+description: "${agent_desc}"
+tools: Read, Glob, Grep, Bash, Agent
+---
+FMEOF
+            ;;
+        deployer)
+            cat <<FMEOF
+---
+name: deployer
+description: "${agent_desc}"
+tools: Read, Edit, Write, Glob, Grep, Bash
+---
+FMEOF
+            ;;
+        *)
+            cat <<FMEOF
+---
+name: ${agent_name}
+description: "${agent_desc}"
+tools: Read, Edit, Write, Glob, Grep, Bash
+---
+FMEOF
+            ;;
+    esac
+}
+
 # Framework agents — generate inlined agent files
 for f in "$AI_DIR"/agents/*.md; do
     [[ -f "$f" ]] || continue
     agent_name=$(basename "$f" .md)
-    dest=".github/agents/${agent_name}.agent.md"
     EXPECTED_AGENTS+=("${agent_name}.agent.md")
-
-    # Skip if a repo-specific override exists (it will be copied next)
-    if [[ -f "$REPO_DIR/agents/${agent_name}.agent.md" ]]; then
-        continue
-    fi
+    EXPECTED_CLAUDE_AGENTS+=("${agent_name}.md")
 
     # Extract description from the agent file (first non-empty, non-heading line)
     agent_desc=$(grep -m1 -vE '^(#|$)' "$f" | sed 's/^[*_]*//;s/[*_]*$//' | head -c 200)
@@ -198,24 +278,28 @@ for f in "$AI_DIR"/agents/*.md; do
         agent_desc="AI-assisted development agent: ${agent_name}"
     fi
 
-    # Read the full agent content and rewrite .ai/ paths to composed .github/ paths
-    agent_body=$(rewrite_paths "$(cat "$f")")
+    # --- Copilot agent (.github/agents/) ---
+    if [[ ! -f "$REPO_DIR/agents/${agent_name}.agent.md" ]]; then
+        dest=".github/agents/${agent_name}.agent.md"
 
-    # Get extra frontmatter (handoffs, tools, agents) for this agent
-    extra_fm=$(get_agent_frontmatter "$agent_name")
+        # Read the full agent content and rewrite .ai/ paths to composed .github/ paths
+        agent_body=$(rewrite_paths "$(cat "$f")")
 
-    # Build frontmatter block
-    fm_block="---
+        # Get extra frontmatter (handoffs, tools, agents) for this agent
+        extra_fm=$(get_agent_frontmatter "$agent_name")
+
+        # Build frontmatter block
+        fm_block="---
 description: \"${agent_desc}\""
-    if [[ -n "$extra_fm" ]]; then
-        fm_block+="
+        if [[ -n "$extra_fm" ]]; then
+            fm_block+="
 ${extra_fm}"
-    fi
-    fm_block+="
+        fi
+        fm_block+="
 ---"
 
-    # Generate an inlined agent file with Copilot frontmatter
-    stub="${fm_block}
+        # Generate an inlined agent file with Copilot frontmatter
+        stub="${fm_block}
 <!-- AUTO-GENERATED from .ai/agents/${agent_name}.md by sync.sh — do not edit manually -->
 
 ${agent_body}
@@ -228,17 +312,54 @@ ${agent_body}
 - Relevant skill files from \`.github/skills/\` as referenced above
 - Project-specific rules from \`.ai-repo/rules/\` (if they exist)"
 
-    # Only write if content changed
-    write_if_changed "$dest" "agent: ${agent_name}.agent.md" "$stub"
+        write_if_changed "$dest" "agent (copilot): ${agent_name}.agent.md" "$stub"
+    fi
+
+    # --- Claude agent (.claude/agents/) ---
+    if [[ ! -f "$REPO_DIR/agents/${agent_name}.md" ]]; then
+        claude_dest=".claude/agents/${agent_name}.md"
+
+        # Read the full agent content and rewrite .ai/ paths to .claude/ paths
+        claude_agent_body=$(rewrite_paths_claude "$(cat "$f")")
+
+        # Get Claude-specific frontmatter
+        claude_fm=$(get_claude_agent_frontmatter "$agent_name" "$agent_desc")
+
+        # Generate Claude agent file
+        claude_stub="${claude_fm}
+<!-- AUTO-GENERATED from .ai/agents/${agent_name}.md by sync.sh — do not edit manually -->
+
+${claude_agent_body}
+
+---
+
+**Also read before starting work:**
+- \`.ai/rules.md\` — non-negotiable guardrails
+- \`.ai/paths.md\` — artifact locations
+- Relevant skill files from \`.claude/skills/\` as referenced above
+- Project-specific rules from \`.ai-repo/rules/\` (if they exist)"
+
+        write_if_changed "$claude_dest" "agent (claude): ${agent_name}.md" "$claude_stub"
+    fi
 done
 
 # Repo-specific agents — override framework stubs
 if [[ -d "$REPO_DIR/agents" ]]; then
+    # Copilot format overrides (.agent.md)
     for f in "$REPO_DIR"/agents/*.agent.md; do
         [[ -f "$f" ]] || continue
         name=$(basename "$f")
         EXPECTED_AGENTS+=("$name")
-        sync_file "$f" ".github/agents/$name" "agent (override): $name"
+        sync_file "$f" ".github/agents/$name" "agent (copilot override): $name"
+    done
+    # Claude format overrides (.md, not .agent.md)
+    for f in "$REPO_DIR"/agents/*.md; do
+        [[ -f "$f" ]] || continue
+        name=$(basename "$f")
+        # Skip .agent.md files (already handled above)
+        [[ "$name" == *.agent.md ]] && continue
+        EXPECTED_CLAUDE_AGENTS+=("$name")
+        sync_file "$f" ".claude/agents/$name" "agent (claude override): $name"
     done
 fi
 
@@ -256,18 +377,96 @@ if [[ -d ".github/agents" ]]; then
         done
         if [[ "$found" == false ]]; then
             rm "$dest"
-            echo "  ✗ removed stale agent: $name"
+            echo "  ✗ removed stale agent (copilot): $name"
+            REMOVED=$((REMOVED + 1))
+        fi
+    done
+fi
+
+# Prune Claude agents that aren't in either source
+if [[ -d ".claude/agents" ]]; then
+    for dest in .claude/agents/*.md; do
+        [[ -f "$dest" ]] || continue
+        name=$(basename "$dest")
+        found=false
+        for expected in "${EXPECTED_CLAUDE_AGENTS[@]}"; do
+            if [[ "$expected" == "$name" ]]; then
+                found=true
+                break
+            fi
+        done
+        if [[ "$found" == false ]]; then
+            rm "$dest"
+            echo "  ✗ removed stale agent (claude): $name"
             REMOVED=$((REMOVED + 1))
         fi
     done
 fi
 
 # --- Skills ---
-# 1. Copy framework skills (.ai/skills/*.md → .github/skills/<name>/SKILL.md)
+# 1. Generate skills from framework sources:
+#    .ai/skills/*.md → .github/skills/<name>/SKILL.md  (Copilot format, plain copy)
+#    .ai/skills/*.md → .claude/skills/<name>/SKILL.md   (Agent Skills standard, with frontmatter)
 # 2. Overlay repo-specific skills (.ai-repo/skills/) on top — these override.
-# 3. Prune .github/skills/ directories that exist in neither source.
+# 3. Prune stale entries in both .github/skills/ and .claude/skills/.
 
 EXPECTED_SKILLS=()  # track which skill directories should exist
+
+# Extract a description from a skill source file.
+# If the file has YAML frontmatter with a description field, use that.
+# Otherwise, use the first non-empty, non-heading line after frontmatter.
+extract_skill_description() {
+    local file="$1"
+    local desc=""
+
+    # Check if file starts with YAML frontmatter (---)
+    if head -1 "$file" | grep -q '^---$'; then
+        # Extract description from frontmatter
+        desc=$(sed -n '/^---$/,/^---$/{ /^description:/{ s/^description: *//; p; q; } }' "$file")
+    fi
+
+    # If no frontmatter description, get first meaningful line after any frontmatter
+    if [[ -z "$desc" ]]; then
+        # Skip frontmatter if present, then get first non-empty, non-heading line
+        if head -1 "$file" | grep -q '^---$'; then
+            desc=$(awk '/^---$/{fm++; next} fm>=2 && !/^(#|$|\s*$)/{print; exit}' "$file" | head -c 200)
+        else
+            desc=$(grep -m1 -vE '^(#|$|---|\s*$)' "$file" | head -c 200)
+        fi
+    fi
+
+    if [[ -z "$desc" ]]; then
+        desc="AI-assisted development skill"
+    fi
+    echo "$desc"
+}
+
+# Generate a Claude skill file with Agent Skills frontmatter.
+# If the source already has YAML frontmatter, strip it and use a normalized version.
+# Args: source_file, skill_name, dest_path, label
+generate_claude_skill() {
+    local src="$1" skill_name="$2" dest="$3" label="$4"
+    local skill_desc skill_body
+    skill_desc=$(extract_skill_description "$src")
+
+    # Get the body, stripping any existing YAML frontmatter
+    if head -1 "$src" | grep -q '^---$'; then
+        # Strip frontmatter: skip everything between first and second ---
+        skill_body=$(awk 'BEGIN{fm=0} /^---$/{fm++; next} fm>=2{print}' "$src")
+    else
+        skill_body=$(cat "$src")
+    fi
+
+    # Build the Claude skill with standardized Agent Skills frontmatter
+    local claude_skill="---
+name: ${skill_name}
+description: \"${skill_desc}\"
+---
+<!-- AUTO-GENERATED from source by sync.sh — do not edit manually -->
+${skill_body}"
+
+    write_if_changed "$dest" "$label" "$claude_skill"
+}
 
 # Framework skills
 for f in "$AI_DIR"/skills/*.md; do
@@ -275,16 +474,24 @@ for f in "$AI_DIR"/skills/*.md; do
     skill_name=$(basename "$f" .md)
     EXPECTED_SKILLS+=("$skill_name")
 
-    # Skip if a repo-specific override exists (flat file)
+    # Check for repo-specific overrides
+    local_override=""
     if [[ -f "$REPO_DIR/skills/${skill_name}.md" ]]; then
-        continue
+        local_override="$REPO_DIR/skills/${skill_name}.md"
+    elif [[ -f "$REPO_DIR/skills/${skill_name}/SKILL.md" ]]; then
+        local_override="$REPO_DIR/skills/${skill_name}/SKILL.md"
     fi
-    # Skip if a repo-specific override exists (directory)
-    if [[ -f "$REPO_DIR/skills/${skill_name}/SKILL.md" ]]; then
+
+    if [[ -n "$local_override" ]]; then
+        # Override exists — it will be handled in the repo-specific section below
         continue
     fi
 
-    sync_file "$f" ".github/skills/$skill_name/SKILL.md" "skill: $skill_name"
+    # Copilot: plain copy to .github/skills/
+    sync_file "$f" ".github/skills/$skill_name/SKILL.md" "skill (copilot): $skill_name"
+
+    # Claude: generate with Agent Skills frontmatter to .claude/skills/
+    generate_claude_skill "$f" "$skill_name" ".claude/skills/$skill_name/SKILL.md" "skill (claude): $skill_name"
 done
 
 # Repo-specific skills — override framework or add new
@@ -294,36 +501,40 @@ if [[ -d "$REPO_DIR/skills" ]]; then
         [[ -f "$f" ]] || continue
         skill_name=$(basename "$f" .md)
         EXPECTED_SKILLS+=("$skill_name")
-        sync_file "$f" ".github/skills/$skill_name/SKILL.md" "skill (override): $skill_name"
+        sync_file "$f" ".github/skills/$skill_name/SKILL.md" "skill (copilot override): $skill_name"
+        generate_claude_skill "$f" "$skill_name" ".claude/skills/$skill_name/SKILL.md" "skill (claude override): $skill_name"
     done
     # Directory-based: skill-name/SKILL.md
     for f in "$REPO_DIR"/skills/*/SKILL.md; do
         [[ -f "$f" ]] || continue
         skill_name=$(basename "$(dirname "$f")")
         EXPECTED_SKILLS+=("$skill_name")
-        sync_file "$f" ".github/skills/$skill_name/SKILL.md" "skill (override): $skill_name"
+        sync_file "$f" ".github/skills/$skill_name/SKILL.md" "skill (copilot override): $skill_name"
+        generate_claude_skill "$f" "$skill_name" ".claude/skills/$skill_name/SKILL.md" "skill (claude override): $skill_name"
     done
 fi
 
-# Prune skill directories that aren't in either source
-if [[ -d ".github/skills" ]]; then
-    for dest_dir in .github/skills/*/; do
-        [[ -d "$dest_dir" ]] || continue
-        skill_name=$(basename "$dest_dir")
-        found=false
-        for expected in "${EXPECTED_SKILLS[@]}"; do
-            if [[ "$expected" == "$skill_name" ]]; then
-                found=true
-                break
+# Prune skill directories that aren't in either source (both .github/ and .claude/)
+for target_dir in .github/skills .claude/skills; do
+    if [[ -d "$target_dir" ]]; then
+        for dest_dir in "$target_dir"/*/; do
+            [[ -d "$dest_dir" ]] || continue
+            skill_name=$(basename "$dest_dir")
+            found=false
+            for expected in "${EXPECTED_SKILLS[@]}"; do
+                if [[ "$expected" == "$skill_name" ]]; then
+                    found=true
+                    break
+                fi
+            done
+            if [[ "$found" == false ]]; then
+                rm -rf "$dest_dir"
+                echo "  ✗ removed stale skill: $(basename "$target_dir")/$skill_name/"
+                REMOVED=$((REMOVED + 1))
             fi
         done
-        if [[ "$found" == false ]]; then
-            rm -rf "$dest_dir"
-            echo "  ✗ removed stale skill: $skill_name/"
-            REMOVED=$((REMOVED + 1))
-        fi
-    done
-fi
+    fi
+done
 
 # --- Rules & Platform Entry Points ---
 # Generate the platform instruction files with framework pointers +
@@ -472,10 +683,13 @@ When unsure, ask: \"This looks like a [Quick/Standard/Epic] task. Should I proce
 ## Context Refresh
 
 When the user says **\"refresh context\"** or **\"refresh\"**:
-1. Re-read \`.ai/rules.md\` and \`.ai/paths.md\`
+1. Re-read \`.ai/rules.md\` and \`.ai/paths.md\` (and \`.ai-repo/rules/paths-override.md\` if it exists)
 2. Re-read the active agent file if one is invoked (e.g. \`.github/agents/builder.agent.md\`)
-3. Check \`work/epics/\` and \`ROADMAP.md\` for current work state
-4. Summarize: current branch, submodule state, active epic/milestone, pending changes
+3. Read \`CLAUDE.md\` \"Current Work\" section for immediate next steps
+4. Read the roadmap at the path specified by \`ROADMAP_PATH\` (check paths-override for project-specific location)
+5. Read \`work/gaps.md\` for known issues and blockers
+6. Read \`work/decisions.md\` — focus on the most recent decisions for current context
+7. Summarize: current branch, active phase, immediate tasks, known blockers, pending changes
 
 This re-grounds context during long sessions or after framework updates (e.g. \`sync.sh\`, submodule branch switch).
 ## Key Rules
@@ -522,32 +736,32 @@ Each agent below has a dedicated instruction file. Read it for role-specific con
 ### planner — Planning, specs, architecture, research
 **Activate when:** user says plan, design, scope, epic, architecture, brainstorm, research, spec, break down
 **Steps:**
-1. Read \`.github/agents/planner.agent.md\` — adopt the planner role and constraints
-2. Read the relevant skill: \`.github/skills/plan-epic/SKILL.md\`, \`.github/skills/plan-milestones/SKILL.md\`, \`.github/skills/draft-spec/SKILL.md\`, or \`.github/skills/architect/SKILL.md\`
+1. Read \`.claude/agents/planner.md\` — adopt the planner role and constraints
+2. Read the relevant skill: \`.claude/skills/plan-epic/SKILL.md\`, \`.claude/skills/plan-milestones/SKILL.md\`, \`.claude/skills/draft-spec/SKILL.md\`, or \`.claude/skills/architect/SKILL.md\`
 3. Follow the skill's step-by-step workflow
 
 ### builder — Implementation, TDD, fixes
 **Activate when:** user says build, implement, code, start, add feature, fix, patch, bug, chore, tweak, hotfix
 **Steps:**
-1. Read \`.github/agents/builder.agent.md\` — adopt the builder role and constraints
-2. Read the relevant skill: \`.github/skills/start-milestone/SKILL.md\`, \`.github/skills/tdd-cycle/SKILL.md\`, or \`.github/skills/patch/SKILL.md\`
+1. Read \`.claude/agents/builder.md\` — adopt the builder role and constraints
+2. Read the relevant skill: \`.claude/skills/start-milestone/SKILL.md\`, \`.claude/skills/tdd-cycle/SKILL.md\`, or \`.claude/skills/patch/SKILL.md\`
 3. Follow the skill's step-by-step workflow
 
 ### reviewer — Code review, milestone wrap-up
 **Activate when:** user says review, check, validate, wrap, finish, complete milestone
 **Steps:**
-1. Read \`.github/agents/reviewer.agent.md\` — adopt the reviewer role and constraints
-2. Read the relevant skill: \`.github/skills/review-code/SKILL.md\` or \`.github/skills/wrap-milestone/SKILL.md\`
+1. Read \`.claude/agents/reviewer.md\` — adopt the reviewer role and constraints
+2. Read the relevant skill: \`.claude/skills/review-code/SKILL.md\` or \`.claude/skills/wrap-milestone/SKILL.md\`
 3. Follow the skill's step-by-step workflow
 
 ### deployer — Releases, deployments, infrastructure
 **Activate when:** user says release, deploy, tag, publish
 **Steps:**
-1. Read \`.github/agents/deployer.agent.md\` — adopt the deployer role and constraints
-2. Read the relevant skill: \`.github/skills/release/SKILL.md\`
+1. Read \`.claude/agents/deployer.md\` — adopt the deployer role and constraints
+2. Read the relevant skill: \`.claude/skills/release/SKILL.md\`
 3. Follow the skill's step-by-step workflow
 
-Agents are defined in \`.github/agents/\`. Skills are in \`.github/skills/\`.
+Agents are defined in \`.claude/agents/\`. Skills are in \`.claude/skills/\`.
 Templates are in \`.ai/templates/\`.
 
 Project-specific extensions are in \`.ai-repo/\`:
@@ -578,6 +792,19 @@ After identifying the workflow, read the corresponding agent instruction file an
 | **Quick** | One-off fixes, typos, config changes, issue-linked patches | Use patch skill. No spec, no tracking doc. |
 | **Standard** | Milestone-scoped work with acceptance criteria | Spec → TDD → tracking doc → review → merge. |
 | **Epic** | Multi-milestone features, new systems | Plan → milestones → Standard for each → release. |
+
+## Context Refresh
+
+When the user says **\"refresh context\"** or **\"refresh\"**:
+1. Re-read \`.ai/rules.md\` and \`.ai/paths.md\` (and \`.ai-repo/rules/paths-override.md\` if it exists)
+2. Re-read the active agent file if one is invoked (e.g. \`.claude/agents/builder.md\`)
+3. Read \`CLAUDE.md\` \"Current Work\" section for immediate next steps
+4. Read the roadmap at the path specified by \`ROADMAP_PATH\` (check paths-override for project-specific location)
+5. Read \`work/gaps.md\` for known issues and blockers
+6. Read \`work/decisions.md\` — focus on the most recent decisions for current context
+7. Summarize: current branch, active phase, immediate tasks, known blockers, pending changes
+
+This re-grounds context during long sessions or after framework updates (e.g. \`sync.sh\`, submodule branch switch).
 
 Key rules:
 - Never commit without explicit human approval
@@ -700,33 +927,10 @@ fi
 
 write_if_changed "CLAUDE.md" "CLAUDE.md" "$claude_md_content"
 
-# --- Cleanup: .claude/ stale content ---
-# Claude reads agents from .github/agents/, skills from .github/skills/.
-# Only .claude/rules/ai-framework.md should exist. Everything else is stale.
-
-for stale_dir in .claude/agents .claude/skills; do
-    if [[ -d "$stale_dir" ]]; then
-        count=$(find "$stale_dir" -type f | wc -l)
-        rm -rf "$stale_dir"
-        label=$(basename "$stale_dir")
-        echo "  ✗ removed .claude/$label/ ($count stale file(s))"
-        REMOVED=$((REMOVED + count))
-    fi
-done
-
-# Prune .claude/rules/ entries not generated by sync
-if [[ -d ".claude/rules" ]]; then
-    shopt -s nullglob
-    for f in .claude/rules/*.md; do
-        name=$(basename "$f")
-        if [[ "$name" != "ai-framework.md" ]]; then
-            rm "$f"
-            echo "  ✗ removed stale .claude/rules/$name"
-            REMOVED=$((REMOVED + 1))
-        fi
-    done
-    shopt -u nullglob
-fi
+# --- Cleanup: .claude/rules/ ---
+# Only prune ai-framework.md if it was generated by sync (has the marker comment).
+# Do NOT prune other .claude/rules/ files — users may have their own rule files.
+# .claude/agents/ and .claude/skills/ are now actively managed above with their own pruning.
 
 # --- Summary ---
 echo ""
