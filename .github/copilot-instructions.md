@@ -200,12 +200,6 @@ Always include Co-Authored-By when Claude contributed.
 3. **House Compiler** — design → manufacturing. Has a buyer.
 4. **DPP** — Digital Product Passport (Feb 2027 enforcement)
 
-## Current state
-
-- Phase 4 (Observation Layer) complete — E-09 done, merged to main
-- Phase 5 (Radar) next — epic not yet drafted
-- Runtime: Elixir walking skeleton, OTP supervision, event sourcing, Phoenix LiveView, A2UI integration all working
-
 # Path Overrides for Liminara
 
 These override `.ai/paths.md` defaults to match Liminara's existing structure.
