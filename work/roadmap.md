@@ -36,15 +36,15 @@ Historical note: the Phase 5 split was introduced after initial Radar implementa
   - [x] M-OBS-05a Gate demo + LiveView gate interaction
   - [x] M-OBS-05b A2UI exploration + integration
 
-## Phase 5a: Radar Correctness — Not started [decided next]
+## Phase 5a: Radar Correctness — Complete [validated]
 
-Fix the core replay contract before building on top of it. Liminara's moat is exact replay of recorded decisions — that layer must be sound before anything else.
+Fix the core replay contract before building on top of it.
 
-- [ ] M-RAD-06 Replay Correctness (milestone inside E-11)
-  - [ ] Decision.Store multi-decision support (list per node_id, backward compatible)
-  - [ ] Run.Server replay restores multi-decision recordable ops
-  - [ ] End-to-end Radar replay test (discovery → replay → identical artifacts)
-  - [ ] Executor.Port env whitelist (clean env, no VIRTUAL_ENV leakage)
+- [x] M-RAD-06 Replay Correctness (milestone inside E-11)
+  - [x] Decision.Store multi-decision support (list per node_id, backward compatible)
+  - [x] Run.Server replay restores multi-decision recordable ops
+  - [x] End-to-end Radar replay test (discovery → replay → identical artifacts)
+  - [x] Executor.Port env whitelist (clean env, no VIRTUAL_ENV leakage)
   - Rank determinism: resolved in M-RAD-03 (reference_time as explicit plan input)
   - M-RAD-03 tracking accuracy: resolved in M-RAD-03 (scope amendment, known limitations documented)
 
@@ -58,7 +58,7 @@ Finish the Radar pack as a working local MVP.
 - [ ] E-11 Radar Pack (daily intelligence briefing pipeline)
   - [x] M-RAD-01 Pack + source config + fetch (~47 sources)
   - [x] M-RAD-02 Extract + embed + dedup pipeline
-  - [x] M-RAD-03 Cluster + rank + render (forward execution; replay deferred to M-RAD-06)
+  - [x] M-RAD-03 Cluster + rank + render (forward execution; replay fixed in M-RAD-06)
   - [ ] M-RAD-04 Web UI + scheduler (LiveView + GenServer scheduler per D-008)
 
 ## Phase 5c: Radar Hardening — Not started [decided next]

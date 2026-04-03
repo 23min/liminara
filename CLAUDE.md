@@ -240,25 +240,15 @@ One paragraph: overall assessment (approve / request changes).
 ## Current Work
 <!-- Updated by start-milestone and wrap-milestone skills. -->
 
-### Active work
+### What to do next
 
-- **Epic:** E-11 Radar Pack — `work/epics/E-11-radar/`
-- **Milestone:** M-RAD-06 Replay Correctness — `work/epics/E-11-radar/M-RAD-06-replay-correctness.md`
-- **Status:** in-progress
-- **Branch:** `milestone/M-RAD-06` (from `epic/E-11-radar`)
-
-### ACs in progress
-
-1. Decision.Store multi-decision support (list per node_id, backward compat)
-2. Run.Server replay restores multi-decision recordable ops
-3. End-to-end Radar replay test (discovery → replay → identical artifacts)
-4. Executor.Port env whitelist (clean env, no VIRTUAL_ENV leakage)
+**M-RAD-04: Web UI + Scheduler** — the last milestone to complete E-11 Radar Pack as a working local MVP. LiveView dashboard for viewing briefings + GenServer scheduler for daily runs (per D-008).
 
 ### Where things stand
 
 - **Phase 4** (Observation Layer): **complete** — E-09 done, in `work/done/`
-- **Phase 5a** (Radar Correctness): **in progress** — M-RAD-06 active
-- **Phase 5b** (Radar Complete): M-RAD-04 (Web UI + GenServer scheduler) after Phase 5a
+- **Phase 5a** (Radar Correctness): **complete** — M-RAD-06 merged into `epic/E-11-radar`
+- **Phase 5b** (Radar Complete): **next** — M-RAD-04 (Web UI + GenServer scheduler)
 - **Phase 5c** (Radar Hardening): execution spec design, sandbox Layers 2-3, recovery mode, topic config
 - **Sequencing (D-013):** `Radar correctness -> Radar hardening -> VSME -> platform generalization`
 

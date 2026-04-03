@@ -20,3 +20,25 @@
 - Op modules declare Python op name via optional `python_op/0` callback
 - Python test ops live in `runtime/python/src/ops/test_*.py`
 - Elixir test op wrappers live in `test/support/test_port_ops.ex`
+
+## M-RAD-06: Replay Correctness (2026-04-03)
+
+### Patterns that worked
+- Store output_hashes alongside decisions for replay — avoids reconstructing outputs from decision content
+- Backward compat via format sniffing: JSON object → wrap in list; JSON with `"decisions"` key → new format
+- Optional `env_vars/0` callback on op modules — no behaviour change needed, `function_exported?/3` check in executor
+- `RadarReplayTestPack` with literal fixture items — tests full Python port pipeline without network calls
+- Characterization test (`ReplayGapPack`) for unit-level replay, separate Radar test for pipeline-level
+
+### Pitfalls
+- Both `run.ex` (sync) and `run/server.ex` (async) have independent replay paths — must update both
+- `uv run` sets its own `VIRTUAL_ENV` in child process — can't test "VIRTUAL_ENV absent", only "host value doesn't leak"
+- Env whitelist without op-declared vars silently breaks API key access — test suite stays green but live runs fail
+- Marking ACs done without the required test is worse than leaving them open — reviewers catch it
+- Run only changed test files during TDD; full core suite takes 15+ seconds (server stress/timeout tests)
+
+### Conventions established
+- Decision file format: `{"decisions": [...], "output_hashes": {...}}` per node_id
+- Op modules can declare `env_vars/0` returning a list of env var names to preserve through port executor
+- Radar test packs live in `apps/liminara_radar/test/support/`
+- `mix.exs` needs `elixirc_paths` override for test support files to compile

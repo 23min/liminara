@@ -15,17 +15,10 @@ Discovered work items deferred for later.
 - Documentation of isolation model in docs/architecture/
 - Evaluate: simple Python ops (normalize, rank, summarize) as Elixir :inline candidates
 
-## Multi-decision replay is broken — Phase 5a priority
+## Multi-decision replay is broken — RESOLVED in M-RAD-06
 **Discovered:** 2026-04-02 (OpenAI review of M-RAD-03 implementation)
-**Relates to:** M-RAD-06 Replay Correctness
-**Severity:** Critical — violates the core replay contract
-**Items:**
-- Decision.Store stores one file per `node_id` — multiple decisions for the same node overwrite each other
-- Run.Server `handle_replay_inject/2` loads one decision per node and extracts `output.response` — doesn't match multi-cluster summarize decisions
-- radar_summarize.py produces multiple decisions (one per cluster) in a single op execution
-- Fix: Decision.Store must support storing/loading a list of decisions per node_id
-- Fix: Run.Server replay must reconstruct multi-output results from the decision list
-- Validation: end-to-end replay test — run full Radar pipeline, replay, assert identical outputs
+**Resolved:** 2026-04-03 (M-RAD-06 commit e9fe49a)
+**Fix:** Decision.Store stores list per node_id, Run.Server replays stored output_hashes, full Radar replay test validates end-to-end
 
 ## Rank op violates determinism model — RESOLVED in M-RAD-03
 **Discovered:** 2026-04-02 (OpenAI review of M-RAD-03 implementation)
