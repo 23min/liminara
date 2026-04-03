@@ -433,25 +433,32 @@ defmodule Liminara.Run.Server do
   end
 
   defp handle_replay_inject(state, node_id) do
-    case Decision.Store.get(state.replay, node_id) do
-      {:ok, decision} ->
-        output_value = get_in(decision, ["output", "response"]) || ""
-        {output_hashes, state} = store_outputs(state, %{"result" => output_value})
-
-        state =
-          emit_event(state, "op_completed", %{
+    with {:ok, decisions} <- Decision.Store.get(state.replay, node_id),
+         {:ok, output_hashes} <- Decision.Store.get_outputs(state.replay, node_id) do
+      # Emit decision_recorded events to match discovery provenance
+      state =
+        Enum.reduce(decisions, state, fn decision, state ->
+          emit_event(state, "decision_recorded", %{
             "node_id" => node_id,
-            "output_hashes" => Map.values(output_hashes),
-            "cache_hit" => false,
-            "duration_ms" => 0
+            "decision_hash" => decision["decision_hash"],
+            "decision_type" => decision["decision_type"]
           })
+        end)
 
-        %{
-          state
-          | node_states: Map.put(state.node_states, node_id, :completed),
-            node_outputs: Map.put(state.node_outputs, node_id, output_hashes)
-        }
+      state =
+        emit_event(state, "op_completed", %{
+          "node_id" => node_id,
+          "output_hashes" => Map.values(output_hashes),
+          "cache_hit" => false,
+          "duration_ms" => 0
+        })
 
+      %{
+        state
+        | node_states: Map.put(state.node_states, node_id, :completed),
+          node_outputs: Map.put(state.node_outputs, node_id, output_hashes)
+      }
+    else
       {:error, :not_found} ->
         # No stored decision — fall back to task dispatch
         node = Plan.get_node(state.plan, node_id)
@@ -544,8 +551,9 @@ defmodule Liminara.Run.Server do
   defp handle_node_success(state, node_id, outputs, duration_ms, decisions) do
     {output_hashes, state} = store_outputs(state, outputs)
 
-    # Record decisions
+    # Record decisions and output_hashes for replay
     state = record_decisions(state, node_id, decisions)
+    store_output_hashes(state, node_id, output_hashes)
 
     # Cache if applicable
     node = Plan.get_node(state.plan, node_id)
@@ -721,6 +729,13 @@ defmodule Liminara.Run.Server do
   end
 
   # ── Decision recording ──────────────────────────────────────────
+
+  defp store_output_hashes(_state, _node_id, output_hashes) when map_size(output_hashes) == 0,
+    do: :ok
+
+  defp store_output_hashes(state, node_id, output_hashes) do
+    Decision.Store.put_outputs(state.run_id, node_id, output_hashes)
+  end
 
   defp record_decisions(state, _node_id, []), do: state
 

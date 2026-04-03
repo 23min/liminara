@@ -7,5 +7,7 @@ defmodule Liminara.Radar.Ops.LlmDedupCheck do
   def executor, do: :port
   def python_op, do: "radar_llm_dedup"
 
+  def env_vars, do: ["ANTHROPIC_API_KEY"]
+
   def execute(_inputs), do: raise("executed via :port")
 end

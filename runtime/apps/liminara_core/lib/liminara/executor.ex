@@ -62,7 +62,13 @@ defmodule Liminara.Executor do
         do: op_module.python_op(),
         else: op_module.name()
 
-    Liminara.Executor.Port.run(op_name, inputs, opts)
+    # Pass op-declared env vars to the port executor
+    extra_env =
+      if function_exported?(op_module, :env_vars, 0),
+        do: op_module.env_vars(),
+        else: []
+
+    Liminara.Executor.Port.run(op_name, inputs, Keyword.put(opts, :extra_env, extra_env))
   end
 
   defp wrap_result({:ok, outputs}, duration_ms), do: {:ok, outputs, duration_ms}

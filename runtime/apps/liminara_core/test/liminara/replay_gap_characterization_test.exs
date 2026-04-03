@@ -1,6 +1,5 @@
 defmodule Liminara.ReplayGapCharacterizationTest do
   use ExUnit.Case, async: false
-  @moduletag phase5a_replay_correctness: true
 
   alias Liminara.{Artifact, Event, Plan}
 
@@ -21,7 +20,8 @@ defmodule Liminara.ReplayGapCharacterizationTest do
     %{store_root: store_root, runs_root: runs_root}
   end
 
-  describe "phase 5a replay gaps" do
+  describe "replay correctness" do
+    @tag :deferred_stored_plan
     test "replay should persist the discovery plan instead of rebuilding it", ctx do
       {:ok, discovery} =
         Liminara.run(Liminara.StoredPlanReplayPack, :ignored,
@@ -62,6 +62,39 @@ defmodule Liminara.ReplayGapCharacterizationTest do
 
       assert materialize_outputs(ctx.store_root, replay.outputs["multi"]) ==
                materialize_outputs(ctx.store_root, discovery.outputs["multi"])
+    end
+
+    test "replay emits the same decision_recorded events as discovery", ctx do
+      {:ok, discovery} =
+        Liminara.run(Liminara.MultiDecisionReplayPack, ["alpha", "beta"],
+          store_root: ctx.store_root,
+          runs_root: ctx.runs_root
+        )
+
+      {:ok, replay} =
+        Liminara.replay(
+          Liminara.MultiDecisionReplayPack,
+          ["alpha", "beta"],
+          discovery.run_id,
+          store_root: ctx.store_root,
+          runs_root: ctx.runs_root
+        )
+
+      {:ok, discovery_events} = Event.Store.read_all(ctx.runs_root, discovery.run_id)
+      {:ok, replay_events} = Event.Store.read_all(ctx.runs_root, replay.run_id)
+
+      discovery_decisions =
+        discovery_events
+        |> Enum.filter(&(&1["event_type"] == "decision_recorded"))
+        |> Enum.map(&{&1["payload"]["node_id"], &1["payload"]["decision_hash"]})
+
+      replay_decisions =
+        replay_events
+        |> Enum.filter(&(&1["event_type"] == "decision_recorded"))
+        |> Enum.map(&{&1["payload"]["node_id"], &1["payload"]["decision_hash"]})
+
+      assert length(replay_decisions) == length(discovery_decisions)
+      assert replay_decisions == discovery_decisions
     end
   end
 

@@ -274,7 +274,7 @@ defmodule Liminara.Run.ServerTest do
       assert "decision_recorded" in event_types
 
       # Decision file should exist
-      {:ok, decision} =
+      {:ok, [decision | _]} =
         Liminara.Decision.Store.get(ctx.runs_root, result.run_id, "gen")
 
       assert decision["decision_type"] == "llm_response"

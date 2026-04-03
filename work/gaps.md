@@ -17,7 +17,7 @@ Discovered work items deferred for later.
 
 ## Multi-decision replay is broken — Phase 5a priority
 **Discovered:** 2026-04-02 (OpenAI review of M-RAD-03 implementation)
-**Relates to:** E-11c Replay & Determinism Integrity
+**Relates to:** M-RAD-06 Replay Correctness
 **Severity:** Critical — violates the core replay contract
 **Items:**
 - Decision.Store stores one file per `node_id` — multiple decisions for the same node overwrite each other
@@ -27,26 +27,15 @@ Discovered work items deferred for later.
 - Fix: Run.Server replay must reconstruct multi-output results from the decision list
 - Validation: end-to-end replay test — run full Radar pipeline, replay, assert identical outputs
 
-## Rank op violates determinism model — Phase 5a priority
+## Rank op violates determinism model — RESOLVED in M-RAD-03
 **Discovered:** 2026-04-02 (OpenAI review of M-RAD-03 implementation)
-**Relates to:** E-11c Replay & Determinism Integrity
-**Severity:** Critical — cache hits are semantically unsafe
-**Items:**
-- radar_rank.py calls `datetime.now(timezone.utc)` but op is declared `:pure`
-- Same inputs cached at 6am produce different results at 6pm
-- Fix: pass reference timestamp as explicit plan input (makes the op genuinely pure)
-- Alternative: change to `:pinned_env` with time as environment input (less clean)
+**Resolved:** 2026-04-03 (M-RAD-03 commit fd5b4c9)
+**Fix:** `reference_time` passed as explicit plan input; rank op raises on missing (no wall-clock fallback)
 
-## M-RAD-03 tracking ahead of implementation — Phase 5a priority
+## M-RAD-03 tracking ahead of implementation — RESOLVED in M-RAD-03
 **Discovered:** 2026-04-02 (OpenAI review)
-**Relates to:** M-RAD-03 tracking doc, D-014 (status labels)
-**Severity:** Medium — tracking doc claims ACs done but implementation has known shortcuts
-**Items:**
-- `historical_centroid` is `{:literal, Jason.encode!([])}` — empty list, not real historical data
-- `run_id` is `{:literal, "placeholder"}` — not actual run ID
-- Source diversity scoring gives same bonus to every item in a cluster (cluster-level, not per-item cross-source coverage as spec describes)
-- Fix: mark these as known shortcuts in tracking doc, not completed ACs
-- Fix: address in Phase 5b when M-RAD-03 is properly finished
+**Resolved:** 2026-04-03 (M-RAD-03 scope amendment + tracking doc update)
+**Fix:** Known limitations documented in spec and tracking doc; placeholders accepted for v1
 
 ## E-12 sandbox spec contradiction — fix before E-12 starts
 **Discovered:** 2026-04-02 (OpenAI review)
