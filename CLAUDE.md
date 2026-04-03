@@ -242,21 +242,19 @@ One paragraph: overall assessment (approve / request changes).
 
 ### What to do next
 
-**M-RAD-04: Web UI + Scheduler** — the last milestone to complete E-11 Radar Pack as a working local MVP. LiveView dashboard for viewing briefings + GenServer scheduler for daily runs (per D-008).
+**E-11 Radar Pack is complete.** All milestones (M-RAD-01 through M-RAD-06 + M-RAD-04) merged. Next: merge `epic/E-11-radar` into `main`, then start Phase 5c (Radar Hardening).
 
 ### Where things stand
 
 - **Phase 4** (Observation Layer): **complete** — E-09 done, in `work/done/`
 - **Phase 5a** (Radar Correctness): **complete** — M-RAD-06 merged into `epic/E-11-radar`
-- **Phase 5b** (Radar Complete): **next** — M-RAD-04 (Web UI + GenServer scheduler)
-- **Phase 5c** (Radar Hardening): execution spec design, sandbox Layers 2-3, recovery mode, topic config
+- **Phase 5b** (Radar Complete): **complete** — M-RAD-04 merged into `epic/E-11-radar`
+- **Phase 5c** (Radar Hardening): **next** — execution spec design, sandbox Layers 2-3, recovery mode, topic config
 - **Sequencing (D-013):** `Radar correctness -> Radar hardening -> VSME -> platform generalization`
 
 ### Key references
 
 - **Roadmap:** `work/roadmap.md` — full sequencing with status labels
 - **Decisions:** `work/decisions.md` (D-012 through D-021 are the most recent)
-- **Known gaps:** `work/gaps.md` (replay contract, env leakage, sandbox spec)
-- **Branch:** `epic/E-11-radar` (from `main`)
-- **Milestone spec:** `work/epics/E-11-radar/M-RAD-06-replay-correctness.md`
-- **Tracking:** `work/milestones/tracking/M-RAD-06-tracking.md`
+- **Known gaps:** `work/gaps.md` (sandbox spec, dag-map interactivity)
+- **Branch:** `epic/E-11-radar` (from `main`) — ready to merge to main

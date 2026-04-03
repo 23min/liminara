@@ -48,28 +48,32 @@ Fix the core replay contract before building on top of it.
   - Rank determinism: resolved in M-RAD-03 (reference_time as explicit plan input)
   - M-RAD-03 tracking accuracy: resolved in M-RAD-03 (scope amendment, known limitations documented)
 
-## Phase 5b: Radar Complete — Not started [decided next]
+## Phase 5b: Radar Complete — Complete [validated]
 
 Finish the Radar pack as a working local MVP.
 
 - [x] E-10 Port Executor (prerequisite — `:port` executor for Python ops via Erlang Ports)
   - [x] M-PORT-01 Port protocol + executor + Python runner
   - [x] M-PORT-02 Integration test (all determinism classes)
-- [ ] E-11 Radar Pack (daily intelligence briefing pipeline)
+- [x] E-11 Radar Pack (daily intelligence briefing pipeline)
   - [x] M-RAD-01 Pack + source config + fetch (~47 sources)
   - [x] M-RAD-02 Extract + embed + dedup pipeline
   - [x] M-RAD-03 Cluster + rank + render (forward execution; replay fixed in M-RAD-06)
-  - [ ] M-RAD-04 Web UI + scheduler (LiveView + GenServer scheduler per D-008)
+  - [x] M-RAD-04 Web UI + scheduler (LiveView + GenServer scheduler per D-008)
 
 ## Phase 5c: Radar Hardening — Not started [decided next]
 
 Tightly scoped to capabilities Radar has already proven it needs for production deployment on a single VM.
 
+- [ ] E-20 Execution Truth
+  - First blocking Phase 5c slice after M-RAD-04 is finished and validated
+  - [ ] M-TRUTH-01 Execution spec + outcome design
+  - [ ] M-TRUTH-02 Core runtime contract migration
+  - [ ] M-TRUTH-03 Radar semantic cleanup
 - [ ] E-19 Warnings & Degraded Outcomes
   - [ ] First-class warning/degraded-success contract for ops and runs
   - [ ] Observation + UI surfacing of cause, severity, remediation, and output impact
   - [ ] Radar adoption for placeholder/fallback paths and briefing annotations
-- [ ] Unified execution spec design — define the struct shape (identity, determinism, execution, isolation, contracts); migrate existing callbacks (`determinism/0`, `executor/0`); E-12 implements against this shape
 - [ ] E-12 Op Sandbox (Layers 2-3) — audit hooks, Landlock, capability declarations in execution spec `isolation` section, sandbox metadata in run events
   - [ ] M-ISO-01 Executor isolation (audit hooks, Landlock)
   - [ ] M-ISO-02 Provenance & documentation (sandbox config in events, docs)

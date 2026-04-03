@@ -30,6 +30,7 @@ defmodule LiminaraWeb.MixProject do
     [
       {:liminara_core, in_umbrella: true},
       {:liminara_observation, in_umbrella: true},
+      {:liminara_radar, in_umbrella: true},
       {:phoenix, "~> 1.7"},
       {:phoenix_html, "~> 4.1"},
       {:phoenix_live_view, "~> 1.0"},

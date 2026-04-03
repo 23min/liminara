@@ -42,3 +42,22 @@
 - Op modules can declare `env_vars/0` returning a list of env var names to preserve through port executor
 - Radar test packs live in `apps/liminara_radar/test/support/`
 - `mix.exs` needs `elixirc_paths` override for test support files to compile
+
+## M-RAD-04: Web UI + Scheduler (2026-04-03)
+
+### Patterns that worked
+- Starting with GenServer (pure logic, no UI deps) before LiveView pages — fastest TDD cycle
+- `Decision.Store.get_outputs/3` for keyed artifact lookup — events only store flat hash lists
+- Config-gated supervisor children: `if enabled, do: [child_spec], else: []` in application.ex
+- `Application.get_env` overrides in test setup + `on_exit` cleanup — clean isolation for LiveView tests
+
+### Pitfalls
+- Event payload `output_hashes` is `Map.values(hash_map)` — a flat list, not a keyed map. Tests with `%{"key" => hash}` pass but real runs fail. Always use Decision.Store for keyed lookups.
+- Cross-app module references (web → radar) cause "undefined module" warnings unless `mix.exs` declares the umbrella dependency
+- `Artifact.Store.get/2` needs the 2-arity (direct) form with explicit store_root, not the 1-arity GenServer form, when reading from configurable paths
+
+### Conventions established
+- Radar LiveView pages live in `apps/liminara_web/lib/liminara_web/live/radar_live/`
+- Global nav bar in `app.html.heex` layout (not per-page inline nav)
+- Scheduler is config-gated: `config :liminara_radar, :scheduler, enabled: true, daily_at: ~T[06:00:00]`
+- Sources config path configurable via `config :liminara_radar, :sources_path`

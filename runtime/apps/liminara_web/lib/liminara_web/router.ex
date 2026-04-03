@@ -16,5 +16,9 @@ defmodule LiminaraWeb.Router do
     get "/", Plugs.Redirect, to: "/runs"
     live "/runs", RunsLive.Index, :index
     live "/runs/:id", RunsLive.Show, :show
+
+    live "/radar/briefings", RadarLive.Briefings, :index
+    live "/radar/briefings/:run_id", RadarLive.BriefingShow, :show
+    live "/radar/sources", RadarLive.Sources, :index
   end
 end
