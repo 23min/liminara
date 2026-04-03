@@ -35,6 +35,9 @@ __pycache__/
 # Node
 node_modules/
 
+# Persistent runtime data (D-009: artifacts, runs, LanceDB)
+runtime/data/
+
 # Test/scratch output
 .scratch/
 
