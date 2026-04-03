@@ -92,7 +92,50 @@ def execute(inputs):
             }
         )
 
+    # Merge clusters with very similar centroids (HDBSCAN over-splitting)
+    clusters = _merge_similar_clusters(clusters, emb_lookup)
+
     return {"outputs": {"clusters": json.dumps(clusters)}}
+
+
+def _cosine_similarity(a, b):
+    """Cosine similarity between two vectors."""
+    a = np.asarray(a)
+    b = np.asarray(b)
+    norm = np.linalg.norm(a) * np.linalg.norm(b)
+    if norm == 0:
+        return 0.0
+    return float(np.dot(a, b) / norm)
+
+
+def _merge_similar_clusters(clusters, emb_lookup, threshold=0.9):
+    """Merge clusters whose centroids have cosine similarity above threshold."""
+    merged = True
+    while merged:
+        merged = False
+        for i in range(len(clusters)):
+            for j in range(i + 1, len(clusters)):
+                sim = _cosine_similarity(clusters[i]["centroid"], clusters[j]["centroid"])
+                if sim > threshold:
+                    clusters[i]["items"].extend(clusters[j]["items"])
+                    # Recompute centroid from original embeddings
+                    all_embs = [
+                        emb_lookup[item["id"]]
+                        for item in clusters[i]["items"]
+                        if item["id"] in emb_lookup
+                    ]
+                    if all_embs:
+                        clusters[i]["centroid"] = np.mean(all_embs, axis=0).tolist()
+                    clusters[i]["label"] = _auto_label(clusters[i]["items"])
+                    clusters.pop(j)
+                    merged = True
+                    break
+            if merged:
+                break
+    # Re-number cluster_ids
+    for idx, cluster in enumerate(clusters):
+        cluster["cluster_id"] = f"c{idx}"
+    return clusters
 
 
 def _auto_label(items):

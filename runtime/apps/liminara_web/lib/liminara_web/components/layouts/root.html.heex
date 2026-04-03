@@ -13,6 +13,9 @@
         background: var(--dm-paper);
         color: var(--dm-ink);
       }
+      /* dag-map text sizing — override CSS variables in SVG coordinate units.
+         Tweak these in devtools → they use SVG units, not px. */
+      svg { --dm-title-size: 20; --dm-subtitle-size: 13; --dm-label-size: 10; --dm-legend-size: 12; --dm-stats-size: 10; }
       /* Page chrome */
       .page { padding: 24px; max-width: 1400px; margin: 0 auto; }
       .page nav { margin-bottom: 16px; }
@@ -322,6 +325,7 @@
 
           let layout = DagMap.layoutMetro(dag, {
             routing: 'bezier',
+            direction: 'ltr',
             theme: 'cream',
             scale: 1.5,
             lineGap: 0
@@ -330,6 +334,8 @@
           let title = dagData.title || 'RUN';
           let svg = DagMap.renderSVG(dag, layout, {
             title: title,
+            subtitle: `${dag.nodes.length} ops · ${dag.edges.length} edges`,
+            cssVars: true,
             legendLabels: {
               pure: 'Deterministic',
               recordable: 'Nondeterministic',

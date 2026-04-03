@@ -497,20 +497,11 @@ defmodule LiminaraWeb.RunsLive.Show do
 
     nodes =
       Enum.map(plan.insert_order, fn node_id ->
-        plan_node = Map.get(plan.nodes, node_id)
-
-        op_name =
-          if plan_node do
-            plan_node.op_module |> inspect() |> String.split(".") |> List.last()
-          else
-            node_id
-          end
-
         status = Map.get(status_map, node_id, "pending")
         cls = status_to_cls(status)
         dim = status == "pending"
 
-        %{id: node_id, label: op_name, cls: cls, dim: dim}
+        %{id: node_id, label: node_id, cls: cls, dim: dim}
       end)
 
     # Extract edges from plan refs

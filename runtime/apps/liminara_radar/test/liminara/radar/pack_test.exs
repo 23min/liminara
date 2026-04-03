@@ -137,5 +137,25 @@ defmodule Liminara.Radar.PackTest do
       plan = Radar.plan([@rss_source, @web_source])
       assert :ok = Plan.validate(plan)
     end
+
+    test "dedup and compose_briefing receive the same run_id" do
+      plan = Radar.plan([@rss_source])
+      dedup = Plan.get_node(plan, "dedup")
+      compose = Plan.get_node(plan, "compose_briefing")
+
+      {:literal, dedup_id} = dedup.inputs["run_id"]
+      {:literal, compose_id} = compose.inputs["run_id"]
+
+      assert dedup_id == compose_id
+      assert dedup_id =~ ~r/^radar-\d{8}T\d{6}$/
+    end
+
+    test "rank receives an explicit reference_time" do
+      plan = Radar.plan([@rss_source])
+      rank = Plan.get_node(plan, "rank")
+
+      {:literal, ref_time} = rank.inputs["reference_time"]
+      assert ref_time =~ ~r/^\d{4}-\d{2}-\d{2}T/
+    end
   end
 end

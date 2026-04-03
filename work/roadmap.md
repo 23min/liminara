@@ -3,6 +3,8 @@
 Sequencing principle (D-013): `Radar correctness -> Radar hardening -> VSME -> platform generalization`.
 Status labels (D-014): items marked `[validated]`, `[decided next]`, or `[directional thesis]`.
 
+Historical note: the Phase 5 split was introduced after initial Radar implementation work exposed correctness gaps. Some Phase 5b work was completed before the sequence was revised. Read Phases 5a-5c as the current forward order from here, not as a claim that all completed work originally happened in that order.
+
 ## Phase 0: Data Model — Complete [validated]
 
 - [x] E-01 Data Model Spec
@@ -36,6 +38,8 @@ Status labels (D-014): items marked `[validated]`, `[decided next]`, or `[direct
 
 ## Phase 5a: Radar Correctness — Not started [decided next]
 
+Inserted after initial Radar pack work revealed replay and determinism problems that must be fixed before continuing deeper into completion or hardening.
+
 Fix the core contract before building on top of it. Liminara's moat is exact replay of recorded decisions — that layer must be sound before anything else.
 
 - [ ] E-11c Replay & Determinism Integrity
@@ -55,13 +59,17 @@ Finish the Radar pack as a working local MVP.
 - [ ] E-11 Radar Pack (daily intelligence briefing pipeline)
   - [x] M-RAD-01 Pack + source config + fetch (~47 sources)
   - [x] M-RAD-02 Extract + embed + dedup pipeline
-  - [ ] M-RAD-03 Cluster + rank + render (finish: real historical centroid, real run_id, source diversity fix)
+  - [x] M-RAD-03 Cluster + rank + render (forward execution; replay deferred to E-11c)
   - [ ] M-RAD-04 Web UI + scheduler (LiveView + GenServer scheduler per D-008)
 
 ## Phase 5c: Radar Hardening — Not started [decided next]
 
 Tightly scoped to capabilities Radar has already proven it needs for production deployment on a single VM.
 
+- [ ] E-19 Warnings & Degraded Outcomes
+  - [ ] First-class warning/degraded-success contract for ops and runs
+  - [ ] Observation + UI surfacing of cause, severity, remediation, and output impact
+  - [ ] Radar adoption for placeholder/fallback paths and briefing annotations
 - [ ] Unified execution spec design — define the struct shape (identity, determinism, execution, isolation, contracts); migrate existing callbacks (`determinism/0`, `executor/0`); E-12 implements against this shape
 - [ ] E-12 Op Sandbox (Layers 2-3) — audit hooks, Landlock, capability declarations in execution spec `isolation` section, sandbox metadata in run events
   - [ ] M-ISO-01 Executor isolation (audit hooks, Landlock)

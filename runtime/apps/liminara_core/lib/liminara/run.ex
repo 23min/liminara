@@ -69,6 +69,9 @@ defmodule Liminara.Run do
       event_count: 0
     }
 
+    # Persist the plan
+    Event.Store.write_plan(runs_root, run_id, plan)
+
     # Emit run_started
     state =
       emit_event(state, "run_started", %{
@@ -105,12 +108,13 @@ defmodule Liminara.Run do
            event_count: state.event_count
          }}
 
-      {:error, state, _node_id, reason} ->
+      {:error, state, node_id, reason} ->
         state =
           emit_event(state, "run_failed", %{
             "run_id" => run_id,
             "error_type" => "op_failure",
-            "error_message" => inspect(reason)
+            "error_message" => inspect(reason),
+            "failed_node" => node_id
           })
 
         {:ok,
@@ -118,9 +122,23 @@ defmodule Liminara.Run do
            run_id: run_id,
            status: :failed,
            outputs: state.outputs,
-           event_count: state.event_count
+           event_count: state.event_count,
+           failed_nodes: [node_id],
+           node_states: build_node_states(state, node_id)
          }}
     end
+  end
+
+  defp build_node_states(state, failed_node_id) do
+    all_nodes = Plan.nodes(state.plan) |> Map.keys()
+
+    Map.new(all_nodes, fn id ->
+      cond do
+        id == failed_node_id -> {id, :failed}
+        MapSet.member?(state.completed, id) -> {id, :completed}
+        true -> {id, :pending}
+      end
+    end)
   end
 
   # ── Scheduler loop ──────────────────────────────────────────────

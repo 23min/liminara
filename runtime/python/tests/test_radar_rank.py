@@ -8,6 +8,9 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from ops.radar_rank import execute as rank_execute
 
+# Fixed reference time for deterministic tests
+REF_TIME = "2026-04-02T12:00:00+00:00"
+
 
 def _make_cluster(cluster_id, items, centroid=None):
     if centroid is None:
@@ -33,27 +36,29 @@ def _make_item(item_id, title="Item", source_id="s1", published=None, url=None):
     return item
 
 
+def _rank(clusters, historical_centroid=None):
+    return rank_execute(
+        {
+            "clusters": json.dumps(clusters),
+            "historical_centroid": json.dumps(historical_centroid or [0.0] * 32),
+            "reference_time": REF_TIME,
+        }
+    )
+
+
 class TestRank:
     def test_items_ranked_by_novelty_within_cluster(self):
         """Items with higher novelty score come first."""
-        # Item from diverse sources is more novel
         items = [
             _make_item("a1", "Low novelty", source_id="s1"),
             _make_item("a2", "High novelty", source_id="s2"),
             _make_item("a3", "Also high", source_id="s3"),
         ]
-        # a2 and a3 from different sources = more diverse = higher novelty
         clusters = [_make_cluster("c0", items)]
 
-        result = rank_execute(
-            {
-                "clusters": json.dumps(clusters),
-                "historical_centroid": json.dumps([0.0] * 32),
-            }
-        )
+        result = _rank(clusters)
 
         ranked = json.loads(result["outputs"]["ranked_clusters"])
-        # Items should have novelty_score field
         for item in ranked[0]["items"]:
             assert "novelty_score" in item
 
@@ -61,9 +66,7 @@ class TestRank:
         """Cluster with highest max novelty comes first."""
         cluster_a = _make_cluster(
             "c0",
-            [
-                _make_item("a1", "Old news", source_id="s1"),
-            ],
+            [_make_item("a1", "Old news", source_id="s1")],
             centroid=[0.1] * 32,
         )
         cluster_b = _make_cluster(
@@ -76,15 +79,9 @@ class TestRank:
             centroid=[0.9] * 32,
         )
 
-        result = rank_execute(
-            {
-                "clusters": json.dumps([cluster_a, cluster_b]),
-                "historical_centroid": json.dumps([0.0] * 32),
-            }
-        )
+        result = _rank([cluster_a, cluster_b])
 
         ranked = json.loads(result["outputs"]["ranked_clusters"])
-        # Cluster B has more items + more source diversity → should rank higher
         assert ranked[0]["cluster_id"] == "c1"
 
     def test_stable_ordering_with_identical_scores(self):
@@ -95,12 +92,8 @@ class TestRank:
         ]
         clusters = [_make_cluster("c0", items)]
 
-        inputs = {
-            "clusters": json.dumps(clusters),
-            "historical_centroid": json.dumps([0.0] * 32),
-        }
-        r1 = rank_execute(inputs)
-        r2 = rank_execute(inputs)
+        r1 = _rank(clusters)
+        r2 = _rank(clusters)
 
         ranked1 = json.loads(r1["outputs"]["ranked_clusters"])
         ranked2 = json.loads(r2["outputs"]["ranked_clusters"])
@@ -112,12 +105,7 @@ class TestRank:
         """Single item cluster → rank is trivial."""
         clusters = [_make_cluster("c0", [_make_item("a1", "Only one")])]
 
-        result = rank_execute(
-            {
-                "clusters": json.dumps(clusters),
-                "historical_centroid": json.dumps([0.0] * 32),
-            }
-        )
+        result = _rank(clusters)
 
         ranked = json.loads(result["outputs"]["ranked_clusters"])
         assert len(ranked) == 1
@@ -126,12 +114,7 @@ class TestRank:
 
     def test_empty_clusters(self):
         """Empty input → empty output."""
-        result = rank_execute(
-            {
-                "clusters": json.dumps([]),
-                "historical_centroid": json.dumps([0.0] * 32),
-            }
-        )
+        result = _rank([])
 
         ranked = json.loads(result["outputs"]["ranked_clusters"])
         assert ranked == []
@@ -140,22 +123,17 @@ class TestRank:
         """More recent items get higher novelty scores."""
         items = [
             _make_item("old", "Old item", published="2026-03-01T00:00:00Z"),
-            _make_item("new", "New item", published="2026-04-02T00:00:00Z"),
+            _make_item("new", "New item", published="2026-04-02T10:00:00Z"),
         ]
         clusters = [_make_cluster("c0", items)]
 
-        result = rank_execute(
-            {
-                "clusters": json.dumps(clusters),
-                "historical_centroid": json.dumps([0.0] * 32),
-            }
-        )
+        result = _rank(clusters)
 
         ranked = json.loads(result["outputs"]["ranked_clusters"])
         items_ranked = ranked[0]["items"]
         new_item = next(i for i in items_ranked if i["id"] == "new")
         old_item = next(i for i in items_ranked if i["id"] == "old")
-        assert new_item["novelty_score"] >= old_item["novelty_score"]
+        assert new_item["novelty_score"] > old_item["novelty_score"]
 
     def test_cluster_score_present(self):
         """Each ranked cluster should have a cluster_score."""
@@ -164,13 +142,51 @@ class TestRank:
             _make_cluster("c1", [_make_item("b1", "Other")]),
         ]
 
-        result = rank_execute(
-            {
-                "clusters": json.dumps(clusters),
-                "historical_centroid": json.dumps([0.0] * 32),
-            }
-        )
+        result = _rank(clusters)
 
         ranked = json.loads(result["outputs"]["ranked_clusters"])
         for c in ranked:
             assert "cluster_score" in c
+
+    def test_same_inputs_same_outputs_with_fixed_time(self):
+        """With fixed reference_time, rank op is genuinely pure."""
+        items = [
+            _make_item("a1", "Item A", published="2026-04-01T00:00:00Z"),
+            _make_item("a2", "Item B", published="2026-03-30T00:00:00Z"),
+        ]
+        clusters = [_make_cluster("c0", items)]
+
+        r1 = _rank(clusters)
+        r2 = _rank(clusters)
+
+        assert r1["outputs"]["ranked_clusters"] == r2["outputs"]["ranked_clusters"]
+
+    def test_missing_reference_time_raises(self):
+        """Rank op must not silently fall back to wall clock."""
+        clusters = [_make_cluster("c0", [_make_item("a1", "Item")])]
+
+        import pytest
+
+        with pytest.raises(ValueError, match="reference_time is required"):
+            rank_execute(
+                {
+                    "clusters": json.dumps(clusters),
+                    "historical_centroid": json.dumps([0.0] * 32),
+                    "reference_time": "",
+                }
+            )
+
+    def test_invalid_reference_time_raises(self):
+        """Invalid reference_time raises instead of falling back."""
+        clusters = [_make_cluster("c0", [_make_item("a1", "Item")])]
+
+        import pytest
+
+        with pytest.raises(ValueError, match="invalid reference_time"):
+            rank_execute(
+                {
+                    "clusters": json.dumps(clusters),
+                    "historical_centroid": json.dumps([0.0] * 32),
+                    "reference_time": "not-a-date",
+                }
+            )

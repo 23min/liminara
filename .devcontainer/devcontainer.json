@@ -15,7 +15,8 @@
         "ms-python.python",
         "charliermarsh.ruff",
         "phoenixframework.phoenix",
-        "anthropics.claude-code"
+        "anthropics.claude-code",
+        "openai.chatgpt"
       ],
       "settings": {
         "[elixir]": {

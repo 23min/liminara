@@ -15,7 +15,10 @@ defmodule Mix.Tasks.Radar.Run do
 
   @impl true
   def run(args) do
-    Mix.Task.run("app.start")
+    # Start only core + radar apps, not web/observation (avoids port conflicts
+    # when mix phx.server is already running)
+    Application.ensure_all_started(:liminara_core)
+    Application.ensure_all_started(:liminara_radar)
 
     {opts, _, _} =
       OptionParser.parse(args, strict: [tags: :string, config: :string, output: :string])
@@ -65,7 +68,7 @@ defmodule Mix.Tasks.Radar.Run do
 
         print_collect_summary(result, store_root)
         print_briefing_summary(result, store_root)
-        maybe_write_output(result, store_root, Keyword.get(opts, :output))
+        write_briefing_html(result, store_root, runs_root, Keyword.get(opts, :output))
     end
   end
 
@@ -114,14 +117,21 @@ defmodule Mix.Tasks.Radar.Run do
     end
   end
 
-  defp maybe_write_output(_result, _store_root, nil), do: :ok
-
-  defp maybe_write_output(result, store_root, path) do
+  defp write_briefing_html(result, store_root, runs_root, extra_path) do
     if result.outputs["render_html"] do
       html_hash = result.outputs["render_html"]["html"]
       {:ok, html} = Liminara.Artifact.Store.get(store_root, html_hash)
-      File.write!(path, html)
-      Mix.shell().info("Radar: briefing written to #{path}")
+
+      # Always write to the run directory
+      default_path = Path.join([runs_root, result.run_id, "briefing.html"])
+      File.write!(default_path, html)
+      Mix.shell().info("Radar: briefing → #{default_path}")
+
+      # Optional extra copy
+      if extra_path do
+        File.write!(extra_path, html)
+        Mix.shell().info("Radar: briefing → #{extra_path}")
+      end
     end
   end
 
@@ -136,11 +146,6 @@ defmodule Mix.Tasks.Radar.Run do
         "Radar: #{stats["cluster_count"] || 0} clusters, " <>
           "#{stats["item_count"] || 0} items after dedup"
       )
-    end
-
-    if result.outputs["render_html"] do
-      html_hash = result.outputs["render_html"]["html"]
-      Mix.shell().info("Radar: HTML briefing artifact: #{html_hash}")
     end
   end
 end
