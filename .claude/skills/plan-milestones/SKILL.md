@@ -1,3 +1,8 @@
+---
+name: plan-milestones
+description: "Break an epic into a sequenced set of milestones."
+---
+<!-- AUTO-GENERATED from source by sync.sh — do not edit manually -->
 # Skill: Plan Milestones
 
 Break an epic into a sequenced set of milestones.

@@ -1,3 +1,8 @@
+---
+name: wrap-milestone
+description: "Complete a milestone, write summary, and prepare for merge."
+---
+<!-- AUTO-GENERATED from source by sync.sh — do not edit manually -->
 # Skill: Wrap Milestone
 
 Complete a milestone, write summary, and prepare for merge.

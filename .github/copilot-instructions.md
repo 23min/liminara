@@ -103,10 +103,13 @@ When unsure, ask: "This looks like a [Quick/Standard/Epic] task. Should I procee
 ## Context Refresh
 
 When the user says **"refresh context"** or **"refresh"**:
-1. Re-read `.ai/rules.md` and `.ai/paths.md`
+1. Re-read `.ai/rules.md` and `.ai/paths.md` (and `.ai-repo/rules/paths-override.md` if it exists)
 2. Re-read the active agent file if one is invoked (e.g. `.github/agents/builder.agent.md`)
-3. Check `work/epics/` and `ROADMAP.md` for current work state
-4. Summarize: current branch, submodule state, active epic/milestone, pending changes
+3. Read `CLAUDE.md` "Current Work" section for immediate next steps
+4. Read the roadmap at the path specified by `ROADMAP_PATH` (check paths-override for project-specific location)
+5. Read `work/gaps.md` for known issues and blockers
+6. Read `work/decisions.md` — focus on the most recent decisions for current context
+7. Summarize: current branch, active phase, immediate tasks, known blockers, pending changes
 
 This re-grounds context during long sessions or after framework updates (e.g. `sync.sh`, submodule branch switch).
 ## Key Rules

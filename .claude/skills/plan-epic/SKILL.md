@@ -1,3 +1,8 @@
+---
+name: plan-epic
+description: "Scope, refine, and document a new epic."
+---
+<!-- AUTO-GENERATED from source by sync.sh — do not edit manually -->
 # Skill: Plan Epic
 
 Scope, refine, and document a new epic.

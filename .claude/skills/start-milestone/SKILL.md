@@ -1,3 +1,8 @@
+---
+name: start-milestone
+description: "Set up and begin implementing a milestone."
+---
+<!-- AUTO-GENERATED from source by sync.sh — do not edit manually -->
 # Skill: Start Milestone
 
 Set up and begin implementing a milestone.

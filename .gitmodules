@@ -7,3 +7,6 @@
 [submodule "ex_a2ui"]
 	path = ex_a2ui
 	url = https://github.com/23min/ex_a2ui.git
+[submodule ".ai"]
+	path = .ai
+	url = https://github.com/23min/ai-workflow.git
