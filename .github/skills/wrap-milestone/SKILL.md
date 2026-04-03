@@ -51,7 +51,7 @@ All acceptance criteria met, tests passing, build green. User says: "Wrap milest
    - [ ] 🛑 **STOP — ask: "Push and merge to [branch]?"**
    - [ ] Merge to base branch (or create PR)
    - [ ] Update `ROADMAP.md` if milestone was the last in an epic
-   - [ ] Move completed epic folder to `work/epics/completed/<epic-slug>/` (if last milestone)
+   - [ ] Move completed epic folder to `work/epics/completed/E-{NN}-<epic-slug>/` (if last milestone)
    - [ ] Update references in `ROADMAP.md` and `work/epics/epic-roadmap.md` to new path
 
 9. **Record learnings** (memory write-back)

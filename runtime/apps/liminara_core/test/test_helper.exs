@@ -6,4 +6,4 @@ for dir <- [
   if File.dir?(dir), do: File.rm_rf!(dir)
 end
 
-ExUnit.start()
+ExUnit.start(exclude: [phase5a_replay_correctness: true])

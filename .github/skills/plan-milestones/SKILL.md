@@ -26,7 +26,8 @@ Epic spec exists. User says: "Break this into milestones", "Plan the work for ep
 4. **Write milestone list**
    - [ ] Add milestone table to epic spec or create standalone plan
    - [ ] For each milestone: ID, title, 1-line summary, key dependencies
-   - [ ] Naming: `m-<epic-short>-<NN>-<slug>` (e.g., `m-cfdf-01-query-schema`)
+   - [ ] Naming: `m-<Exx>-<NN>-<slug>` (e.g., `m-E12-01-query-schema`)
+   - [ ] The `<Exx>` prefix comes from the epic's E-xx ID (e.g., E-12 → `m-E12-01`)
 
 5. **Confirm with user**
    - [ ] Review milestone sequence together

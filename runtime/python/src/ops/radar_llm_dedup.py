@@ -25,7 +25,12 @@ Respond with JSON only:
 
 
 def execute(inputs):
-    ambiguous_items = json.loads(inputs.get("items", "[]"))
+    items_raw = json.loads(inputs.get("items", "[]"))
+    # Input may be the full dedup result dict or a direct list of items
+    if isinstance(items_raw, dict):
+        ambiguous_items = items_raw.get("ambiguous_items", [])
+    else:
+        ambiguous_items = items_raw
 
     if not ambiguous_items:
         return {

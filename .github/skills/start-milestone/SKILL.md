@@ -20,7 +20,7 @@ Approved milestone spec exists. User says: "Start milestone X", "Implement M1"
    - [ ] Update the spec status to `in-progress`
 
 3. **Branch setup**
-   - [ ] If milestone belongs to an epic: ensure epic integration branch exists (`epic/<epic-slug>`), create from `main` if missing, push to origin
+   - [ ] If milestone belongs to an epic: ensure epic integration branch exists (`epic/E-{NN}-<epic-slug>`), create from `main` if missing, push to origin
    - [ ] Create or switch to milestone branch: `milestone/<milestone-id>` (branch from epic branch if applicable, otherwise from `main`)
    - [ ] Verify milestone branch is up to date with its base
 

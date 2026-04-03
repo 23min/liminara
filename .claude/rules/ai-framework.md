@@ -25,32 +25,32 @@ Each agent below has a dedicated instruction file. Read it for role-specific con
 ### planner — Planning, specs, architecture, research
 **Activate when:** user says plan, design, scope, epic, architecture, brainstorm, research, spec, break down
 **Steps:**
-1. Read `.github/agents/planner.agent.md` — adopt the planner role and constraints
-2. Read the relevant skill: `.github/skills/plan-epic/SKILL.md`, `.github/skills/plan-milestones/SKILL.md`, `.github/skills/draft-spec/SKILL.md`, or `.github/skills/architect/SKILL.md`
+1. Read `.claude/agents/planner.md` — adopt the planner role and constraints
+2. Read the relevant skill: `.claude/skills/plan-epic/SKILL.md`, `.claude/skills/plan-milestones/SKILL.md`, `.claude/skills/draft-spec/SKILL.md`, or `.claude/skills/architect/SKILL.md`
 3. Follow the skill's step-by-step workflow
 
 ### builder — Implementation, TDD, fixes
 **Activate when:** user says build, implement, code, start, add feature, fix, patch, bug, chore, tweak, hotfix
 **Steps:**
-1. Read `.github/agents/builder.agent.md` — adopt the builder role and constraints
-2. Read the relevant skill: `.github/skills/start-milestone/SKILL.md`, `.github/skills/tdd-cycle/SKILL.md`, or `.github/skills/patch/SKILL.md`
+1. Read `.claude/agents/builder.md` — adopt the builder role and constraints
+2. Read the relevant skill: `.claude/skills/start-milestone/SKILL.md`, `.claude/skills/tdd-cycle/SKILL.md`, or `.claude/skills/patch/SKILL.md`
 3. Follow the skill's step-by-step workflow
 
 ### reviewer — Code review, milestone wrap-up
 **Activate when:** user says review, check, validate, wrap, finish, complete milestone
 **Steps:**
-1. Read `.github/agents/reviewer.agent.md` — adopt the reviewer role and constraints
-2. Read the relevant skill: `.github/skills/review-code/SKILL.md` or `.github/skills/wrap-milestone/SKILL.md`
+1. Read `.claude/agents/reviewer.md` — adopt the reviewer role and constraints
+2. Read the relevant skill: `.claude/skills/review-code/SKILL.md` or `.claude/skills/wrap-milestone/SKILL.md`
 3. Follow the skill's step-by-step workflow
 
 ### deployer — Releases, deployments, infrastructure
 **Activate when:** user says release, deploy, tag, publish
 **Steps:**
-1. Read `.github/agents/deployer.agent.md` — adopt the deployer role and constraints
-2. Read the relevant skill: `.github/skills/release/SKILL.md`
+1. Read `.claude/agents/deployer.md` — adopt the deployer role and constraints
+2. Read the relevant skill: `.claude/skills/release/SKILL.md`
 3. Follow the skill's step-by-step workflow
 
-Agents are defined in `.github/agents/`. Skills are in `.github/skills/`.
+Agents are defined in `.claude/agents/`. Skills are in `.claude/skills/`.
 Templates are in `.ai/templates/`.
 
 Project-specific extensions are in `.ai-repo/`:
@@ -81,6 +81,19 @@ After identifying the workflow, read the corresponding agent instruction file an
 | **Quick** | One-off fixes, typos, config changes, issue-linked patches | Use patch skill. No spec, no tracking doc. |
 | **Standard** | Milestone-scoped work with acceptance criteria | Spec → TDD → tracking doc → review → merge. |
 | **Epic** | Multi-milestone features, new systems | Plan → milestones → Standard for each → release. |
+
+## Context Refresh
+
+When the user says **"refresh context"** or **"refresh"**:
+1. Re-read `.ai/rules.md` and `.ai/paths.md` (and `.ai-repo/rules/paths-override.md` if it exists)
+2. Re-read the active agent file if one is invoked (e.g. `.claude/agents/builder.md`)
+3. Read `CLAUDE.md` "Current Work" section for immediate next steps
+4. Read the roadmap at the path specified by `ROADMAP_PATH` (check paths-override for project-specific location)
+5. Read `work/gaps.md` for known issues and blockers
+6. Read `work/decisions.md` — focus on the most recent decisions for current context
+7. Summarize: current branch, active phase, immediate tasks, known blockers, pending changes
+
+This re-grounds context during long sessions or after framework updates (e.g. `sync.sh`, submodule branch switch).
 
 Key rules:
 - Never commit without explicit human approval
@@ -168,12 +181,6 @@ Always include Co-Authored-By when Claude contributed.
 2. **VSME** — SME sustainability reporting (first compliance pack)
 3. **House Compiler** — design → manufacturing. Has a buyer.
 4. **DPP** — Digital Product Passport (Feb 2027 enforcement)
-
-## Current state
-
-- Phase 4 (Observation Layer) complete — E-09 done, merged to main
-- Phase 5 (Radar) next — epic not yet drafted
-- Runtime: Elixir walking skeleton, OTP supervision, event sourcing, Phoenix LiveView, A2UI integration all working
 
 # Path Overrides for Liminara
 

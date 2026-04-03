@@ -47,8 +47,9 @@ defmodule Liminara.Radar.PackTest do
       assert %Plan{} = plan
       nodes = Plan.nodes(plan)
 
-      # 2 fetch + collect + normalize + embed + dedup + llm_dedup_check + merge_results = 8
-      assert map_size(nodes) == 8
+      # 2 fetch + collect + normalize + embed + dedup + llm_dedup_check + merge_results
+      # + cluster + rank + summarize + compose_briefing + render_html = 13
+      assert map_size(nodes) == 13
 
       assert Map.has_key?(nodes, "fetch_src_rss")
       assert Map.has_key?(nodes, "fetch_src_web")
@@ -58,6 +59,11 @@ defmodule Liminara.Radar.PackTest do
       assert Map.has_key?(nodes, "dedup")
       assert Map.has_key?(nodes, "llm_dedup_check")
       assert Map.has_key?(nodes, "merge_results")
+      assert Map.has_key?(nodes, "cluster")
+      assert Map.has_key?(nodes, "rank")
+      assert Map.has_key?(nodes, "summarize")
+      assert Map.has_key?(nodes, "compose_briefing")
+      assert Map.has_key?(nodes, "render_html")
     end
 
     test "RSS sources get FetchRss op module" do
@@ -82,7 +88,10 @@ defmodule Liminara.Radar.PackTest do
       input_refs =
         collect.inputs
         |> Map.values()
-        |> Enum.map(fn {:ref, ref_id, _key} -> ref_id; {:ref, ref_id} -> ref_id end)
+        |> Enum.map(fn
+          {:ref, ref_id, _key} -> ref_id
+          {:ref, ref_id} -> ref_id
+        end)
 
       assert "fetch_src_rss" in input_refs
       assert "fetch_src_web" in input_refs
@@ -117,8 +126,9 @@ defmodule Liminara.Radar.PackTest do
       plan = Radar.plan([])
       nodes = Plan.nodes(plan)
 
-      # collect + normalize + embed + dedup + llm_dedup_check + merge_results = 6
-      assert map_size(nodes) == 6
+      # collect + normalize + embed + dedup + llm_dedup_check + merge_results
+      # + cluster + rank + summarize + compose_briefing + render_html = 11
+      assert map_size(nodes) == 11
       assert Map.has_key?(nodes, "collect_items")
       assert Map.has_key?(nodes, "merge_results")
     end
@@ -126,6 +136,26 @@ defmodule Liminara.Radar.PackTest do
     test "plan validates successfully" do
       plan = Radar.plan([@rss_source, @web_source])
       assert :ok = Plan.validate(plan)
+    end
+
+    test "dedup and compose_briefing receive the same run_id" do
+      plan = Radar.plan([@rss_source])
+      dedup = Plan.get_node(plan, "dedup")
+      compose = Plan.get_node(plan, "compose_briefing")
+
+      {:literal, dedup_id} = dedup.inputs["run_id"]
+      {:literal, compose_id} = compose.inputs["run_id"]
+
+      assert dedup_id == compose_id
+      assert dedup_id =~ ~r/^radar-\d{8}T\d{6}$/
+    end
+
+    test "rank receives an explicit reference_time" do
+      plan = Radar.plan([@rss_source])
+      rank = Plan.get_node(plan, "rank")
+
+      {:literal, ref_time} = rank.inputs["reference_time"]
+      assert ref_time =~ ~r/^\d{4}-\d{2}-\d{2}T/
     end
   end
 end

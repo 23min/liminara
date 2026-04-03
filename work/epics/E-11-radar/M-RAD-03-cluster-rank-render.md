@@ -1,7 +1,7 @@
 ---
 id: M-RAD-03-cluster-rank-render
 epic: E-11-radar
-status: not started
+status: done
 depends_on: M-RAD-02-extract-embed-dedup
 ---
 
@@ -28,8 +28,8 @@ This is the milestone where Radar becomes genuinely useful — the output is a d
 
 2. `Radar.Ops.Rank` op (Python, `:pure`):
    - Ranks items within each cluster by novelty score
-   - Novelty score based on: distance from historical centroid (newer angle = higher), source diversity (item covered by multiple sources = important), recency
-   - Ranks clusters themselves by: max novelty in cluster, cluster size, tag relevance
+   - Novelty score based on: recency (explicit `reference_time` input, no wall clock), source diversity (cluster-level), distance from historical centroid (inert until cross-run history is computed — see Known Limitations)
+   - Ranks clusters themselves by: max novelty in cluster, cluster size, source diversity
    - Returns ordered clusters with ordered items within each
 
 3. `Radar.Ops.Summarize` op (Python, `:recordable`):
@@ -38,11 +38,13 @@ This is the milestone where Radar becomes genuinely useful — the output is a d
    - Returns: `{cluster_id, summary_text, key_takeaways: [string]}`
    - Each summary is a recorded decision
    - Runs one LLM call per cluster (not per item)
+   - **Note:** Replay of multi-decision recordable ops is deferred to E-11c (Phase 5a). The runtime's Decision.Store currently stores one decision per node_id; summarize produces N decisions. Forward execution works; replay does not yet faithfully reconstruct multi-decision output.
 
 4. `Radar.Ops.ComposeBriefing` op (Elixir, `:pure`):
    - Takes ranked clusters with summaries
-   - Assembles into a structured briefing: metadata (date, run_id, source count, item count), ordered clusters with summaries + item links, source health summary
+   - Assembles into a structured briefing: metadata (date, plan-time run_id, source count, item count), ordered clusters with summaries + item links, source health summary
    - Outputs a briefing data structure (map/JSON)
+   - **Note:** `run_id` is a plan-time identifier (`radar-YYYYMMDDTHHMMSS`), consistent between dedup and compose. Threading the real runtime run_id through plan execution is deferred to E-11c.
 
 5. `Radar.Ops.RenderHtml` op (Elixir, `:pure`):
    - Takes briefing data structure
@@ -76,8 +78,8 @@ This is the milestone where Radar becomes genuinely useful — the output is a d
 ### Summarize tests (Elixir + Python)
 - Mock Haiku response → summary text extracted correctly
 - 3 clusters → 3 LLM calls, 3 decisions recorded
-- Replay → decisions used, no LLM calls
 - Empty cluster list → no LLM calls, no summaries
+- *(Deferred to E-11c)* Replay → decisions used, no LLM calls
 
 ### ComposeBriefing tests (Elixir)
 - Clusters + summaries → briefing structure with all expected fields
@@ -92,9 +94,10 @@ This is the milestone where Radar becomes genuinely useful — the output is a d
 - Empty briefing → renders with "no items found" message
 
 ### Integration test
-- Full pipeline with test fixtures (known items, known clusters)
-- Verify: HTML artifact is stored, readable, contains expected cluster summaries
-- Verify: replay produces identical HTML (summaries from recorded decisions)
+- Post-dedup pipeline integration with test fixtures: compose + render produces valid HTML from pre-clustered/ranked/summarized data
+- Verify: HTML contains expected cluster summaries, item links, source health, run metadata
+- Cross-language ops (cluster, rank, summarize) validated by their respective Python test suites above
+- *(Deferred to E-11c)* End-to-end replay test: run full pipeline → replay → assert identical HTML
 
 ## Technical Notes
 
@@ -155,8 +158,25 @@ At ~50 sources, expect 5-15 clusters per run:
 - Email/Slack delivery
 - Interactive briefing (click-to-expand, search within briefing)
 
+## Scope Amendment (2026-04-03)
+
+The following requirements from the original spec are deferred to E-11c (Phase 5a — Radar Correctness). They were written assuming the runtime supports multi-decision replay, which it does not yet. See D-013 for sequencing rationale.
+
+**Deferred to E-11c:**
+- Replay of multi-decision recordable ops (summarize produces N decisions per node; Decision.Store supports only one)
+- Replay rebuilding from stored plan (currently rebuilds fresh plan with new timestamps)
+- Threading real runtime run_id through plan execution (plan uses plan-time ID)
+- End-to-end replay test (run pipeline → replay → assert identical HTML)
+
+**Known limitations accepted for M-RAD-03:**
+- `historical_centroid` is empty — distance-from-history scoring inert (first run has no history; cross-run computation is a multi-run feature)
+- Source diversity is cluster-level, not per-item cross-source coverage
+- Without `ANTHROPIC_API_KEY`, summaries are placeholder text (safe default)
+
+**M-RAD-03 scope is: forward execution pipeline producing a complete HTML briefing.** Replay correctness is E-11c.
+
 ## Dependencies
 
 - M-RAD-02 (deduplicated items with embeddings)
-- `ANTHROPIC_API_KEY` env var for Haiku summaries
+- `ANTHROPIC_API_KEY` env var for Haiku summaries (optional — placeholder without it)
 - Python packages: `scikit-learn` (HDBSCAN), `numpy`

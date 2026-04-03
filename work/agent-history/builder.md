@@ -13,6 +13,7 @@
 - `sys.exit()` in Python raises `SystemExit(BaseException)`, not caught by `except Exception`. Added explicit `SystemExit` catch in runner. For true crash tests, use `os._exit(42)`.
 - Cache tests need explicit ETS table passed via `cache: ctx.cache` — the supervised Cache GenServer may not be running in tests
 - `VIRTUAL_ENV` env var from `integrations/python/` causes uv warnings — harmless but noisy
+- Python's built-in `hash()` is process-salted. Do not use it for deterministic fixture seeds when tests spawn subprocesses or compare values across runs.
 
 ### Conventions established
 - Op modules declare `:port` executor via optional `executor/0` callback

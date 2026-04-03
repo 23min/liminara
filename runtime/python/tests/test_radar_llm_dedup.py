@@ -114,3 +114,26 @@ class TestLlmDedupCheck:
 
         assert len(kept) == 1  # kept on error (safe default)
         assert "LLM error" in decisions[0]["rationale"]
+
+    def test_dict_shaped_input_extracts_ambiguous_items(self):
+        """Input from dedup is a dict with new/ambiguous/duplicate lists."""
+        dedup_result = {
+            "new_items": [{"id": "n1", "title": "New"}],
+            "ambiguous_items": [make_ambiguous_item("a1")],
+            "duplicate_items": [{"id": "d1", "title": "Dup"}],
+        }
+        env = os.environ.copy()
+        os.environ.pop("ANTHROPIC_API_KEY", None)
+
+        try:
+            result = llm_dedup_execute({"items": json.dumps(dedup_result)})
+
+            kept = json.loads(result["outputs"]["items"])
+            decisions = json.loads(result["outputs"]["decisions"])
+
+            # Should only process the 1 ambiguous item, not all 3
+            assert len(kept) == 1
+            assert kept[0]["id"] == "a1"
+            assert len(decisions) == 1
+        finally:
+            os.environ.update(env)

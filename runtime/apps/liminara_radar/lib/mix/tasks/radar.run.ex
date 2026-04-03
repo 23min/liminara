@@ -4,7 +4,7 @@ defmodule Mix.Tasks.Radar.Run do
 
   ## Usage
 
-      mix radar.run [--tags ai,elixir] [--config path/to/sources.jsonl]
+      mix radar.run [--tags ai,elixir] [--config path/to/sources.jsonl] [--output briefing.html]
   """
 
   use Mix.Task
@@ -13,16 +13,19 @@ defmodule Mix.Tasks.Radar.Run do
   alias Liminara.Radar.Config
   alias Liminara.Run
 
-  @default_config Path.expand("../../../../priv/sources.jsonl", __DIR__)
-
   @impl true
   def run(args) do
-    Mix.Task.run("app.start")
+    # Start only core + radar apps, not web/observation (avoids port conflicts
+    # when mix phx.server is already running)
+    Application.ensure_all_started(:liminara_core)
+    Application.ensure_all_started(:liminara_radar)
 
     {opts, _, _} =
-      OptionParser.parse(args, strict: [tags: :string, config: :string])
+      OptionParser.parse(args, strict: [tags: :string, config: :string, output: :string])
 
-    config_path = Keyword.get(opts, :config, @default_config)
+    config_path =
+      Keyword.get(opts, :config) ||
+        Application.app_dir(:liminara_radar, "priv/sources.jsonl")
 
     {:ok, sources} = Config.load(config_path)
     enabled = Config.enabled(sources)
@@ -59,29 +62,90 @@ defmodule Mix.Tasks.Radar.Run do
       {:ok, result} ->
         Mix.shell().info("Radar: run #{result.run_id} completed (#{result.status})")
 
-        if result.outputs["collect_items"] do
-          items_hash = result.outputs["collect_items"]["items"]
-          {:ok, items_json} = Liminara.Artifact.Store.get(store_root, items_hash)
-          items = Jason.decode!(items_json)
-          Mix.shell().info("Radar: #{length(items)} items collected")
-
-          health_hash = result.outputs["collect_items"]["source_health"]
-          {:ok, health_json} = Liminara.Artifact.Store.get(store_root, health_hash)
-          health = Jason.decode!(health_json)
-
-          errors = Enum.filter(health, &(&1["error"] != nil))
-
-          if errors != [] do
-            Mix.shell().info("Radar: #{length(errors)} source(s) had errors:")
-
-            for e <- errors do
-              Mix.shell().info("  - #{e["source_id"]}: #{e["error"]}")
-            end
-          end
+        if result.status == :failed do
+          print_failure_details(result)
         end
 
-      {:error, reason} ->
-        Mix.shell().error("Radar: run failed — #{inspect(reason)}")
+        print_collect_summary(result, store_root)
+        print_briefing_summary(result, store_root)
+        write_briefing_html(result, store_root, runs_root, Keyword.get(opts, :output))
+    end
+  end
+
+  defp print_failure_details(result) do
+    if result.failed_nodes != [] do
+      Mix.shell().error("Radar: failed nodes: #{Enum.join(result.failed_nodes, ", ")}")
+    end
+
+    # Show node states for debugging
+    result.node_states
+    |> Enum.sort_by(fn {id, _} -> id end)
+    |> Enum.each(fn {id, state} ->
+      icon =
+        case state do
+          :completed -> "OK"
+          :failed -> "FAIL"
+          :pending -> "SKIP"
+          :running -> "HANG"
+          other -> to_string(other)
+        end
+
+      Mix.shell().info("  [#{icon}] #{id}")
+    end)
+  end
+
+  defp print_collect_summary(result, store_root) do
+    if result.outputs["collect_items"] do
+      items_hash = result.outputs["collect_items"]["items"]
+      {:ok, items_json} = Liminara.Artifact.Store.get(store_root, items_hash)
+      items = Jason.decode!(items_json)
+      Mix.shell().info("Radar: #{length(items)} items collected")
+
+      health_hash = result.outputs["collect_items"]["source_health"]
+      {:ok, health_json} = Liminara.Artifact.Store.get(store_root, health_hash)
+      health = Jason.decode!(health_json)
+
+      errors = Enum.filter(health, &(&1["error"] != nil))
+
+      if errors != [] do
+        Mix.shell().info("Radar: #{length(errors)} source(s) had errors:")
+
+        for e <- errors do
+          Mix.shell().info("  - #{e["source_id"]}: #{e["error"]}")
+        end
+      end
+    end
+  end
+
+  defp write_briefing_html(result, store_root, runs_root, extra_path) do
+    if result.outputs["render_html"] do
+      html_hash = result.outputs["render_html"]["html"]
+      {:ok, html} = Liminara.Artifact.Store.get(store_root, html_hash)
+
+      # Always write to the run directory
+      default_path = Path.join([runs_root, result.run_id, "briefing.html"])
+      File.write!(default_path, html)
+      Mix.shell().info("Radar: briefing → #{default_path}")
+
+      # Optional extra copy
+      if extra_path do
+        File.write!(extra_path, html)
+        Mix.shell().info("Radar: briefing → #{extra_path}")
+      end
+    end
+  end
+
+  defp print_briefing_summary(result, store_root) do
+    if result.outputs["compose_briefing"] do
+      briefing_hash = result.outputs["compose_briefing"]["briefing"]
+      {:ok, briefing_json} = Liminara.Artifact.Store.get(store_root, briefing_hash)
+      briefing = Jason.decode!(briefing_json)
+      stats = briefing["stats"] || %{}
+
+      Mix.shell().info(
+        "Radar: #{stats["cluster_count"] || 0} clusters, " <>
+          "#{stats["item_count"] || 0} items after dedup"
+      )
     end
   end
 end

@@ -8,14 +8,19 @@ defmodule Liminara.Radar do
   alias Liminara.Plan
 
   alias Liminara.Radar.Ops.{
+    Cluster,
     CollectItems,
+    ComposeBriefing,
     Dedup,
     Embed,
     FetchRss,
     FetchWeb,
     LlmDedupCheck,
     MergeResults,
-    Normalize
+    Normalize,
+    Rank,
+    RenderHtml,
+    Summarize
   }
 
   @impl true
@@ -25,19 +30,41 @@ defmodule Liminara.Radar do
   def version, do: "0.1.0"
 
   @impl true
-  def ops,
-    do: [FetchRss, FetchWeb, CollectItems, Normalize, Embed, Dedup, LlmDedupCheck, MergeResults]
+  def ops do
+    [
+      FetchRss,
+      FetchWeb,
+      CollectItems,
+      Normalize,
+      Embed,
+      Dedup,
+      LlmDedupCheck,
+      MergeResults,
+      Cluster,
+      Rank,
+      Summarize,
+      ComposeBriefing,
+      RenderHtml
+    ]
+  end
 
   @impl true
   def plan(sources) when is_list(sources) do
     plan = build_fetch_plan(sources)
+    now = DateTime.utc_now()
+    plan_ts = Calendar.strftime(now, "%Y%m%dT%H%M%S")
 
     plan
     |> add_normalize()
     |> add_embed()
-    |> add_dedup()
+    |> add_dedup(plan_ts)
     |> add_llm_dedup_check()
     |> add_merge_results()
+    |> add_cluster()
+    |> add_rank(now)
+    |> add_summarize()
+    |> add_compose_briefing(plan_ts, now)
+    |> add_render_html()
   end
 
   defp build_fetch_plan(sources) do
@@ -82,13 +109,13 @@ defmodule Liminara.Radar do
     })
   end
 
-  defp add_dedup(plan) do
+  defp add_dedup(plan, plan_ts) do
     dims = Application.get_env(:liminara_radar, :embedding_dims, 256)
 
     Plan.add_node(plan, "dedup", Dedup, %{
       "items" => {:ref, "embed", "items"},
       "lancedb_path" => {:literal, lancedb_path()},
-      "run_id" => {:literal, "placeholder"},
+      "run_id" => {:literal, "radar-" <> plan_ts},
       "dims" => {:literal, Integer.to_string(dims)}
     })
   end
@@ -103,6 +130,43 @@ defmodule Liminara.Radar do
     Plan.add_node(plan, "merge_results", MergeResults, %{
       "dedup_result" => {:ref, "dedup", "result"},
       "llm_kept_items" => {:ref, "llm_dedup_check", "items"}
+    })
+  end
+
+  defp add_cluster(plan) do
+    Plan.add_node(plan, "cluster", Cluster, %{
+      "items" => {:ref, "merge_results", "items"},
+      "embedded_items" => {:ref, "embed", "items"}
+    })
+  end
+
+  defp add_rank(plan, now) do
+    Plan.add_node(plan, "rank", Rank, %{
+      "clusters" => {:ref, "cluster", "clusters"},
+      "historical_centroid" => {:literal, Jason.encode!([])},
+      "reference_time" => {:literal, DateTime.to_iso8601(now)}
+    })
+  end
+
+  defp add_summarize(plan) do
+    Plan.add_node(plan, "summarize", Summarize, %{
+      "clusters" => {:ref, "rank", "ranked_clusters"}
+    })
+  end
+
+  defp add_compose_briefing(plan, plan_ts, now) do
+    Plan.add_node(plan, "compose_briefing", ComposeBriefing, %{
+      "ranked_clusters" => {:ref, "rank", "ranked_clusters"},
+      "summaries" => {:ref, "summarize", "summaries"},
+      "source_health" => {:ref, "collect_items", "source_health"},
+      "run_id" => {:literal, "radar-" <> plan_ts},
+      "date" => {:literal, Date.to_iso8601(DateTime.to_date(now))}
+    })
+  end
+
+  defp add_render_html(plan) do
+    Plan.add_node(plan, "render_html", RenderHtml, %{
+      "briefing" => {:ref, "compose_briefing", "briefing"}
     })
   end
 
