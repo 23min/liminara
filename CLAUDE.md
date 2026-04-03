@@ -240,21 +240,25 @@ One paragraph: overall assessment (approve / request changes).
 ## Current Work
 <!-- Updated by start-milestone and wrap-milestone skills. -->
 
-### What to do next
+### Active work
 
-**Phase 5a: Radar Correctness** — the immediate priority. Fix the core replay/determinism contract before building anything else.
+- **Epic:** E-11 Radar Pack — `work/epics/E-11-radar/`
+- **Milestone:** M-RAD-06 Replay Correctness — `work/epics/E-11-radar/M-RAD-06-replay-correctness.md`
+- **Status:** in-progress
+- **Branch:** `milestone/M-RAD-06` (from `epic/E-11-radar`)
 
-1. Multi-decision replay fix — `Decision.Store` must support a list of decisions per node; `Run.Server` replay must handle multi-output recordable ops. See `work/gaps.md` for details.
-2. Rank determinism fix — pass reference timestamp as explicit plan input so `radar_rank.py` doesn't call `datetime.now()`. See `work/gaps.md`.
-3. M-RAD-03 tracking accuracy — mark placeholders as known shortcuts in tracking doc. See `work/gaps.md`.
-4. End-to-end replay test — run full Radar pipeline, then replay the run and assert identical outputs.
-5. Clean env whitelist (sandbox Layer 1) — ~20 lines in `Executor.Port`, fixes VIRTUAL_ENV leakage.
+### ACs in progress
+
+1. Decision.Store multi-decision support (list per node_id, backward compat)
+2. Run.Server replay restores multi-decision recordable ops
+3. End-to-end Radar replay test (discovery → replay → identical artifacts)
+4. Executor.Port env whitelist (clean env, no VIRTUAL_ENV leakage)
 
 ### Where things stand
 
 - **Phase 4** (Observation Layer): **complete** — E-09 done, in `work/done/`
-- **Phase 5a** (Radar Correctness): **next** — items listed above
-- **Phase 5b** (Radar Complete): M-RAD-03 finish + M-RAD-04 (Web UI + GenServer scheduler)
+- **Phase 5a** (Radar Correctness): **in progress** — M-RAD-06 active
+- **Phase 5b** (Radar Complete): M-RAD-04 (Web UI + GenServer scheduler) after Phase 5a
 - **Phase 5c** (Radar Hardening): execution spec design, sandbox Layers 2-3, recovery mode, topic config
 - **Sequencing (D-013):** `Radar correctness -> Radar hardening -> VSME -> platform generalization`
 
@@ -262,7 +266,7 @@ One paragraph: overall assessment (approve / request changes).
 
 - **Roadmap:** `work/roadmap.md` — full sequencing with status labels
 - **Decisions:** `work/decisions.md` (D-012 through D-021 are the most recent)
-- **Known gaps:** `work/gaps.md` (replay contract, rank determinism, tracking accuracy, sandbox spec)
+- **Known gaps:** `work/gaps.md` (replay contract, env leakage, sandbox spec)
 - **Branch:** `epic/E-11-radar` (from `main`)
-- **Project-specific rules:** `.ai-repo/rules/liminara.md` (READ THIS — contains domain context)
-- **Path overrides:** `.ai-repo/rules/paths-override.md`
+- **Milestone spec:** `work/epics/E-11-radar/M-RAD-06-replay-correctness.md`
+- **Tracking:** `work/milestones/tracking/M-RAD-06-tracking.md`

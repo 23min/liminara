@@ -38,16 +38,15 @@ Historical note: the Phase 5 split was introduced after initial Radar implementa
 
 ## Phase 5a: Radar Correctness — Not started [decided next]
 
-Inserted after initial Radar pack work revealed replay and determinism problems that must be fixed before continuing deeper into completion or hardening.
+Fix the core replay contract before building on top of it. Liminara's moat is exact replay of recorded decisions — that layer must be sound before anything else.
 
-Fix the core contract before building on top of it. Liminara's moat is exact replay of recorded decisions — that layer must be sound before anything else.
-
-- [ ] E-11c Replay & Determinism Integrity
-  - [ ] Multi-decision replay — Decision.Store supports list of decisions per node; Run.Server replays all decisions for multi-output recordable ops (fixes summarize op)
-  - [ ] Rank determinism — pass reference timestamp as explicit plan input; rank op becomes genuinely pure (no `datetime.now()`)
-  - [ ] M-RAD-03 tracking accuracy — mark placeholders as known shortcuts (historical_centroid, run_id, source diversity scoring)
-  - [ ] End-to-end replay test — run full Radar pipeline, then replay and assert identical outputs
-  - [ ] Clean env whitelist (sandbox Layer 1) — ~20 lines in Executor.Port, fixes VIRTUAL_ENV leakage (reproducibility fix, not security feature)
+- [ ] M-RAD-06 Replay Correctness (milestone inside E-11)
+  - [ ] Decision.Store multi-decision support (list per node_id, backward compatible)
+  - [ ] Run.Server replay restores multi-decision recordable ops
+  - [ ] End-to-end Radar replay test (discovery → replay → identical artifacts)
+  - [ ] Executor.Port env whitelist (clean env, no VIRTUAL_ENV leakage)
+  - Rank determinism: resolved in M-RAD-03 (reference_time as explicit plan input)
+  - M-RAD-03 tracking accuracy: resolved in M-RAD-03 (scope amendment, known limitations documented)
 
 ## Phase 5b: Radar Complete — Not started [decided next]
 
@@ -59,7 +58,7 @@ Finish the Radar pack as a working local MVP.
 - [ ] E-11 Radar Pack (daily intelligence briefing pipeline)
   - [x] M-RAD-01 Pack + source config + fetch (~47 sources)
   - [x] M-RAD-02 Extract + embed + dedup pipeline
-  - [x] M-RAD-03 Cluster + rank + render (forward execution; replay deferred to E-11c)
+  - [x] M-RAD-03 Cluster + rank + render (forward execution; replay deferred to M-RAD-06)
   - [ ] M-RAD-04 Web UI + scheduler (LiveView + GenServer scheduler per D-008)
 
 ## Phase 5c: Radar Hardening — Not started [decided next]

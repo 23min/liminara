@@ -12,6 +12,10 @@ defmodule Liminara.Executor.Port do
 
   @default_timeout 30_000
 
+  # Only these host env vars are passed to Python ops.
+  # Everything else (VIRTUAL_ENV, CONDA_PREFIX, PYTHONPATH, etc.) is excluded.
+  @env_whitelist ~w(PATH HOME LANG TERM USER SHELL LC_ALL LC_CTYPE)c
+
   @doc """
   Run a Python op by name.
 
@@ -29,12 +33,13 @@ defmodule Liminara.Executor.Port do
     python_root = Keyword.get(opts, :python_root, default_python_root())
     runner = Keyword.get(opts, :runner, default_runner(python_root))
     timeout = Keyword.get(opts, :timeout, @default_timeout)
+    extra_env = Keyword.get(opts, :extra_env, [])
 
     {id, frame} = encode_request(op_name, inputs)
 
     {duration_us, result} =
       :timer.tc(fn ->
-        execute_port(runner, python_root, frame, id, timeout)
+        execute_port(runner, python_root, frame, id, timeout, extra_env)
       end)
 
     duration_ms = div(duration_us, 1000)
@@ -87,7 +92,7 @@ defmodule Liminara.Executor.Port do
 
   # ── Private ──────────────────────────────────────────────────────
 
-  defp execute_port(runner, python_root, frame, expected_id, timeout) do
+  defp execute_port(runner, python_root, frame, expected_id, timeout, extra_env) do
     uv = System.find_executable("uv") || "uv"
     src_dir = Path.join(python_root, "src")
 
@@ -100,11 +105,7 @@ defmodule Liminara.Executor.Port do
           :exit_status,
           {:args, ["run", "--project", python_root, "python", "-u", runner]},
           {:cd, src_dir},
-          {:env,
-           [
-             {~c"PYTHONDONTWRITEBYTECODE", ~c"1"},
-             {~c"VIRTUAL_ENV", false}
-           ]}
+          {:env, clean_env(extra_env)}
         ]
       )
 
@@ -192,6 +193,21 @@ defmodule Liminara.Executor.Port do
 
   defp generate_id do
     :crypto.strong_rand_bytes(8) |> Base.hex_encode32(case: :lower, padding: false)
+  end
+
+  @doc false
+  def clean_env(extra_env_names \\ []) do
+    extra_charlists = Enum.map(extra_env_names, &String.to_charlist/1)
+    allowed = MapSet.new(@env_whitelist ++ extra_charlists)
+
+    # Unset every host env var NOT in the whitelist
+    unset =
+      System.get_env()
+      |> Enum.reject(fn {k, _v} -> MapSet.member?(allowed, String.to_charlist(k)) end)
+      |> Enum.map(fn {k, _v} -> {String.to_charlist(k), false} end)
+
+    # Add our explicit vars
+    [{~c"PYTHONDONTWRITEBYTECODE", ~c"1"} | unset]
   end
 
   defp default_python_root do
