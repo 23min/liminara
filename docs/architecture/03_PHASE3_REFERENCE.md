@@ -191,6 +191,8 @@ Hash format: `sha256:{64 lowercase hex chars}`. Writes are idempotent — same c
 
 ### Op
 
+This section describes the legacy pre-Execution-Truth op surface from Phase 3. It remains useful for reading older runtime code, but Phase 5c replaces it as the canonical contract with `execution_spec/0` and `OpResult`.
+
 A typed function with a determinism class. Four callbacks:
 
 | Callback | Returns |
@@ -231,7 +233,9 @@ An execution = an append-only event log + a plan. The event log IS the run.
 
 ### Pack
 
-A module that provides ops and knows how to plan. Four callbacks:
+A module that provides ops and knows how to plan. This Phase 3 reference predates the `execution_spec/0` migration; in the Phase 5c contract, `ops()` still returns modules, but those modules expose `execution_spec/0` rather than serving as a thin wrapper around separate execution callbacks.
+
+Four callbacks:
 
 ```elixir
 @callback id() :: atom()

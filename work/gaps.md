@@ -30,16 +30,11 @@ Discovered work items deferred for later.
 **Resolved:** 2026-04-03 (M-RAD-03 scope amendment + tracking doc update)
 **Fix:** Known limitations documented in spec and tracking doc; placeholders accepted for v1
 
-## E-12 sandbox spec contradiction — fix before E-12 starts
+## E-12 sandbox spec contradiction — RESOLVED in epic spec
 **Discovered:** 2026-04-02 (OpenAI review)
+**Resolved:** 2026-04-03 (E-12 epic spec rewrite)
 **Relates to:** E-12 Op Sandbox epic, D-019 (sandbox split)
-**Severity:** Medium — spec blocks startup or silently expands trust boundary
-**Items:**
-- Success criteria say Python ops cannot read op source directory or shared venv
-- Technical design applies Landlock before importing the op module
-- But the runner needs to read both op module and dependencies to boot
-- Fix: distinguish between code/dependency read access (allowed during import) and mutable runtime access (restricted during execution)
-- Must be resolved in E-12 epic spec before implementation begins
+**Fix:** Success criteria now distinguish bootstrap code/dependency reads from runtime access restrictions. Startup may read declared bootstrap paths; runtime access remains limited to declared runtime paths, with undeclared host paths and other ops' working dirs blocked.
 
 ## dag-map: interactive features for live execution visualization
 **Discovered:** 2026-04-02 (M-RAD-03 planning)

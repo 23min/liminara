@@ -61,3 +61,14 @@
 - Global nav bar in `app.html.heex` layout (not per-page inline nav)
 - Scheduler is config-gated: `config :liminara_radar, :scheduler, enabled: true, daily_at: ~T[06:00:00]`
 - Sources config path configurable via `config :liminara_radar, :sources_path`
+
+## M-TRUTH-01: Execution Spec + Outcome Design (2026-04-04)
+
+### Patterns that worked
+- For a design milestone, limited shared-struct codification plus focused contract tests is acceptable when the purpose is only to freeze canonical names, defaults, and field shapes.
+- Use the milestone spec plus downstream epic references to decide scope boundaries, not an opportunistic next implementation step.
+- On a dirty milestone branch, close with scoped validation of the touched contract files and record unrelated umbrella blockers explicitly instead of broadening the milestone to fix off-scope drift.
+
+### Pitfalls
+- Suggesting legacy callback bridges or tuple/JSON result normalizers inside M-TRUTH-01 blurs the design milestone into M-TRUTH-02.
+- Placeholder or newly codified structs are schema-freezing artifacts until live runtime paths consume them; do not describe that as completed migration.

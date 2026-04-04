@@ -118,7 +118,7 @@ Sandbox config recorded in run events for provenance.
 ## D-2026-04-02-015: Unified execution spec replaces callback sprawl
 **Status:** active
 **Context:** The op execution contract is fragmenting across separate callbacks: `determinism/0`, `executor/0`, future `sandbox_capabilities/0` (E-12), future `resources/0` (scale roadmap), and later CUE contracts. If each lands as a standalone callback, every op module gets revised multiple times. OpenAI review flagged this as a medium-severity structural risk.
-**Decision:** Design one `execution_spec/0` struct with sections (identity, determinism, execution, isolation, contracts) before E-12 starts. E-12 implements its sandbox work against the `isolation` section of this spec. Existing callbacks become derived views or compatibility shims. Future concerns (resources, CUE contracts) populate their sections when built.
+**Decision:** Design one `execution_spec/0` struct with sections (identity, determinism, execution, isolation, contracts) before E-12 starts. E-12 implements its sandbox work against the `isolation` section of this spec. Future concerns (resources, CUE contracts) populate their sections when built. Migration strategy is later tightened by D-2026-04-03-022: the spec direction from this decision remains active, but the compatibility-shim path does not.
 **Consequences:** Build forward, not refactor. Each new concern adds to the spec rather than adding a new top-level callback. Design pass needed before E-12 implementation begins. Lightweight design work, not a whole epic.
 
 ## D-2026-04-02-016: Postgres deferred to platform generalization
@@ -156,4 +156,47 @@ Sandbox config recorded in run events for provenance.
 **Context:** Radar's longest ops are LLM summarize calls (~30s). Port executor already has configurable timeouts. Heartbeats distinguish "hung" from "slow but working" — valuable for ops running minutes/hours (GPU training, heavy geometry), not for 30-second LLM calls.
 **Decision:** Demote heartbeats to demand-driven. Trigger: when ops legitimately run for minutes/hours.
 **Consequences:** Timeout handling is sufficient for Radar and VSME. Heartbeats earn their place with House Compiler or ML training packs.
+
+## D-2026-04-03-022: Forward-only op contract — no backward compatibility
+**Status:** active
+**Context:** M-TRUTH-01 originally included a 3-phase migration strategy with compatibility shims that derive `execution_spec/0` from legacy callbacks. Review showed this creates an indefinite escape hatch — new ops can use legacy callbacks forever, and the normalizer makes legacy results indistinguishable from genuinely clean results.
+**Decision:** No backward compatibility. `Liminara.Op` behaviour (separate `name/0`, `version/0`, `determinism/0`, `execute/1` callbacks) is replaced entirely in M-TRUTH-02. All ops adopt `execution_spec/0` and `OpResult`. No shim layer, no normalizer. Python runner returns canonical shape directly.
+**Consequences:** All existing ops (~13 Radar, ~5 demo, test ops) must be migrated in M-TRUTH-02. This is feasible because the codebase is small. Eliminates the ambiguity of normalized results and removes the maintenance burden of parallel paths.
+
+## D-2026-04-03-023: Cache and replay derived from determinism class — no policy overrides
+**Status:** active
+**Context:** M-TRUTH-01 spec originally included `cache_policy` and `replay_policy` as fields in the `determinism` section. Review found these are semantically empty — no values or behavior defined anywhere. Actual cache/replay behavior is fully derived from the determinism class (confirmed in `01_CORE.md` and `cache.ex`).
+**Decision:** Remove `cache_policy` and `replay_policy`. Cache and replay behavior is a function of the determinism class, not an independent declaration. Override knobs that contradict the class (e.g., `pure` + `cache_policy: :never`) create the same kind of contract drift the spec is trying to eliminate. If finer control is needed, it must be a new determinism class.
+**Consequences:** Simpler spec. Determinism class remains the single source of truth for cache/replay semantics.
+
+## D-2026-04-03-024: Execution context injection by callback arity
+**Status:** active
+**Context:** M-TRUTH-01 defines an `ExecutionContext` struct but didn't specify how it reaches ops. Three options: `execute/2` for all (breaks purity), in the inputs map (wrong cache keys), process dictionary (hidden dependency). Pure ops should not be able to access execution context at all.
+**Decision:** Runtime dispatches based on determinism class:
+- Pure/pinned_env ops: `execute(inputs)` — arity 1, no context available
+- Recordable/side_effecting ops: `execute(inputs, context)` — arity 2, context injected
+This is structural enforcement — a pure op literally has no parameter for context. For Python ops, the JSON request includes `"context"` only for recordable/side_effecting ops. Wrong arity at load time is a compile error.
+**Consequences:** Purity is enforced at the API level, not by convention. Python runner must validate that pure ops do not receive context.
+
+## D-2026-04-03-025: Single execution path — Run.Server only
+**Status:** active
+**Context:** Two parallel execution paths exist: `Run` (sync, 463 lines) and `Run.Server` (GenServer, 823 lines). Both duplicate result handling, artifact storage, decision recording, and event emission with slightly different APIs. Every contract change (like adding warnings) must be applied in both paths. `Run.Server` is strictly more capable (gates, crash recovery, broadcasting). `Run` existed for CLI convenience (`mix radar.run` while server is running).
+**Decision:** `Run.Server` is the single execution engine. `Run.execute/2` (sync path) is removed in M-TRUTH-02. For batch/CLI use cases, a convenience function wraps `Run.Server.start → await → stop`. This preserves the `mix radar.run` use case without maintaining a parallel implementation.
+**Consequences:** One place to update result handling, event emission, and decision recording. Warning propagation (E-19) only needs to be implemented once. Slight API change for batch callers — they use the convenience wrapper instead of `Run.execute/2`.
+
+## D-2026-04-03-026: Plan-time purity — no wall-clock in plan/1
+**Status:** active
+**Context:** `Liminara.Radar.plan/1` captures `DateTime.utc_now()` at plan-build time and injects it as literal inputs (`plan_ts`, `reference_time`, `date`). This makes plan output dependent on when it was built — a hidden nondeterministic choice. If a plan is stored and executed later, the timestamps are stale.
+**Decision:** `plan/1` must be a pure function of its explicit parameters. No `DateTime.utc_now()`, no `:os.system_time`, no `:rand`, no environment reads. The runtime scheduler provides scheduling context (date, time, topic) as parameters to `plan/1`. In M-TRUTH-03, `Radar.plan/1` receives `%{date: ~D[2026-04-03]}` from the scheduler instead of capturing `now` internally.
+**Consequences:** Plans are reproducible — same inputs produce the same plan. Scheduler owns temporal context. Existing Radar plan code must be refactored in M-TRUTH-03.
+
+## D-2026-04-03-027: Closed warning severity enum
+**Status:** active
+**Context:** M-TRUTH-01 warning shape includes `:severity` but originally had no defined values. Without a closed set, packs will invent incompatible scales, breaking aggregation and UI filtering.
+**Decision:** Three severities, runtime-enforced:
+- `:info` — succeeded with a noteworthy condition (e.g., used cached model)
+- `:degraded` — output is semantically weakened (e.g., placeholder summary)
+- `:critical` — output may be untrustworthy (e.g., required API unreachable)
+No other values permitted. If a condition doesn't fit these three, the op should succeed silently or fail hard. Warning codes follow `{pack}_{category}` convention (e.g., `radar_placeholder_summary`).
+**Consequences:** Consistent severity across packs. UI can reliably aggregate and filter. E-12 degraded sandbox uses `sandbox_partial_enforcement` with severity `:degraded`.
 

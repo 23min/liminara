@@ -79,24 +79,25 @@ Content-addressed artifacts scale with data volume:
 ```
 Op module                    Executor
 ┌──────────────┐            ┌──────────────┐
-│ executor/0   │──────────► │ :inline      │ → direct function call
-│ :inline      │            │ :task        │ → supervised Task
-│ :port        │            │ :port        │ → Python via Port
+│ execution    │──────────► │ :inline      │ → direct function call
+│ .kind        │            │ :task        │ → supervised Task
+│ :inline      │            │ :port        │ → Python via Port
+│ :port        │            └──────────────┘
 │ :task        │            └──────────────┘
 └──────────────┘
 ```
 
-`Executor.run(op_module, inputs, opts)` dispatches based on `op_module.executor()`. Simple, clean.
+Historically, `Executor.run(op_module, inputs, opts)` dispatched based on `op_module.executor()`. Under the Phase 5c execution-truth contract, executor selection moves into `execution_spec().execution.kind`, so executor routing stays explicit without adding more top-level callbacks.
 
 ### Target Design
 
 ```
 Op module                    Executor                     Compute Backend
 ┌──────────────┐            ┌──────────────┐            ┌──────────────────┐
-│ executor/0   │──────────► │ :inline      │──────────► │ BEAM process     │
-│ resources/0  │            │ :task        │            │ OTP Task         │
-│              │            │ :port        │            │ Local Python     │
-│              │            │ :container   │            │ Local Docker     │
+│ execution    │──────────► │ :inline      │──────────► │ BEAM process     │
+│ .kind        │            │ :task        │            │ OTP Task         │
+│ execution    │            │ :port        │            │ Local Python     │
+│ .resources   │            │ :container   │            │ Local Docker     │
 │              │            │ :k8s_pod     │            │ K8s cluster      │
 │              │            │ :ray_task    │            │ Ray cluster      │
 │              │            │ :slurm_job   │            │ SLURM cluster    │
@@ -104,7 +105,7 @@ Op module                    Executor                     Compute Backend
 ```
 
 Key additions to the op contract:
-- `resources/0` — declares resource requirements (`:cpu`, `:gpu`, `:memory`, `:gpu_type`)
+- Resource requirements should extend the `execution_spec().execution` section rather than landing as a new top-level callback
 - Executor selection could become automatic based on resource requirements + available backends
 - **CUE constraint schemas** for op inputs/outputs, resource requirements, and executor capabilities — enabling plan-time validation that op requirements match available executor backends. Multi-source constraints (op requirements + executor capabilities + security policy) compose via lattice unification. See [cue_language.md](cue_language.md).
 
@@ -113,8 +114,10 @@ Key additions to the op contract:
 Every executor must implement the same interface:
 
 ```
-execute(op_module, inputs, opts) → {:ok, outputs} | {:ok, outputs, decisions} | {:error, reason}
+execute(op_module, inputs, opts) → {:ok, %OpResult{outputs, decisions, warnings}} | {:error, reason}
 ```
+
+Executor implementations should treat `OpResult` as the single success shape. Warning-bearing success is part of the canonical result contract, not an executor-specific extension.
 
 The control plane doesn't care where the op ran. It records the same events, decisions, and artifact hashes regardless of executor. This is the fundamental invariant.
 
@@ -281,8 +284,9 @@ Covers: Enterprise customers with existing HPC infrastructure.
 │         │ dispatch                                       │
 │    ┌────▼──────────────────────────────────┐             │
 │    │         EXECUTOR ROUTER               │             │
-│    │  routes based on op.executor()        │             │
-│    │  + op.resources() + available backends │             │
+│    │  routes based on execution_spec()     │             │
+│    │  + execution kind/resources           │             │
+│    │  + available backends                 │             │
 │    └────┬────┬────┬────┬────┬─────────────┘             │
 │         │    │    │    │    │                             │
 └─────────┼────┼────┼────┼────┼─────────────────────────── │

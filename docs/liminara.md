@@ -158,20 +158,31 @@ An artifact is a value. It doesn't change. If you have its hash, you have its id
 
 A typed function: artifacts in, artifacts out.
 
+Historically, the runtime exposed ops through separate callbacks. The canonical contract now being locked in Phase 5c is `execution_spec/0`, which folds identity, determinism, execution, isolation, and contracts into one truthful shape.
+
 ```elixir
-%Op{
-  name: :rank_and_summarize,
-  version: "1.0.0",
-  determinism: :recordable,
-  inputs: [:unique_docs],
-  outputs: [:briefing],
-  executor: Radar.Summarize
+%Liminara.ExecutionSpec{
+  identity: %{name: :rank_and_summarize, version: "1.0.0"},
+  determinism: %{class: :recordable},
+  execution: %{kind: :port, op: "radar_summarize", timeout_ms: 30_000},
+  isolation: %{
+    env_vars: ["ANTHROPIC_API_KEY"],
+    network: :tcp_outbound,
+    bootstrap_read_paths: [:op_code, :runtime_deps],
+    runtime_read_paths: [],
+    runtime_write_paths: []
+  },
+  contracts: %{
+    inputs: %{unique_docs: %{required: true}},
+    outputs: %{briefing: %{required: true}},
+    may_warn: true
+  }
 }
 ```
 
 An op doesn't know about scheduling, retry, supervision, or storage. It's just a function with a determinism class. The runtime handles everything else.
 
-The four callbacks:
+The older four-callback surface is legacy implementation detail during the M-TRUTH-02 migration, not the contract new features should extend:
 
 | Callback | Returns |
 |----------|---------|

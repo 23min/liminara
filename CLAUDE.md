@@ -102,6 +102,16 @@ Liminara is **a runtime for reproducible nondeterministic computation**. It reco
 
 - **Never make assumptions on ambiguous decisions.** If something is unclear, could go multiple ways, or has downstream consequences — stop and ask.
 
+## Truth discipline
+
+- `work/roadmap.md` is the only current sequencing and build-plan source.
+- `docs/architecture/` contains only live or decided-next architecture. Historical material belongs in `docs/history/`.
+- `docs/history/` is context, not authority.
+- If current behavior is disputed, live code, tests, and canonical persistence specs win.
+- If approved next-state behavior is disputed, the active epic or milestone spec plus decided-next architecture docs win.
+- Compatibility shims are banned by default. Any exception needs a named removal trigger in the milestone spec and tracking doc.
+- To change AI instruction behavior, edit `.ai-repo/` and run `./.ai/sync.sh`. Do not hand-edit generated instruction files except for the preserved `CLAUDE.md` Current Work section.
+
 ## Validation pipeline (per language)
 
 Before any commit, the appropriate validation must pass:
@@ -140,7 +150,8 @@ Always include Co-Authored-By when Claude contributed.
 ## Project structure
 
 - `docs/` — research, analysis, architecture, brainstorming
-- `docs/architecture/` — core architecture and build plan
+- `docs/architecture/` — active architecture, contract docs, approved next-state plans
+- `docs/history/` — archived architecture and superseded design material
 - `docs/analysis/` — strategic analysis, compliance, pack plans
 - `docs/decisions/` — Architecture Decision Records (ADRs)
 - `runtime/` — Elixir umbrella (liminara_core, liminara_observation, liminara_web)
@@ -240,21 +251,30 @@ One paragraph: overall assessment (approve / request changes).
 ## Current Work
 <!-- Updated by start-milestone and wrap-milestone skills. -->
 
-### What to do next
+### Active milestone
 
-**E-11 Radar Pack is complete.** All milestones (M-RAD-01 through M-RAD-06 + M-RAD-04) merged. Next: merge `epic/E-11-radar` into `main`, then start Phase 5c (Radar Hardening).
+**M-TRUTH-01: Execution Spec + Outcome Design** — complete
+- First blocking slice of Phase 5c (Radar Hardening), closed on `milestone/M-TRUTH-01`
+- Next up in E-20: `M-TRUTH-02` (Core runtime contract migration)
 
 ### Where things stand
 
 - **Phase 4** (Observation Layer): **complete** — E-09 done, in `work/done/`
 - **Phase 5a** (Radar Correctness): **complete** — M-RAD-06 merged into `epic/E-11-radar`
 - **Phase 5b** (Radar Complete): **complete** — M-RAD-04 merged into `epic/E-11-radar`
-- **Phase 5c** (Radar Hardening): **next** — execution spec design, sandbox Layers 2-3, recovery mode, topic config
+- **Phase 5c** (Radar Hardening): **in progress** — E-20 Execution Truth (`M-TRUTH-01` complete; `M-TRUTH-02` upcoming), then E-19 Warnings & Degraded Outcomes, then E-12 Op Sandbox
+- **Validation note:** M-TRUTH-01 scoped contract validation is green; full umbrella validation on this branch is still blocked by unrelated formatting drift and `liminara_web` / `Run.Server` failures
 - **Sequencing (D-013):** `Radar correctness -> Radar hardening -> VSME -> platform generalization`
 
 ### Key references
 
 - **Roadmap:** `work/roadmap.md` — full sequencing with status labels
-- **Decisions:** `work/decisions.md` (D-012 through D-021 are the most recent)
+- **Decisions:** `work/decisions.md` (D-012 through D-022 are the most recent)
+- **Truth governance:** `docs/architecture/contracts/00_TRUTH_MODEL.md`, `docs/architecture/contracts/01_CONTRACT_MATRIX.md`, `docs/architecture/contracts/02_SHIM_POLICY.md`
+- **Archived architecture:** `docs/history/architecture/` — moved snapshots and design notes that are no longer current authority
+- **Phase 5c epic specs in worktree:** `work/epics/E-20-execution-truth/epic.md`, `work/epics/E-19-warnings-degraded-outcomes/epic.md`, `work/epics/E-12-op-sandbox/epic.md`
 - **Known gaps:** `work/gaps.md` (sandbox spec, dag-map interactivity)
-- **Branch:** `epic/E-11-radar` (from `main`) — ready to merge to main
+- **Epic branch:** `epic/E-20-execution-truth` (from `main`)
+- **Milestone branch:** `milestone/M-TRUTH-01` (from `epic/E-20-execution-truth`, ready for merge)
+- **Milestone spec:** `work/epics/E-20-execution-truth/M-TRUTH-01-execution-spec-outcome-design.md`
+- **Tracking:** `work/milestones/tracking/M-TRUTH-01-tracking.md`

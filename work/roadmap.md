@@ -61,13 +61,13 @@ Finish the Radar pack as a working local MVP.
   - [x] M-RAD-03 Cluster + rank + render (forward execution; replay fixed in M-RAD-06)
   - [x] M-RAD-04 Web UI + scheduler (LiveView + GenServer scheduler per D-008)
 
-## Phase 5c: Radar Hardening — Not started [decided next]
+## Phase 5c: Radar Hardening — In progress [active]
 
 Tightly scoped to capabilities Radar has already proven it needs for production deployment on a single VM.
 
 - [ ] E-20 Execution Truth
   - First blocking Phase 5c slice after M-RAD-04 is finished and validated
-  - [ ] M-TRUTH-01 Execution spec + outcome design
+  - [x] M-TRUTH-01 Execution spec + outcome design
   - [ ] M-TRUTH-02 Core runtime contract migration
   - [ ] M-TRUTH-03 Radar semantic cleanup
 - [ ] E-19 Warnings & Degraded Outcomes

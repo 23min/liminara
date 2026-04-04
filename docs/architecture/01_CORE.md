@@ -113,14 +113,25 @@ Small artifacts (JSON, structs, configs) live in ETS (in-memory, fast). Large ar
 
 A typed function: artifacts in, artifacts out.
 
+The pre-Phase 5c runtime represented ops through separate callbacks and helper structs. The canonical contract now being locked in E-20 is `execution_spec/0`, which makes identity, determinism, execution, isolation, and output contracts explicit in one place.
+
 ```elixir
-%Op{
-  name: :rank_and_summarize,
-  version: "1.0.0",
-  determinism: :recordable,        # one of: pure, pinned_env, recordable, side_effecting
-  inputs: [:unique_docs],
-  outputs: [:briefing],
-  executor: Radar.Summarize        # the module that does the work
+%Liminara.ExecutionSpec{
+  identity: %{name: :rank_and_summarize, version: "1.0.0"},
+  determinism: %{class: :recordable},
+  execution: %{kind: :port, op: "radar_summarize", timeout_ms: 30_000},
+  isolation: %{
+    env_vars: ["ANTHROPIC_API_KEY"],
+    network: :tcp_outbound,
+    bootstrap_read_paths: [:op_code, :runtime_deps],
+    runtime_read_paths: [],
+    runtime_write_paths: []
+  },
+  contracts: %{
+    inputs: %{unique_docs: %{required: true}},
+    outputs: %{briefing: %{required: true}},
+    may_warn: true
+  }
 }
 ```
 
@@ -135,7 +146,9 @@ The determinism class controls caching and replay:
 
 Four classes. Clean, exhaustive, actionable.
 
-An op doesn't know about scheduling, retry, supervision, or storage. It's just a function. The runtime handles everything else.
+An op doesn't know about scheduling, retry, supervision, or storage. It's just a function with a truthful execution contract. The runtime handles everything else.
+
+During the M-TRUTH-02 migration, the older `name/0`, `version/0`, `determinism/0`, and tuple-return callback surface still exists in some code paths. That legacy surface is not the contract new work should build on.
 
 ### 3. Decision
 
@@ -209,7 +222,7 @@ A module that provides ops and knows how to plan work.
 defmodule Liminara.Pack do
   @callback id() :: atom()
   @callback version() :: String.t()
-  @callback ops() :: [Op.t()]
+  @callback ops() :: [module()]
   @callback plan(input :: term()) :: Plan.t()
 
   # Optional: register reference data (rulesets, material databases, geographic lookups)
@@ -220,7 +233,7 @@ end
 Five callbacks (one optional). A pack tells the runtime:
 1. Who it is
 2. What version it is
-3. What operations it can perform
+3. What op modules it can perform, each exposing the canonical `execution_spec/0`
 4. How to build a plan for a given input
 5. (Optional) What reference data it ships with
 

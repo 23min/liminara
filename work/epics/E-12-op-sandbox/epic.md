@@ -2,7 +2,7 @@
 id: E-12-op-sandbox
 phase: 5
 status: not started
-depends_on: E-10-port-executor
+depends_on: E-20-execution-truth
 ---
 
 # E-12: Op Sandbox & Provenance
@@ -25,6 +25,8 @@ Nobody in the Python orchestration world does lightweight sandboxing without con
 
 Research (D-2026-04-02-011) identified a layered approach using Linux kernel security primitives that provides kernel-enforced isolation at ~4ms overhead — negligible compared to Python startup (~60ms) and actual op execution.
 
+Sequencing note: this epic must implement against the canonical `execution_spec/0` contract defined by E-20, starting with M-TRUTH-01. It should not introduce a standalone `sandbox_capabilities/0` callback or any other local op-shape escape hatch.
+
 ## Scope
 
 ### In Scope
@@ -32,7 +34,7 @@ Research (D-2026-04-02-011) identified a layered approach using Linux kernel sec
 - Clean environment whitelist in the Port executor (no inherited env vars)
 - Python audit hooks in the op runner (intercept filesystem/network/subprocess at Python level)
 - Landlock LSM integration (kernel-enforced filesystem + network restriction per-process)
-- Op capability declarations (`needs_network`, `allowed_paths`, etc.)
+- Capability declarations in the `execution_spec/0` isolation section (`env_vars`, network, bootstrap/runtime paths, write targets)
 - Sandbox configuration recorded in run events (provenance)
 - Graceful degradation (devcontainer gets audit hooks + clean env; production Linux gets full Landlock)
 - Documentation of the isolation model
@@ -51,6 +53,9 @@ Research (D-2026-04-02-011) identified a layered approach using Linux kernel sec
 - Must work inside Docker/devcontainer (Landlock works on overlay/tmpfs, not on fakeowner mounts — audit hooks cover the gap)
 - Must work on Linux 5.13+ (Landlock ABI v1+). Kernel 6.12 available in current devcontainer (ABI v6).
 - Zero new Elixir dependencies (Landlock and audit hooks are applied from Python side)
+- Must use the `isolation` section of M-TRUTH-01's execution spec; no standalone sandbox callback
+- Must enforce isolation declarations that M-TRUTH-02 validates at load time — E-12 closes the gap between declaration consistency and kernel enforcement
+- Degraded sandbox mode (e.g., devcontainer without Landlock) must surface through the canonical warning contract from M-TRUTH-01 (severity `:degraded`, code `sandbox_partial_enforcement`), not through separate logging
 - Must not break existing ops or tests
 - Overhead budget: ≤10ms per op invocation (measured: ~4ms for layers 1-3)
 - Audit hooks and Landlock are both irreversible per-process — an op cannot undo them
@@ -59,10 +64,10 @@ Research (D-2026-04-02-011) identified a layered approach using Linux kernel sec
 
 - [ ] No env vars leak from the host into Python ops (only explicitly whitelisted vars like `PATH`, `HOME`, and op-specific vars like `ANTHROPIC_API_KEY`)
 - [ ] Python ops cannot write to paths outside their designated working directory and temp dir
-- [ ] Python ops cannot read the op source directory, shared venv, or other ops' working dirs
+- [ ] Python ops can read only declared bootstrap/runtime paths; startup may read declared code/dependency paths, but execution cannot read undeclared host paths or other ops' working dirs
 - [ ] `mix radar.run` works identically with sandbox enabled (all ops pass)
 - [ ] Run events include sandbox metadata: which layers were active, what was allowed
-- [ ] Degraded mode in devcontainer (audit hooks + clean env) is clearly logged
+- [ ] Degraded mode in devcontainer (audit hooks + clean env) surfaces through the canonical warning contract and is visible to operators
 - [ ] Full mode on production Linux (Landlock + audit hooks + clean env) is the default
 - [ ] Existing tests pass without modification
 - [ ] Overhead ≤10ms per op (benchmark before/after)
@@ -71,28 +76,28 @@ Research (D-2026-04-02-011) identified a layered approach using Linux kernel sec
 
 | Risk / Question | Impact | Mitigation |
 |----------------|--------|------------|
-| Landlock doesn't work on fakeowner mounts (Docker Desktop) | Med | Audit hooks provide Python-level enforcement in devcontainer. Log degraded mode clearly. Production uses ext4/xfs where Landlock works fully. |
+| Landlock doesn't work on fakeowner mounts (Docker Desktop) | Med | Audit hooks provide Python-level enforcement in devcontainer. Surface degraded mode through the warning contract. Production uses ext4/xfs where Landlock works fully. |
 | Audit hooks bypassable via ctypes/raw syscalls | Low | Landlock catches these at kernel level. Audit hooks are defense-in-depth, not the primary boundary. |
-| Ops that legitimately need network (fetch_rss, fetch_web, summarize) | High | Capability declarations: op declares `needs_network: true`, sandbox allows TCP. Ops without the declaration get network blocked. |
-| Ops that need to write files (dedup writes to LanceDB) | High | Capability declarations: op declares `allowed_write_paths: [lancedb_path]`. Sandbox restricts writes to declared paths only. |
-| model2vec downloads model on first run (~59MB) | Med | First-run model download happens outside the sandbox (during setup/init), or `allowed_write_paths` includes the model cache dir. |
+| Ops that legitimately need network (fetch_rss, fetch_web, summarize) | High | Capability declarations use `network: :tcp_outbound`; ops without that declaration get network blocked. |
+| Ops that need to write files (dedup writes to LanceDB) | High | Capability declarations use `runtime_write_paths: [lancedb_path]`. Sandbox restricts writes to declared paths only. |
+| model2vec downloads model on first run (~59MB) | Med | First-run model download happens outside the sandbox (during setup/init), or `runtime_write_paths` includes the model cache dir. |
 | Performance regression from sandbox setup | Low | Measured ~4ms. Python startup is ~60ms, op execution is 100ms-30s. Negligible. |
 
 ## Milestones
 
 | ID | Title | Summary | Depends on | Status |
 |----|-------|---------|------------|--------|
-| M-ISO-01 | Executor isolation | Clean env whitelist, audit hooks in op runner, Landlock integration, capability declarations on Op behaviour | E-10 | not started |
+| M-ISO-01 | Executor isolation | Clean env whitelist, audit hooks in op runner, Landlock integration, capability declarations in `execution_spec/0` isolation | M-TRUTH-01 | not started |
 | M-ISO-02 | Provenance & documentation | Sandbox config in run events, observation UI indicators, isolation model docs, benchmark report | M-ISO-01 | not started |
 
 ## Technical Design
 
 ### Layer 1: Clean Environment (Erlang side)
 
-Modify `Executor.Port.execute_port/5` to build a whitelist env instead of inheriting:
+Modify `Executor.Port.execute_port/5` to build a whitelist env from the op's `execution_spec().isolation` section instead of inheriting:
 
 ```elixir
-defp sandbox_env(op_capabilities) do
+defp sandbox_env(isolation_spec) do
   base = [
     {~c"PATH", System.get_env("PATH") |> to_charlist()},
     {~c"HOME", System.get_env("HOME") |> to_charlist()},
@@ -102,8 +107,8 @@ defp sandbox_env(op_capabilities) do
     {~c"LD_PRELOAD", false},
   ]
 
-  # Add op-specific env vars from capability declarations
-  op_env = Enum.map(op_capabilities[:env_vars] || [], fn var ->
+  # Add op-specific env vars from the canonical isolation spec
+  op_env = Enum.map(isolation_spec.env_vars || [], fn var ->
     case System.get_env(var) do
       nil -> {to_charlist(var), false}
       val -> {to_charlist(var), to_charlist(val)}
@@ -145,40 +150,50 @@ Applied after audit hooks, before op import:
 import ctypes
 import ctypes.util
 
-def apply_landlock(allowed_read_paths, allowed_write_paths):
+def apply_landlock(bootstrap_read_paths, runtime_read_paths, runtime_write_paths):
     """Apply Landlock filesystem restrictions. Irreversible."""
     libc = ctypes.CDLL(ctypes.util.find_library("c"))
     # ... (create ruleset, add rules for allowed paths, enforce)
     # Once enforced, process cannot access any path not in the ruleset
 ```
 
-### Op Capability Declarations
+Landlock should allow read access to `bootstrap_read_paths ++ runtime_read_paths` for the lifetime of the process, while write access remains limited to `runtime_write_paths`. The important boundary is not "code becomes unreadable after import"; it is "trusted code/dependencies remain read-only, and undeclared host paths remain inaccessible."
 
-Extend `Liminara.Op` behaviour with optional callbacks:
+### Capability Declarations Via `execution_spec/0`
+
+Capability declarations belong in the canonical `execution_spec/0` isolation section, not in a standalone callback.
+
+M-TRUTH-02 enforces internal consistency at load time (e.g., `:pure` with `runtime_write_paths: [...]` is rejected). E-12 closes the enforcement gap by making the kernel enforce what the spec declares — audit hooks and Landlock block undeclared access at the OS level.
+
+Illustrative direction:
 
 ```elixir
-# Optional — defaults to maximum restriction
-@callback sandbox_capabilities() :: keyword()
-# Returns: [
-#   needs_network: true,
-#   allowed_write_paths: ["/path/to/lancedb"],
-#   env_vars: ["ANTHROPIC_API_KEY"],
-# ]
+def execution_spec do
+  %Liminara.ExecutionSpec{
+    isolation: %{
+      env_vars: ["ANTHROPIC_API_KEY"],
+      network: :tcp_outbound,
+      bootstrap_read_paths: [:op_code, :runtime_deps],
+      runtime_read_paths: [],
+      runtime_write_paths: []
+    }
+  }
+end
 ```
 
 Example for existing ops:
 
-| Op | needs_network | allowed_write_paths | env_vars |
-|----|---------------|---------------------|----------|
-| fetch_rss | true | [] | [] |
-| fetch_web | true | [] | [] |
-| normalize | false | [] | [] |
-| embed | false | [model_cache] | [] |
-| dedup | false | [lancedb_path] | [] |
-| llm_dedup | true | [] | [ANTHROPIC_API_KEY] |
-| cluster | false | [] | [] |
-| rank | false | [] | [] |
-| summarize | true | [] | [ANTHROPIC_API_KEY] |
+| Op | network | runtime_write_paths | env_vars |
+|----|---------|---------------------|----------|
+| fetch_rss | `:tcp_outbound` | [] | [] |
+| fetch_web | `:tcp_outbound` | [] | [] |
+| normalize | `:none` | [] | [] |
+| embed | `:none` | [model_cache] | [] |
+| dedup | `:none` | [lancedb_path] | [] |
+| llm_dedup | `:tcp_outbound` | [] | [ANTHROPIC_API_KEY] |
+| cluster | `:none` | [] | [] |
+| rank | `:none` | [] | [] |
+| summarize | `:tcp_outbound` | [] | [ANTHROPIC_API_KEY] |
 
 ### Provenance in Run Events
 
@@ -191,8 +206,8 @@ Each `node_completed` event gains a `sandbox` field:
   "sandbox": {
     "layers": ["clean_env", "audit_hooks", "landlock"],
     "landlock_abi": 6,
-    "allowed_write_paths": [],
-    "needs_network": false,
+    "runtime_write_paths": [],
+    "network": ":none",
     "degraded": false
   }
 }
@@ -200,10 +215,13 @@ Each `node_completed` event gains a `sandbox` field:
 
 When replaying, the replay engine can verify the sandbox config matches.
 
+If the runtime has to fall back to partial enforcement, that condition should surface through the canonical warning/degraded-success contract from M-TRUTH-01 rather than existing only in logs.
+
 ## References
 
 - Decision D-2026-04-02-011: Layered sandbox, not containers
 - Decision D-2026-04-01-005: Raw Erlang Ports for Python execution
+- `work/epics/E-20-execution-truth/M-TRUTH-01-execution-spec-outcome-design.md`
 - Port executor: `runtime/apps/liminara_core/lib/liminara/executor/port.ex`
 - Op runner: `runtime/python/src/liminara_op_runner.py`
 - Op behaviour: `runtime/apps/liminara_core/lib/liminara/op.ex`

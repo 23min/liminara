@@ -2,14 +2,14 @@
 id: E-19-warnings-degraded-outcomes
 phase: 5
 status: planning
-depends_on: E-11-radar
+depends_on: E-20-execution-truth
 ---
 
 # E-19: Warnings & Degraded Outcomes
 
 ## Goal
 
-Add a first-class warning and degraded-outcome contract to Liminara so that packs can no longer silently return degraded output as an ordinary success. Warnings must propagate from op execution through run events, observation state, CLI output, and UI inspectors with enough structure to explain the problem, cause, severity, remediation, and impact on produced artifacts.
+Add a first-class warning and degraded-outcome contract to Liminara so that packs can no longer silently return degraded output as an ordinary success. Warnings must propagate from op execution through run events, observation state, CLI output, and UI inspectors with enough structure to explain the problem, cause, severity, remediation, and impact on declared outputs.
 
 ## Context
 
@@ -25,12 +25,14 @@ That is not acceptable for a runtime whose value proposition is auditable, trust
 
 Per D-012 and D-013, this should be handled as bounded Radar-proven hardening before VSME, not as a generic reliability platform.
 
+Sequencing note: this epic consumes the canonical execution/result contract defined by E-20, starting with M-TRUTH-01. It should not define a warning shape, degraded-success shape, or result shape that bypasses that contract.
+
 ## Scope
 
 ### In Scope
 
 - A first-class warning/degraded-success concept at node and run level
-- Structured warning payloads with fields such as code, severity, summary, cause, remediation, and output impact
+- Structured warning payloads with fields such as code, severity, summary, cause, remediation, and impact on declared outputs
 - Event propagation from execution engine to observation projection and LiveView UI
 - Run-level aggregation: completed with warnings / degraded outcome count
 - Node-level inspector support for warnings and degraded decisions
@@ -51,15 +53,17 @@ Per D-012 and D-013, this should be handled as bounded Radar-proven hardening be
 ## Constraints
 
 - Must preserve the distinction between nondeterministic decisions and execution warnings; warnings are not decisions
-- Must fit the future unified execution spec direction from D-015 rather than adding callback sprawl
-- Must not break existing ops that only return `{:ok, outputs}`, `{:ok, outputs, decisions}`, or `{:error, reason}`
+- Must implement the `execution_spec/0`, `OpResult`, and warning contract locked by M-TRUTH-01 rather than adding callback sprawl or event-only shapes
+- All ops return `OpResult` (no legacy tuple conventions) — M-TRUTH-02 eliminates backward compatibility before this epic starts
+- Warning severity must use the closed enum from M-TRUTH-01: `:info | :degraded | :critical` — no other values permitted
+- Warning codes must follow the namespaced convention: `{pack}_{category}`
 - Must be visible in the existing run inspector and observation flow, not deferred to a future UI rewrite
 - Must stay tightly scoped to proven Radar/operator needs before VSME
 
 ## Success Criteria
 
 - [ ] Missing `ANTHROPIC_API_KEY` no longer yields an apparently normal Radar success; the summarize node and containing run are explicitly marked degraded
-- [ ] Warning payloads carry enough information for an operator to answer: what happened, why, what was affected, and how to fix it
+- [ ] Warning payloads carry enough information for an operator to answer: what happened, why, which declared outputs were affected, and how to fix it
 - [ ] The run detail UI shows degraded badges/counts and exposes warning cause/remediation when a problematic node is selected
 - [ ] The run-level summary and CLI output clearly distinguish plain success from success with warnings
 - [ ] The rendered Radar briefing indicates when placeholder or degraded content was used
@@ -80,7 +84,7 @@ Per D-012 and D-013, this should be handled as bounded Radar-proven hardening be
 
 | ID | Title | Summary | Depends on | Status |
 |----|-------|---------|------------|--------|
-| M-WARN-01 | Runtime warning contract | Extend execution/event model with structured warnings, node/run aggregation, and tests for degraded-success semantics | E-11 | not started |
+| M-WARN-01 | Runtime warning contract | Extend execution/event model with structured warnings, node/run aggregation, and tests for degraded-success semantics | M-TRUTH-01 | not started |
 | M-WARN-02 | Observation + UI surfacing | Preserve warnings in observation projection, show badges/counts, and render cause/severity/remediation in the run inspector and timeline summaries | M-WARN-01 | not started |
 | M-WARN-03 | Radar adoption | Convert known Radar silent fallback paths to explicit warnings, annotate briefings, and add pack-level tests for degraded-but-successful outcomes | M-WARN-02 | not started |
 
@@ -88,25 +92,26 @@ Per D-012 and D-013, this should be handled as bounded Radar-proven hardening be
 
 The preferred design direction is:
 
-1. Extend the runtime result/event path so an op can succeed with warnings without overloading decision records.
+1. Reuse the canonical `OpResult` / warning contract defined by M-TRUTH-01 rather than creating a local runtime-only shape.
 2. Preserve warning metadata through observation state rather than reducing it to a hash-only view.
 3. Surface warning details in the UI at both run and node level.
 4. Let each pack decide whether a given condition is a warning-bearing success or a hard failure.
 
 Likely shape:
 
-- Op execution returns outputs plus optional warnings
-- `op_completed` events carry warning payloads and a degraded flag/count
-- Run state aggregates warning counts and degraded nodes
+- Op execution reaches the event path as the canonical result carrying `outputs`, `decisions`, and `warnings`
+- `op_completed` events carry warning payloads derived from that canonical result
+- Run state derives degraded-success from warning-bearing success rather than a second ad hoc state tree
 - Observation UI renders a warning section separate from decisions
 
-This should remain compatible with D-015’s unified execution spec work. If a new execution metadata structure is introduced here, it should be a step toward that spec rather than a one-off contract.
+This epic should not introduce a separate warning callback, a UI-only degraded contract, or a new normalization layer. It should be a direct implementation of the execution/result model locked in M-TRUTH-01.
 
 ## References
 
 - Decision D-2026-04-02-012: hardening is limited to Radar-proven needs
 - Decision D-2026-04-02-013: sequence is Radar correctness -> Radar hardening -> VSME
 - Decision D-2026-04-02-015: avoid callback sprawl via unified execution spec
+- `work/epics/E-20-execution-truth/M-TRUTH-01-execution-spec-outcome-design.md`
 - Radar summarize fallback: `runtime/python/src/ops/radar_summarize.py`
 - Observation projection: `runtime/apps/liminara_observation/lib/liminara/observation/view_model.ex`
 - Run inspector: `runtime/apps/liminara_web/lib/liminara_web/live/runs_live/show.ex`
