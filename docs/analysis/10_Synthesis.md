@@ -273,7 +273,7 @@ See [09_Compliance_Demo_Tool.md](09_Compliance_Demo_Tool.md) for the full demo t
 
 *See also:*
 - *[01_CORE.md](../architecture/01_CORE.md) — runtime architecture*
-- *[02_PLAN.md](../architecture/02_PLAN.md) — living build plan*
+- *[../../work/roadmap.md](../../work/roadmap.md) — current sequencing and active status*
 - *[02_Fresh_Analysis.md](02_Fresh_Analysis.md) — landscape and competitive analysis*
 - *[05_Why_Replay.md](05_Why_Replay.md) — the case for recorded decisions and replay*
 - *[ADJACENT_TECHNOLOGIES.md](../research/ADJACENT_TECHNOLOGIES.md) — intellectual ancestors and adjacent technologies*

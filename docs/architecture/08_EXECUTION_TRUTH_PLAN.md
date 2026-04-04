@@ -1,6 +1,21 @@
+---
+title: Execution Truth Plan
+doc_type: architecture-plan
+truth_class: decided_next
+status: active
+owner: E-20
+last_reviewed: 2026-04-04
+source_of_truth:
+  - work/epics/E-20-execution-truth/epic.md
+  - work/epics/E-20-execution-truth/M-TRUTH-01-execution-spec-outcome-design.md
+  - docs/architecture/contracts/02_SHIM_POLICY.md
+---
+
 # Execution Truth Plan
 
 ## Purpose
+
+This document is an approved next-state contract. Current runtime behavior remains governed by the live sources listed in `docs/architecture/contracts/01_CONTRACT_MATRIX.md`.
 
 Get Liminara back onto a contract that is true to its thesis:
 
@@ -85,19 +100,17 @@ If the system chooses to continue without a required dependency or model, the re
 
 ### Unified Op Shape
 
-Introduce `execution_spec/0` as the canonical op definition. Existing callbacks do not remain as a supported compatibility surface during migration.
+Introduce `execution_spec/0` as the canonical op definition. Legacy callbacks may remain only as short-lived, removal-tracked exceptions under `docs/architecture/contracts/02_SHIM_POLICY.md`.
 
 Target sections:
 
 - `identity`: name, version
-- `determinism`: class
-- `execution`: executor-specific invocation shape, timeout, runtime context requirements
-- `isolation`: env vars, network, allowed read/write paths, capability declarations
-- `contracts`: keyed input schema, keyed output schema, warning contract
+- `determinism`: class, replay policy, cache policy
+- `execution`: executor, entrypoint, timeout, runtime context requirements
+- `isolation`: env vars, network, bootstrap read paths, runtime read paths, runtime write paths
+- `contracts`: input/output contract, decision contract, warning contract
 
 Important rule: new concerns extend this structure instead of adding new top-level callbacks.
-
-Additional rule: decision capability is derived from determinism, not declared as a separate contract flag. Output keys are named DAG edges and must be preserved exactly through event persistence and replay.
 
 ### Runtime Execution Context
 
@@ -135,10 +148,7 @@ Goal: make the op shape explicit before more runtime features land.
 Deliverables:
 
 - final `execution_spec/0` structure
-- removal of legacy `determinism/0`, `executor/0`, `python_op/0`, `env_vars/0`, and tuple-result surfaces from active runtime use
-- executor-specific execution shapes instead of a mixed `entrypoint` field
-- explicit keyed output schema preserved exactly through persistence and replay
-- decision capability derived from determinism rather than an independent declaration
+- exception-only compatibility shims for `determinism/0`, `executor/0`, `python_op/0`, `env_vars/0` where bootability requires them
 - migration plan for existing ops
 - updated E-19 and E-12 specs to target this contract
 
@@ -179,8 +189,6 @@ Deliverables:
 - Radar adoption for summarize and LLM dedup fallback paths
 - briefing annotation when degraded content exists
 
-Constraint: `affected_outputs` must reference declared output keys from the canonical output schema rather than free-form labels.
-
 ### Workstream E: Production Configuration Honesty
 
 Goal: remove test-oriented defaults from production semantics.
@@ -204,9 +212,6 @@ Acceptance criteria:
 - `execution_spec/0` structure is defined
 - runtime execution context shape is defined
 - warning-bearing success contract is defined
-- executor-specific execution shapes are defined
-- output keys are part of the canonical persisted/replayed contract
-- decision capability is derived from determinism, not a separate contract flag
 - migration plan for current ops is written
 - E-19 and E-12 specs are updated to build on this design
 
@@ -216,10 +221,8 @@ Goal: move runtime execution to the new shape without breaking current packs.
 
 Acceptance criteria:
 
-- all active ops adopt the canonical contract; no compatibility layer remains in the runtime path
+- any remaining legacy callback derivation is explicitly temporary and carries a named removal trigger
 - executor path understands warning-bearing success
-- persisted/replayed output hashes preserve declared keys exactly; rebuild does not invent fallback names
-- non-recordable ops returning decisions are rejected by the runtime
 - run events and replay store execution context explicitly
 - real runtime `run_id` is available to pack outputs without pack-side synthesis
 

@@ -130,6 +130,16 @@ Liminara is **a runtime for reproducible nondeterministic computation**. It reco
 
 - **Never make assumptions on ambiguous decisions.** If something is unclear, could go multiple ways, or has downstream consequences — stop and ask.
 
+## Truth discipline
+
+- `work/roadmap.md` is the only current sequencing and build-plan source.
+- `docs/architecture/` contains only live or decided-next architecture. Historical material belongs in `docs/history/`.
+- `docs/history/` is context, not authority.
+- If current behavior is disputed, live code, tests, and canonical persistence specs win.
+- If approved next-state behavior is disputed, the active epic or milestone spec plus decided-next architecture docs win.
+- Compatibility shims are banned by default. Any exception needs a named removal trigger in the milestone spec and tracking doc.
+- To change AI instruction behavior, edit `.ai-repo/` and run `./.ai/sync.sh`. Do not hand-edit generated instruction files except for the preserved `CLAUDE.md` Current Work section.
+
 ## Validation pipeline (per language)
 
 Before any commit, the appropriate validation must pass:
@@ -168,7 +178,8 @@ Always include Co-Authored-By when Claude contributed.
 ## Project structure
 
 - `docs/` — research, analysis, architecture, brainstorming
-- `docs/architecture/` — core architecture and build plan
+- `docs/architecture/` — active architecture, contract docs, approved next-state plans
+- `docs/history/` — archived architecture and superseded design material
 - `docs/analysis/` — strategic analysis, compliance, pack plans
 - `docs/decisions/` — Architecture Decision Records (ADRs)
 - `runtime/` — Elixir umbrella (liminara_core, liminara_observation, liminara_web)

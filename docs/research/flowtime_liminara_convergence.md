@@ -327,4 +327,4 @@ This is speculative and aspirational — not a build commitment. But it validate
 
 ---
 
-*This document extends `docs/analysis/06_FlowTime_and_Liminara.md`. For the graph execution patterns taxonomy, see `docs/research/graph_execution_patterns.md`. For the build plan, see `docs/architecture/02_PLAN.md §Recognized architectural patterns`.*
+*This document extends `docs/analysis/06_FlowTime_and_Liminara.md`. For the graph execution patterns taxonomy, see `docs/research/graph_execution_patterns.md`. For the historical build-plan discussion of recognized architectural patterns, see `docs/history/architecture/02_PLAN.md §Recognized architectural patterns`.*

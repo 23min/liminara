@@ -69,7 +69,7 @@ This is the contract that all observation UIs depend on.
 ## Spec reference
 
 - `docs/architecture/01_CORE.md §Observation: the Excel quality`
-- `docs/architecture/03_PHASE3_REFERENCE.md §Event broadcasting`
+- `docs/history/architecture/03_PHASE3_REFERENCE.md §Event broadcasting`
 
 ## Related ADRs
 

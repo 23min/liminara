@@ -82,7 +82,7 @@ Add the event timeline and decision viewer to the observation dashboard. The tim
 ## Spec reference
 
 - `docs/architecture/01_CORE.md §Observation: the Excel quality`
-- `docs/architecture/03_PHASE3_REFERENCE.md §Event types and hash chain`
+- `docs/history/architecture/03_PHASE3_REFERENCE.md §Event types and hash chain`
 
 ## Related ADRs
 

@@ -120,7 +120,7 @@ That is not just provenance tracking — it is **auditable hallucination propaga
 
 ## Simulation/Live Duality Becomes Very Concrete Here
 
-The `02_PLAN.md` recognizes simulation/live duality as an existing architectural capability:
+The archived `docs/history/architecture/02_PLAN.md` recognizes simulation/live duality as an existing architectural capability:
 
 > *"Simulation mode: All nondeterministic ops use synthetic data or inject stored decisions. Live mode: Ops are gated by real-world events. Decision records enable comparing the two: diff(simulation.decisions, live.decisions) shows exactly where reality diverged from the plan."*
 

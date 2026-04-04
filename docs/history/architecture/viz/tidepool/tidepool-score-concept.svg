@@ -1,0 +1,165 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 520" font-family="'IBM Plex Mono', 'Courier New', monospace">
+  <metadata>Archived historical visualization asset. truth_class: historical. archived_on: 2026-04-04. superseded_by: work/done/E-09-observation-layer/M-OBS-03-dag-visualization.md; runtime/apps/liminara_web/.</metadata>
+  <defs>
+    <filter id="w">
+      <feTurbulence type="turbulence" baseFrequency="0.015" numOctaves="2" result="turb" seed="7"/>
+      <feDisplacementMap in="SourceGraphic" in2="turb" scale="1.2"/>
+    </filter>
+    <linearGradient id="fade-right" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#2C2C2C" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#2C2C2C" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="900" height="520" fill="#F5F0E8"/>
+
+  <text x="32" y="28" font-size="11" fill="#2C2C2C" letter-spacing="0.08em">TIDEPOOL SCORE — RADAR PACK DAILY BRIEFING</text>
+  <line x1="32" y1="36" x2="868" y2="36" stroke="#2C2C2C" stroke-width="0.5" opacity="0.3"/>
+
+  <!-- Time axis -->
+  <line x1="80" y1="60" x2="860" y2="60" stroke="#D4CFC7" stroke-width="0.5"/>
+  <text x="80" y="55" font-size="7" fill="#8C8680">0s</text>
+  <line x1="80" y1="58" x2="80" y2="62" stroke="#D4CFC7" stroke-width="0.5"/>
+  <text x="220" y="55" font-size="7" fill="#8C8680">2s</text>
+  <line x1="220" y1="58" x2="220" y2="62" stroke="#D4CFC7" stroke-width="0.5"/>
+  <text x="360" y="55" font-size="7" fill="#8C8680">5s</text>
+  <line x1="360" y1="58" x2="360" y2="62" stroke="#D4CFC7" stroke-width="0.5"/>
+  <text x="560" y="55" font-size="7" fill="#8C8680">12s</text>
+  <line x1="560" y1="58" x2="560" y2="62" stroke="#D4CFC7" stroke-width="0.5"/>
+  <text x="760" y="55" font-size="7" fill="#8C8680">18s</text>
+  <line x1="760" y1="58" x2="760" y2="62" stroke="#D4CFC7" stroke-width="0.5"/>
+
+  <!-- Lane labels -->
+  <text x="24" y="130" font-size="8" fill="#8C8680" text-anchor="end">fetch</text>
+  <text x="24" y="230" font-size="8" fill="#8C8680" text-anchor="end">norm</text>
+  <text x="24" y="310" font-size="8" fill="#8C8680" text-anchor="end">rank</text>
+  <text x="24" y="410" font-size="8" fill="#8C8680" text-anchor="end">deliver</text>
+
+  <!-- Lane lines (staff lines, very faint) -->
+  <line x1="32" y1="130" x2="868" y2="130" stroke="#D4CFC7" stroke-width="0.3"/>
+  <line x1="32" y1="230" x2="868" y2="230" stroke="#D4CFC7" stroke-width="0.3"/>
+  <line x1="32" y1="310" x2="868" y2="310" stroke="#D4CFC7" stroke-width="0.3"/>
+  <line x1="32" y1="410" x2="868" y2="410" stroke="#D4CFC7" stroke-width="0.3"/>
+
+  <!-- === FETCH LANE (amber, side-effecting) === -->
+
+  <!-- fetch_rss_1: completed, bloomed -->
+  <rect x="82" y="96" width="120" height="52" rx="4" fill="#FDFBF7" stroke="#D4944C" stroke-width="0.8" filter="url(#w)"/>
+  <rect x="82" y="96" width="2.5" height="52" rx="1" fill="#D4944C"/>
+  <text x="93" y="109" font-size="7" fill="#8C8680">fetch_rss</text>
+  <text x="93" y="122" font-size="8" fill="#2C2C2C">DN.se: 14 items</text>
+  <text x="93" y="133" font-size="8" fill="#2C2C2C">last: 2h ago</text>
+  <rect x="93" y="139" width="50" height="1.5" rx="0.75" fill="#D4944C" opacity="0.3"/>
+  <text x="146" y="142" font-size="6" fill="#8C8680">1.2s</text>
+
+  <!-- fetch_rss_2: completed, bloomed (parallel) -->
+  <rect x="82" y="158" width="120" height="52" rx="4" fill="#FDFBF7" stroke="#D4944C" stroke-width="0.8" filter="url(#w)"/>
+  <rect x="82" y="158" width="2.5" height="52" rx="1" fill="#D4944C"/>
+  <text x="93" y="171" font-size="7" fill="#8C8680">fetch_rss</text>
+  <text x="93" y="184" font-size="8" fill="#2C2C2C">SvD.se: 8 items</text>
+  <text x="93" y="195" font-size="8" fill="#2C2C2C">last: 45m ago</text>
+  <rect x="93" y="201" width="35" height="1.5" rx="0.75" fill="#D4944C" opacity="0.3"/>
+  <text x="131" y="204" font-size="6" fill="#8C8680">0.8s</text>
+
+  <!-- fetch_api: completed, bloomed (parallel) -->
+  <rect x="82" y="220" width="140" height="52" rx="4" fill="#FDFBF7" stroke="#D4944C" stroke-width="0.8" filter="url(#w)"/>
+  <rect x="82" y="220" width="2.5" height="52" rx="1" fill="#D4944C"/>
+  <text x="93" y="233" font-size="7" fill="#8C8680">fetch_api</text>
+  <text x="93" y="246" font-size="8" fill="#2C2C2C">SCB housing API</text>
+  <text x="93" y="257" font-size="8" fill="#2C2C2C">Q4 data available</text>
+  <rect x="93" y="263" width="60" height="1.5" rx="0.75" fill="#D4944C" opacity="0.3"/>
+  <text x="156" y="266" font-size="6" fill="#8C8680">1.8s</text>
+
+  <!-- Particles flowing from fetch nodes to normalize -->
+  <circle cx="212" cy="122" r="2.5" fill="#D4944C" opacity="0.6"/>
+  <circle cx="224" cy="135" r="2.5" fill="#D4944C" opacity="0.45"/>
+  <circle cx="236" cy="160" r="2.5" fill="#D4944C" opacity="0.35"/>
+
+  <circle cx="210" cy="184" r="2.5" fill="#D4944C" opacity="0.6"/>
+  <circle cx="222" cy="196" r="2.5" fill="#D4944C" opacity="0.4"/>
+
+  <circle cx="230" cy="246" r="2.5" fill="#D4944C" opacity="0.6"/>
+  <circle cx="245" cy="240" r="2.5" fill="#D4944C" opacity="0.4"/>
+
+  <!-- Structural threads (very faint) from fetch to normalize -->
+  <path d="M 202 122 Q 260 160 280 230" stroke="#D4CFC7" stroke-width="0.4" fill="none"/>
+  <path d="M 202 184 Q 240 210 280 230" stroke="#D4CFC7" stroke-width="0.4" fill="none"/>
+  <path d="M 222 246 Q 250 240 280 234" stroke="#D4CFC7" stroke-width="0.4" fill="none"/>
+
+  <!-- === NORMALIZE LANE (teal, pure) === -->
+
+  <!-- normalize + dedup: completed -->
+  <rect x="270" y="200" width="150" height="58" rx="4" fill="#FDFBF7" stroke="#2B8A8E" stroke-width="0.8" filter="url(#w)"/>
+  <rect x="270" y="200" width="2.5" height="58" rx="1" fill="#2B8A8E"/>
+  <text x="281" y="213" font-size="7" fill="#8C8680">normalize + dedup</text>
+  <text x="281" y="228" font-size="8" fill="#2C2C2C">22 items in</text>
+  <text x="281" y="240" font-size="8" fill="#2C2C2C">17 unique (5 deduped)</text>
+  <text x="281" y="252" font-size="8" fill="#8C8680">cache: 3 hits</text>
+  <rect x="281" y="250" width="20" height="1.5" rx="0.75" fill="#2B8A8E" opacity="0.3"/>
+  <text x="304" y="253" font-size="6" fill="#8C8680">0.3s</text>
+
+  <!-- Thread from normalize to rank -->
+  <path d="M 420 230 Q 470 270 520 305" stroke="#D4CFC7" stroke-width="0.4" fill="none"/>
+  <!-- Particles -->
+  <circle cx="440" cy="245" r="2.5" fill="#2B8A8E" opacity="0.5"/>
+  <circle cx="462" cy="262" r="2.5" fill="#2B8A8E" opacity="0.4"/>
+  <circle cx="488" cy="280" r="2.5" fill="#2B8A8E" opacity="0.3"/>
+
+  <!-- === RANK LANE (coral, recordable — LLM) === -->
+
+  <!-- rank + summarize: completed, wide card (this is the expensive one) -->
+  <rect x="510" y="274" width="220" height="72" rx="4" fill="#FDFBF7" stroke="#E8846B" stroke-width="0.8" filter="url(#w)"/>
+  <rect x="510" y="274" width="2.5" height="72" rx="1" fill="#E8846B"/>
+  <!-- Decision indicator -->
+  <circle cx="722" cy="282" r="3" fill="#E8846B"/>
+  <text x="521" y="287" font-size="7" fill="#8C8680">rank_and_summarize</text>
+  <text x="521" y="302" font-size="8" fill="#2C2C2C">"The Swedish housing market</text>
+  <text x="521" y="314" font-size="8" fill="#2C2C2C"> showed early recovery signs</text>
+  <text x="521" y="326" font-size="8" fill="#2C2C2C"> in Q4, with SCB reporting..."</text>
+  <!-- Wide timing bar — this is the bottleneck -->
+  <rect x="521" y="337" width="160" height="2" rx="1" fill="#E8846B" opacity="0.3"/>
+  <text x="685" y="340" font-size="6" fill="#8C8680">8.4s</text>
+
+  <!-- Thread from rank to deliver -->
+  <path d="M 730 310 Q 760 350 780 405" stroke="#D4CFC7" stroke-width="0.4" fill="none"/>
+  <!-- Particles -->
+  <circle cx="742" cy="336" r="2.5" fill="#E8846B" opacity="0.5"/>
+  <circle cx="756" cy="360" r="2.5" fill="#E8846B" opacity="0.4"/>
+  <circle cx="768" cy="382" r="2.5" fill="#E8846B" opacity="0.3"/>
+
+  <!-- === DELIVER LANE (amber, side-effecting) === -->
+
+  <!-- deliver: completed -->
+  <rect x="770" y="382" width="90" height="52" rx="4" fill="#FDFBF7" stroke="#D4944C" stroke-width="0.8" filter="url(#w)"/>
+  <rect x="770" y="382" width="2.5" height="52" rx="1" fill="#D4944C"/>
+  <text x="781" y="395" font-size="7" fill="#8C8680">deliver_email</text>
+  <text x="781" y="410" font-size="8" fill="#2C2C2C">sent to: team@</text>
+  <text x="781" y="422" font-size="8" fill="#2C2C2C">subject: Daily</text>
+  <text x="781" y="434" font-size="8" fill="#8C8680">  Radar Briefing</text>
+
+  <!-- === ANNOTATIONS === -->
+
+  <!-- Bottleneck annotation -->
+  <line x1="560" y1="350" x2="560" y2="460" stroke="#8C8680" stroke-width="0.3" stroke-dasharray="2,3"/>
+  <line x1="730" y1="350" x2="730" y2="460" stroke="#8C8680" stroke-width="0.3" stroke-dasharray="2,3"/>
+  <text x="645" y="472" font-size="7" fill="#8C8680" text-anchor="middle">LLM bottleneck: 8.4s of 18s total (47%)</text>
+
+  <!-- Parallel annotation -->
+  <text x="50" y="80" font-size="7" fill="#8C8680">3 parallel</text>
+  <text x="50" y="89" font-size="7" fill="#8C8680">fetches</text>
+  <line x1="75" y1="90" x2="75" y2="280" stroke="#8C8680" stroke-width="0.3" stroke-dasharray="1,2"/>
+
+  <!-- Legend -->
+  <rect x="32" y="488" width="836" height="24" rx="2" fill="none"/>
+  <circle cx="50" cy="500" r="4" fill="#D4944C"/>
+  <text x="60" y="503" font-size="7" fill="#8C8680">side-effecting (I/O)</text>
+  <circle cx="180" cy="500" r="4" fill="#2B8A8E"/>
+  <text x="190" y="503" font-size="7" fill="#8C8680">pure (deterministic)</text>
+  <circle cx="320" cy="500" r="4" fill="#E8846B"/>
+  <text x="330" y="503" font-size="7" fill="#8C8680">recordable (LLM)</text>
+  <circle cx="456" cy="500" r="3" fill="#E8846B"/>
+  <text x="464" y="503" font-size="7" fill="#8C8680">= decision recorded</text>
+  <line x1="560" y1="500" x2="590" y2="500" stroke="#D4CFC7" stroke-width="0.4"/>
+  <circle cx="572" cy="500" r="2" fill="#2B8A8E" opacity="0.5"/>
+  <text x="596" y="503" font-size="7" fill="#8C8680">particle flow (artifact moving)</text>
+</svg>

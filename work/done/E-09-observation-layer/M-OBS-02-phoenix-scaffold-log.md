@@ -40,7 +40,7 @@ Append a new entry after each significant work session. Do not edit previous ent
 ## 2026-03-19 — Session: PubSub topic split + test stability fix
 
 **Decisions made:**
-- Split PubSub into `observation:{run_id}:state` and `observation:{run_id}:events` per `04_OBSERVATION_DESIGN_NOTES.md` (behaviors vs events). DAG view subscribes to `:state`, future timeline subscribes to `:events`.
+- Split PubSub into `observation:{run_id}:state` and `observation:{run_id}:events` per `docs/history/architecture/04_OBSERVATION_DESIGN_NOTES.md` (behaviors vs events). DAG view subscribes to `:state`, future timeline subscribes to `:events`.
 - Added `get_events/1` API to Observation.Server for accumulated events list.
 - Fixed intermittent test failures: root cause was 46K+ stale run directories in `/tmp/liminara_runs/` from previous test sessions. `:erlang.unique_integer([:positive])` resets per BEAM session, causing run_id collisions with old event files. Run.Server's crash recovery read stale events.
 - Fix: switched `unique_run_id` to `:crypto.strong_rand_bytes` (collision-proof). Added cleanup of /tmp dirs at start of each test suite in all 3 test_helper.exs files.

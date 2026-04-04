@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="liminara:truth_class" content="historical">
+<meta name="liminara:archived_on" content="2026-04-04">
+<meta name="liminara:superseded_by" content="work/done/E-09-observation-layer/M-OBS-03-dag-visualization.md,runtime/apps/liminara_web/">
+<title>Archived Prototype — The Circuit</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #2C2C2C;
+    color: #F5F0E8;
+    font-family: 'IBM Plex Mono', 'Courier New', monospace;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px;
+  }
+  h1 { font-size: 14px; letter-spacing: 0.1em; margin-bottom: 4px; color: #D4CFC7; }
+  .subtitle { font-size: 10px; color: #8C8680; margin-bottom: 16px; }
+  .controls {
+    display: flex; gap: 12px; margin-bottom: 16px;
+  }
+  button {
+    background: #F5F0E8;
+    color: #2C2C2C;
+    border: none;
+    padding: 6px 16px;
+    font-family: inherit;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    border-radius: 3px;
+  }
+  button:hover { background: #E8E3DB; }
+  button.active { background: #2B8A8E; color: #F5F0E8; }
+  canvas {
+    border: 1px solid #4A4540;
+    border-radius: 6px;
+  }
+  .legend {
+    display: flex; gap: 20px; margin-top: 12px; font-size: 9px; color: #8C8680;
+  }
+  .legend-item { display: flex; align-items: center; gap: 4px; }
+  .legend-dot { width: 8px; height: 8px; border-radius: 2px; }
+</style>
+</head>
+<body>
+<h1>THE CIRCUIT — RADAR DAILY BRIEFING</h1>
+<p class="subtitle">Click "Solder" to populate the board. Components drop in as ops complete. Signals flow along traces.</p>
+<div class="controls">
+  <button id="btnSolder">Solder</button>
+  <button id="btnReset">Reset</button>
+  <button id="btnFinal">Show Final</button>
+</div>
+<canvas id="board" width="880" height="480"></canvas>
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#D4944C"></div> I/O (side-effecting)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#2B8A8E"></div> Pure (deterministic)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#E8846B"></div> LLM (recordable)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#C45B4A;border-radius:50%"></div> Gate / Decision</div>
+</div>
+
+<script>
+const canvas = document.getElementById('board');
+const ctx = canvas.getContext('2d');
+
+const COLORS = {
+  board: '#F5F0E8',
+  boardEdge: '#D4CFC7',
+  ink: '#2C2C2C',
+  muted: '#8C8680',
+  cardBg: '#FDFBF7',
+  amber: '#D4944C',
+  teal: '#2B8A8E',
+  coral: '#E8846B',
+  red: '#C45B4A',
+};
+
+// Components (ops)
+const components = [
+  {
+    id: 'fetch_dn', designator: 'U1', label: 'fetch_rss',
+    x: 80, y: 80, w: 110, h: 60,
+    color: COLORS.amber,
+    content: ['DN.se: 14 items', 'last: 2h ago'],
+    duration: 1.2, startTime: 0, endTime: 1200,
+  },
+  {
+    id: 'fetch_svd', designator: 'U2', label: 'fetch_rss',
+    x: 80, y: 180, w: 110, h: 55,
+    color: COLORS.amber,
+    content: ['SvD.se: 8 items', 'last: 45m ago'],
+    duration: 0.9, startTime: 0, endTime: 900,
+  },
+  {
+    id: 'fetch_scb', designator: 'U3', label: 'fetch_api',
+    x: 80, y: 280, w: 120, h: 60,
+    color: COLORS.amber,
+    content: ['SCB housing API', 'Q4 data available'],
+    duration: 1.8, startTime: 0, endTime: 1800,
+  },
+  {
+    id: 'normalize', designator: 'U4', label: 'normalize',
+    x: 320, y: 175, w: 90, h: 55,
+    color: COLORS.teal,
+    content: ['22→17 unique', '5 dedup, 3 cached'],
+    duration: 0.3, startTime: 1800, endTime: 2100,
+  },
+  {
+    id: 'rank', designator: 'U5', label: 'rank_and_summarize',
+    x: 470, y: 155, w: 220, h: 95,
+    color: COLORS.coral,
+    content: ['"The Swedish housing', ' market showed early', ' recovery signs..."'],
+    duration: 8.4, startTime: 2100, endTime: 10500,
+    isDecision: true,
+  },
+  {
+    id: 'deliver', designator: 'J1', label: 'deliver',
+    x: 750, y: 105, w: 95, h: 55,
+    color: COLORS.amber,
+    content: ['sent to: team@', 'Daily Briefing'],
+    duration: 0.3, startTime: 10500, endTime: 10800,
+  },
+];
+
+// Traces (connections)
+const traces = [
+  { from: 'fetch_dn', to: 'normalize', color: COLORS.amber, width: 2,
+    path: [{x:190,y:110}, {x:230,y:110}, {x:270,y:150}, {x:320,y:200}] },
+  { from: 'fetch_svd', to: 'normalize', color: COLORS.amber, width: 1.8,
+    path: [{x:190,y:207}, {x:250,y:207}, {x:320,y:207}] },
+  { from: 'fetch_scb', to: 'normalize', color: COLORS.amber, width: 2.2,
+    path: [{x:200,y:310}, {x:250,y:310}, {x:290,y:270}, {x:320,y:215}] },
+  { from: 'normalize', to: 'rank', color: COLORS.teal, width: 2.5,
+    path: [{x:410,y:200}, {x:440,y:200}, {x:470,y:200}] },
+  { from: 'rank', to: 'deliver', color: COLORS.coral, width: 2,
+    path: [{x:690,y:200}, {x:720,y:200}, {x:740,y:170}, {x:750,y:135}] },
+];
+
+// Via (decision point)
+const via = { x: 450, y: 200, fromColor: COLORS.teal, toColor: COLORS.coral };
+
+// Signal particles
+let particles = [];
+
+// Animation state
+let animTime = 0;
+let animating = false;
+let showFinal = false;
+const TOTAL_DURATION = 12000; // ms
+
+function reset() {
+  animTime = 0;
+  animating = false;
+  showFinal = false;
+  particles = [];
+  draw();
+}
+
+function startSolder() {
+  if (animating) return;
+  animTime = 0;
+  animating = true;
+  showFinal = false;
+  particles = [];
+  requestAnimationFrame(animate);
+}
+
+function showFinalState() {
+  animTime = TOTAL_DURATION;
+  animating = false;
+  showFinal = true;
+  draw();
+}
+
+// Drawing functions
+function drawBoard() {
+  // Board surface
+  ctx.fillStyle = COLORS.board;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Board edge
+  ctx.strokeStyle = COLORS.boardEdge;
+  ctx.lineWidth = 1;
+  ctx.roundRect(8, 8, canvas.width - 16, canvas.height - 16, 4);
+  ctx.stroke();
+
+  // Mounting holes
+  const holes = [[24,24],[canvas.width-24,24],[24,canvas.height-24],[canvas.width-24,canvas.height-24]];
+  holes.forEach(([x,y]) => {
+    ctx.beginPath();
+    ctx.arc(x, y, 4, 0, Math.PI * 2);
+    ctx.strokeStyle = COLORS.boardEdge;
+    ctx.lineWidth = 0.5;
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(x, y, 1.5, 0, Math.PI * 2);
+    ctx.fillStyle = COLORS.boardEdge;
+    ctx.globalAlpha = 0.3;
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  });
+
+  // Title silk screen
+  ctx.font = '10px "IBM Plex Mono", monospace';
+  ctx.fillStyle = COLORS.ink;
+  ctx.globalAlpha = 0.5;
+  ctx.fillText('THE CIRCUIT — RADAR DAILY BRIEFING v1.0', 50, 28);
+  ctx.font = '7px "IBM Plex Mono", monospace';
+  ctx.fillStyle = COLORS.muted;
+  ctx.fillText('REV A  |  2026-03-20  |  LIMINARA RUNTIME', 50, 40);
+  ctx.globalAlpha = 1;
+
+  // Time axis
+  ctx.font = '6px "IBM Plex Mono", monospace';
+  ctx.fillStyle = COLORS.muted;
+  const timeMarks = [{x:120,t:'0s'},{x:240,t:'2s'},{x:380,t:'5s'},{x:580,t:'10s'},{x:780,t:'18s'}];
+  timeMarks.forEach(({x, t}) => {
+    ctx.fillText(t, x - 4, 58);
+  });
+  ctx.beginPath();
+  ctx.moveTo(80, 62);
+  ctx.lineTo(840, 62);
+  ctx.strokeStyle = COLORS.boardEdge;
+  ctx.lineWidth = 0.3;
+  ctx.stroke();
+}
+
+function drawTrace(trace, progress) {
+  const pts = trace.path;
+  if (pts.length < 2) return;
+
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x, pts[0].y);
+  for (let i = 1; i < pts.length; i++) {
+    const p = pts[i];
+    // Animate trace drawing
+    if (progress < 1) {
+      const segProgress = Math.min(1, Math.max(0, (progress * pts.length - (i-1))));
+      const prev = pts[i-1];
+      const x = prev.x + (p.x - prev.x) * segProgress;
+      const y = prev.y + (p.y - prev.y) * segProgress;
+      ctx.lineTo(x, y);
+      if (segProgress < 1) break;
+    } else {
+      ctx.lineTo(p.x, p.y);
+    }
+  }
+  ctx.strokeStyle = trace.color;
+  ctx.lineWidth = trace.width;
+  ctx.globalAlpha = 0.4;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+}
+
+function drawVia(progress) {
+  if (progress <= 0) return;
+  ctx.beginPath();
+  ctx.arc(via.x, via.y, 7 * progress, 0, Math.PI * 2);
+  ctx.fillStyle = COLORS.board;
+  ctx.fill();
+  ctx.strokeStyle = COLORS.coral;
+  ctx.lineWidth = 1.2;
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(via.x, via.y, 2.5 * progress, 0, Math.PI * 2);
+  ctx.fillStyle = COLORS.coral;
+  ctx.fill();
+
+  ctx.font = '5px "IBM Plex Mono", monospace';
+  ctx.fillStyle = COLORS.coral;
+  ctx.globalAlpha = progress;
+  ctx.textAlign = 'center';
+  ctx.fillText('VIA', via.x, via.y - 11);
+  ctx.textAlign = 'left';
+  ctx.globalAlpha = 1;
+}
+
+function drawFootprint(comp) {
+  // Empty pad footprint (dashed)
+  ctx.setLineDash([4, 3]);
+  ctx.strokeStyle = comp.color;
+  ctx.lineWidth = 0.6;
+  ctx.globalAlpha = 0.3;
+  ctx.roundRect(comp.x, comp.y, comp.w, comp.h, 3);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.globalAlpha = 1;
+
+  // Silk screen designation
+  ctx.font = '6px "IBM Plex Mono", monospace';
+  ctx.fillStyle = COLORS.muted;
+  ctx.globalAlpha = 0.4;
+  ctx.fillText(`${comp.designator} — ${comp.label}`, comp.x + 8, comp.y + 14);
+  ctx.globalAlpha = 1;
+}
+
+function drawComponent(comp, solderProgress) {
+  if (solderProgress <= 0) {
+    drawFootprint(comp);
+    return;
+  }
+
+  const alpha = Math.min(1, solderProgress);
+
+  // Solder glow (during reflow)
+  if (solderProgress > 0 && solderProgress < 1) {
+    ctx.shadowColor = comp.color;
+    ctx.shadowBlur = 8 * (1 - solderProgress);
+  }
+
+  // Component body
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = COLORS.cardBg;
+  ctx.roundRect(comp.x, comp.y, comp.w, comp.h, 3);
+  ctx.fill();
+  ctx.strokeStyle = comp.color;
+  ctx.lineWidth = solderProgress >= 1 ? 1 : 0.6;
+  ctx.roundRect(comp.x, comp.y, comp.w, comp.h, 3);
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  // Pin 1 marker
+  ctx.beginPath();
+  ctx.arc(comp.x + 7, comp.y + 9, 2, 0, Math.PI * 2);
+  ctx.fillStyle = comp.color;
+  ctx.globalAlpha = 0.4 * alpha;
+  ctx.fill();
+  ctx.globalAlpha = alpha;
+
+  // Designation
+  ctx.font = '6px "IBM Plex Mono", monospace';
+  ctx.fillStyle = COLORS.muted;
+  ctx.fillText(`${comp.designator} — ${comp.label}`, comp.x + 14, comp.y + 12);
+
+  // Content (fades in with solder progress)
+  const contentAlpha = Math.max(0, (solderProgress - 0.3) / 0.7);
+  ctx.globalAlpha = contentAlpha * alpha;
+  ctx.font = '9px "IBM Plex Mono", monospace';
+  ctx.fillStyle = COLORS.ink;
+  comp.content.forEach((line, i) => {
+    ctx.fillText(line, comp.x + 10, comp.y + 28 + i * 14);
+  });
+
+  // Timing bar
+  ctx.globalAlpha = 0.25 * contentAlpha * alpha;
+  const barWidth = Math.min(comp.w - 20, comp.duration * 14);
+  ctx.fillStyle = comp.color;
+  ctx.roundRect(comp.x + 10, comp.y + comp.h - 10, barWidth, 2.5, 1);
+  ctx.fill();
+  ctx.globalAlpha = contentAlpha * alpha;
+  ctx.font = '5.5px "IBM Plex Mono", monospace';
+  ctx.fillStyle = COLORS.muted;
+  ctx.fillText(`${comp.duration}s`, comp.x + 14 + barWidth, comp.y + comp.h - 7);
+
+  // Decision marker
+  if (comp.isDecision && contentAlpha > 0.5) {
+    ctx.beginPath();
+    ctx.arc(comp.x + comp.w - 12, comp.y + 10, 3.5, 0, Math.PI * 2);
+    ctx.fillStyle = COLORS.coral;
+    ctx.globalAlpha = 0.6 * contentAlpha;
+    ctx.fill();
+    ctx.font = '5px "IBM Plex Mono", monospace';
+    ctx.fillStyle = COLORS.coral;
+    ctx.textAlign = 'center';
+    ctx.fillText('DECISION', comp.x + comp.w - 12, comp.y + 4);
+    ctx.textAlign = 'left';
+  }
+
+  ctx.globalAlpha = 1;
+
+  // Pads (input left, output right)
+  // Input
+  ctx.beginPath();
+  ctx.arc(comp.x, comp.y + comp.h / 2, 3, 0, Math.PI * 2);
+  ctx.fillStyle = comp.color;
+  ctx.globalAlpha = 0.3 * alpha;
+  ctx.fill();
+  ctx.globalAlpha = 1;
+
+  // Output
+  ctx.beginPath();
+  ctx.arc(comp.x + comp.w, comp.y + comp.h / 2, 3.5, 0, Math.PI * 2);
+  ctx.fillStyle = comp.color;
+  ctx.globalAlpha = 0.3 * alpha;
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(comp.x + comp.w, comp.y + comp.h / 2, 1.5, 0, Math.PI * 2);
+  ctx.fillStyle = comp.color;
+  ctx.globalAlpha = 0.6 * alpha;
+  ctx.fill();
+  ctx.globalAlpha = 1;
+}
+
+function drawParticle(x, y, color, alpha) {
+  ctx.beginPath();
+  ctx.arc(x, y, 2.5, 0, Math.PI * 2);
+  ctx.fillStyle = color;
+  ctx.globalAlpha = alpha;
+  ctx.fill();
+  ctx.globalAlpha = 1;
+}
+
+function spawnParticles() {
+  traces.forEach(trace => {
+    const comp = components.find(c => c.id === trace.from);
+    if (!comp) return;
+    const progress = getComponentProgress(comp);
+    if (progress < 0.8) return;
+
+    if (Math.random() < 0.04) {
+      particles.push({
+        path: trace.path,
+        color: trace.color,
+        t: 0,
+        speed: 0.005 + Math.random() * 0.005,
+        alpha: 0.4 + Math.random() * 0.3,
+      });
+    }
+  });
+}
+
+function updateParticles() {
+  particles = particles.filter(p => {
+    p.t += p.speed;
+    return p.t < 1;
+  });
+}
+
+function drawParticles() {
+  particles.forEach(p => {
+    const pts = p.path;
+    const totalLen = pts.reduce((sum, pt, i) => {
+      if (i === 0) return 0;
+      return sum + Math.hypot(pt.x - pts[i-1].x, pt.y - pts[i-1].y);
+    }, 0);
+    let targetDist = p.t * totalLen;
+    for (let i = 1; i < pts.length; i++) {
+      const segLen = Math.hypot(pts[i].x - pts[i-1].x, pts[i].y - pts[i-1].y);
+      if (targetDist <= segLen) {
+        const frac = targetDist / segLen;
+        const x = pts[i-1].x + (pts[i].x - pts[i-1].x) * frac;
+        const y = pts[i-1].y + (pts[i].y - pts[i-1].y) * frac;
+        drawParticle(x, y, p.color, p.alpha * (1 - p.t * 0.5));
+        return;
+      }
+      targetDist -= segLen;
+    }
+  });
+}
+
+function getComponentProgress(comp) {
+  if (showFinal) return 1;
+  const solderStart = comp.startTime;
+  const solderEnd = comp.endTime;
+  return Math.max(0, Math.min(1, (animTime - solderStart) / (solderEnd - solderStart)));
+}
+
+function getTraceProgress(trace) {
+  const fromComp = components.find(c => c.id === trace.from);
+  if (!fromComp) return 0;
+  return getComponentProgress(fromComp);
+}
+
+function drawSilkAnnotations() {
+  // Parallel annotation
+  ctx.font = '6px "IBM Plex Mono", monospace';
+  ctx.fillStyle = COLORS.muted;
+  ctx.fillText('3x parallel', 40, 75);
+  ctx.setLineDash([1, 3]);
+  ctx.beginPath();
+  ctx.moveTo(58, 78);
+  ctx.lineTo(58, 350);
+  ctx.strokeStyle = COLORS.muted;
+  ctx.lineWidth = 0.3;
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Bottleneck annotation (only when rank is visible)
+  const rankComp = components.find(c => c.id === 'rank');
+  const rankProgress = getComponentProgress(rankComp);
+  if (rankProgress > 0.5) {
+    const alpha = (rankProgress - 0.5) * 2;
+    ctx.globalAlpha = alpha;
+
+    ctx.setLineDash([1.5, 2]);
+    ctx.strokeStyle = COLORS.muted;
+    ctx.lineWidth = 0.3;
+
+    // Vertical lines
+    ctx.beginPath();
+    ctx.moveTo(470, 260);
+    ctx.lineTo(470, 280);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(690, 260);
+    ctx.lineTo(690, 280);
+    ctx.stroke();
+
+    // Horizontal line
+    ctx.setLineDash([]);
+    ctx.beginPath();
+    ctx.moveTo(470, 278);
+    ctx.lineTo(690, 278);
+    ctx.stroke();
+
+    ctx.font = '6px "IBM Plex Mono", monospace';
+    ctx.fillStyle = COLORS.muted;
+    ctx.textAlign = 'center';
+    ctx.fillText('8.4s — 47% of total (bottleneck)', 580, 292);
+    ctx.textAlign = 'left';
+
+    ctx.globalAlpha = 1;
+  }
+}
+
+function drawBottomLegend() {
+  const y = canvas.height - 48;
+  ctx.beginPath();
+  ctx.moveTo(40, y);
+  ctx.lineTo(840, y);
+  ctx.strokeStyle = COLORS.boardEdge;
+  ctx.lineWidth = 0.3;
+  ctx.stroke();
+
+  ctx.font = '6px "IBM Plex Mono", monospace';
+  ctx.fillStyle = COLORS.muted;
+  ctx.fillText('Trace width ∝ data volume  |  Component size ∝ op duration  |  45° routing  |  Board rev increments on each run', 40, y + 16);
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Ensure roundRect polyfill
+  if (!ctx.roundRect) {
+    ctx.roundRect = function(x, y, w, h, r) {
+      this.beginPath();
+      this.moveTo(x + r, y);
+      this.lineTo(x + w - r, y);
+      this.quadraticCurveTo(x + w, y, x + w, y + r);
+      this.lineTo(x + w, y + h - r);
+      this.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+      this.lineTo(x + r, y + h);
+      this.quadraticCurveTo(x, y + h, x, y + h - r);
+      this.lineTo(x, y + r);
+      this.quadraticCurveTo(x, y, x + r, y);
+      this.closePath();
+    };
+  }
+
+  drawBoard();
+
+  // Draw traces
+  traces.forEach(trace => {
+    const progress = getTraceProgress(trace);
+    if (progress > 0) drawTrace(trace, progress);
+  });
+
+  // Draw via
+  const normComp = components.find(c => c.id === 'normalize');
+  const viaProgress = getComponentProgress(normComp);
+  drawVia(viaProgress);
+
+  // Draw components
+  components.forEach(comp => {
+    const progress = getComponentProgress(comp);
+    drawComponent(comp, progress);
+  });
+
+  // Draw particles
+  drawParticles();
+
+  // Annotations
+  drawSilkAnnotations();
+  drawBottomLegend();
+
+  // Progress indicator
+  if (animating) {
+    const pct = Math.min(100, (animTime / TOTAL_DURATION) * 100);
+    ctx.font = '7px "IBM Plex Mono", monospace';
+    ctx.fillStyle = COLORS.muted;
+    ctx.textAlign = 'right';
+    ctx.fillText(`${pct.toFixed(0)}%`, canvas.width - 40, canvas.height - 20);
+    ctx.textAlign = 'left';
+  }
+}
+
+function animate(timestamp) {
+  if (!animating) return;
+
+  animTime += 50; // 50ms per frame → ~20x speed
+  spawnParticles();
+  updateParticles();
+  draw();
+
+  if (animTime >= TOTAL_DURATION) {
+    animating = false;
+    showFinal = true;
+    draw();
+    return;
+  }
+
+  requestAnimationFrame(animate);
+}
+
+// Event listeners
+document.getElementById('btnSolder').addEventListener('click', startSolder);
+document.getElementById('btnReset').addEventListener('click', reset);
+document.getElementById('btnFinal').addEventListener('click', showFinalState);
+
+// Initial draw
+draw();
+</script>
+</body>
+</html>

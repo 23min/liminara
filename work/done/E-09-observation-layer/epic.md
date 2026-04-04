@@ -58,7 +58,7 @@ Build the real-time observation infrastructure for Liminara runs. When this epic
 ## References
 
 - Spec: `docs/architecture/01_CORE.md §Observation: the Excel quality`
-- Spec: `docs/architecture/03_PHASE3_REFERENCE.md §Event broadcasting`
+- Spec snapshot: `docs/history/architecture/03_PHASE3_REFERENCE.md §Event broadcasting`
 - Research: `docs/research/a2ui_finding.md`
 - Research: `docs/research/graph_execution_patterns.md §7 Visualization`
 - ADR: `docs/decisions/ADR-007-visual-execution-states.md` (draft — pending/cached/replay visual states, deferred to future phase)

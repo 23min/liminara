@@ -37,7 +37,7 @@ LangGraph saves *the current state*. Liminara saves *every event that ever happe
 - The history of how you got there is preserved — you have an audit trail, not just a snapshot
 - The durability mechanism is the same one that enables compliance, replay, and caching — it's one mechanism with multiple consequences, not several bolted-together mechanisms
 
-This maps directly to the "activatable runs" pattern already recognized in `02_PLAN.md`:
+This maps directly to the "activatable runs" pattern captured in the archived `docs/history/architecture/02_PLAN.md`:
 
 > *"Event arrives → Start Run.Server, rebuild state from event log → Dispatch newly ready nodes → If nothing to dispatch, stop the GenServer → Event log persists on disk. Run state is safe."*
 

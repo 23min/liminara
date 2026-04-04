@@ -1,3 +1,16 @@
+---
+title: The Liminara Core
+doc_type: architecture
+truth_class: live
+status: active
+owner: runtime
+last_reviewed: 2026-04-04
+source_of_truth:
+  - work/roadmap.md
+  - docs/architecture/contracts/00_TRUTH_MODEL.md
+  - docs/architecture/contracts/01_CONTRACT_MATRIX.md
+---
+
 # The Liminara Core
 
 ## What is Liminara?
@@ -233,11 +246,13 @@ end
 Five callbacks (one optional). A pack tells the runtime:
 1. Who it is
 2. What version it is
-3. What op modules it can perform, each exposing the canonical `execution_spec/0`
+3. What op modules it can perform, each exposing the runtime execution contract in force today and converging on canonical `execution_spec/0` through E-20
 4. How to build a plan for a given input
 5. (Optional) What reference data it ships with
 
 That's the entire pack contract. No middleware chains, no registration protocols. Just: "here are my ops, here's my data, here's how I plan."
+
+Execution note: the live runtime still executes many ops through legacy callbacks and tuple-shaped results. E-20 makes `execution_spec/0` the canonical runtime surface; until M-TRUTH-02 lands, this section should be read as the stable pack boundary plus the approved-next execution direction.
 
 Reference data deserves a note: the house compiler needs material properties, span tables, geographic load maps. These aren't produced by a run — they're **versioned datasets** the pack brings with it. `init/0` registers them as artifacts in the store. Ops reference them as literal inputs. When the pack upgrades and the dataset changes, the version changes, cache keys invalidate, downstream ops re-execute automatically. Clean — the cache mechanics handle versioned knowledge for free.
 
@@ -752,7 +767,7 @@ From the original brainstorm specs, deferred until needed:
 
 ## Build sequence
 
-See [02_PLAN.md](02_PLAN.md) for the living build plan with current phase, sequencing, and deferral triggers.
+See [02_PLAN.md](02_PLAN.md) for the architecture source map and [../../work/roadmap.md](../../work/roadmap.md) for current phase, sequencing, and deferral triggers.
 
 The key architectural insight for sequencing: the walking skeleton needs **zero external dependencies** — pure BEAM (ETS, `:pg`, Registry, Task, GenServer, `:crypto`, File). Postgres arrives with Oban (scheduling). Everything else plugs in when needed.
 
@@ -798,7 +813,8 @@ Is this system simple enough?
 ---
 
 *See also:*
-- *[02_PLAN.md](02_PLAN.md) — living build plan and sequencing*
+- *[02_PLAN.md](02_PLAN.md) — architecture source map and truth rules*
+- *[contracts/01_CONTRACT_MATRIX.md](contracts/01_CONTRACT_MATRIX.md) — current contract ownership matrix*
 - *[../analysis/10_Synthesis.md](../analysis/10_Synthesis.md) — settled strategic decisions*
 - *[../analysis/11_Data_Model_Spec.md](../analysis/11_Data_Model_Spec.md) — canonical on-disk format (Phase 0)*
 - *[../analysis/07_Compliance_Layer.md](../analysis/07_Compliance_Layer.md) — compliance integration architecture*

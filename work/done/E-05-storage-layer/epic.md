@@ -78,7 +78,7 @@ Note: SHA-256 hashing and canonical JSON (`Liminara.Hash`, `Liminara.Canonical`)
 
 - Data model: `docs/analysis/11_Data_Model_Spec.md`
 - Architecture: `docs/architecture/01_CORE.md` § Five concepts (Artifact, Run)
-- Build plan: `docs/architecture/02_PLAN.md` § Phase 2
+- Build plan snapshot: `docs/history/architecture/02_PLAN.md` § Phase 2
 - Golden fixtures: `test_fixtures/golden_run/` (from E-04)
 - Python reference: `integrations/python/liminara/artifact_store.py`, `event_log.py`, `decision_store.py`
 - Existing Elixir: `runtime/apps/liminara_core/lib/liminara/hash.ex`, `canonical.ex`

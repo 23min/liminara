@@ -12,7 +12,7 @@ Build the core visual feature: an SVG-based DAG visualization that renders the r
 
 ## Design principle: show values, not plumbing
 
-Per `docs/architecture/04_OBSERVATION_DESIGN_NOTES.md` §1 — "Show the grid, not the logic":
+Per `docs/history/architecture/04_OBSERVATION_DESIGN_NOTES.md` §1 — "Show the grid, not the logic":
 
 - Nodes show **op name** while pending/running
 - Nodes switch to showing **output value preview** (truncated artifact content) once completed
@@ -147,9 +147,9 @@ Updated to verify hook-based rendering: `id="dag-map"`, `phx-hook="DagMap"`, `da
 ## Spec reference
 
 - `docs/architecture/01_CORE.md §The plan: a DAG you can read`
-- `docs/architecture/04_OBSERVATION_DESIGN_NOTES.md §1 Show the grid, not the logic`
+- `docs/history/architecture/04_OBSERVATION_DESIGN_NOTES.md §1 Show the grid, not the logic`
 - `docs/research/graph_execution_patterns.md §7 Visualization`
-- `docs/architecture/06_VISUALIZATION_DESIGN.md` — full visualization design spec
+- `docs/history/architecture/06_VISUALIZATION_DESIGN.md` — full visualization design spec
 
 ## Related ADRs
 

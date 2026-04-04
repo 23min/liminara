@@ -1370,8 +1370,8 @@ The recurring tension: building something useful (product: Radar) vs. building a
 *This document consolidates information from the full `docs/` directory. For details on specific topics, see:*
 
 - *Architecture: `docs/architecture/01_CORE.md`*
-- *Build plan: `docs/architecture/02_PLAN.md`*
-- *Phase 3 reference: `docs/architecture/03_PHASE3_REFERENCE.md`*
+- *Build plan and active sequencing: `work/roadmap.md`*
+- *Phase 3 reference: `docs/history/architecture/03_PHASE3_REFERENCE.md`*
 - *Landscape analysis: `docs/analysis/02_Fresh_Analysis.md`*
 - *Strategic synthesis: `docs/analysis/10_Synthesis.md`*
 - *Why replay: `docs/analysis/05_Why_Replay.md`*

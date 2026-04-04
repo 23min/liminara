@@ -254,8 +254,8 @@ One paragraph: overall assessment (approve / request changes).
 ### Active milestone
 
 **M-TRUTH-01: Execution Spec + Outcome Design** — complete
-- First blocking slice of Phase 5c (Radar Hardening), closed on `milestone/M-TRUTH-01`
-- Next up in E-20: `M-TRUTH-02` (Core runtime contract migration)
+- First blocking slice of Phase 5c (Radar Hardening), merged from `milestone/M-TRUTH-01` into `epic/E-20-execution-truth`
+- Next up in E-20: `M-TRUTH-02` (Core runtime contract migration), spec drafted
 
 ### Where things stand
 
@@ -275,6 +275,7 @@ One paragraph: overall assessment (approve / request changes).
 - **Phase 5c epic specs in worktree:** `work/epics/E-20-execution-truth/epic.md`, `work/epics/E-19-warnings-degraded-outcomes/epic.md`, `work/epics/E-12-op-sandbox/epic.md`
 - **Known gaps:** `work/gaps.md` (sandbox spec, dag-map interactivity)
 - **Epic branch:** `epic/E-20-execution-truth` (from `main`)
-- **Milestone branch:** `milestone/M-TRUTH-01` (from `epic/E-20-execution-truth`, ready for merge)
+- **Milestone branch:** `milestone/M-TRUTH-01` (merged into `epic/E-20-execution-truth`)
 - **Milestone spec:** `work/epics/E-20-execution-truth/M-TRUTH-01-execution-spec-outcome-design.md`
+- **Next milestone spec:** `work/epics/E-20-execution-truth/M-TRUTH-02-core-runtime-contract-migration.md` (draft)
 - **Tracking:** `work/milestones/tracking/M-TRUTH-01-tracking.md`

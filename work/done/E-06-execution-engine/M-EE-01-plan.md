@@ -99,4 +99,4 @@ Implement `Liminara.Plan` — the DAG data structure that represents a computati
 ## Spec reference
 
 - `docs/architecture/01_CORE.md` § The plan
-- `docs/architecture/02_PLAN.md` § Phase 2
+- `docs/history/architecture/02_PLAN.md` § Phase 2

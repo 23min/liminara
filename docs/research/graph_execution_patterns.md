@@ -374,4 +374,4 @@ The practical takeaway is confidence: the architecture handles more than we're b
 
 ---
 
-*This document is exploratory. It identifies patterns and connections, not commitments. For the build plan, see [02_PLAN.md](../architecture/02_PLAN.md). For the core architecture, see [01_CORE.md](../architecture/01_CORE.md).*
+*This document is exploratory. It identifies patterns and connections, not commitments. For current sequencing, see [../../work/roadmap.md](../../work/roadmap.md). For the core architecture, see [01_CORE.md](../architecture/01_CORE.md).*
