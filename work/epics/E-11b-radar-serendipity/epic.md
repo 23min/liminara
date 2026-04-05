@@ -66,4 +66,4 @@ This is not broad crawling. Serendipity is a budget-capped exploration pass seed
 - Roadmap: `work/roadmap.md`
 - Decision D-2026-04-02-020: dynamic DAGs and serendipity deferment after VSME
 - Milestone spec: `work/epics/E-11b-radar-serendipity/M-RAD-05-serendipity.md`
-- Completed core Radar epic: `work/epics/E-11-radar/epic.md`
+- Completed core Radar epic: `work/done/E-11-radar/epic.md`

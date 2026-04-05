@@ -2,7 +2,7 @@
 
 **Started:** 2026-04-01
 **Branch:** `milestone/M-PORT-01`
-**Spec:** `work/epics/E-10-port-executor/M-PORT-01-protocol-executor-runner.md`
+**Spec:** `work/done/E-10-port-executor/M-PORT-01-protocol-executor-runner.md`
 
 ## Acceptance Criteria
 

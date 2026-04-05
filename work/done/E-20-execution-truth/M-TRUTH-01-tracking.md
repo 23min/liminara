@@ -3,7 +3,7 @@
 **Started:** 2026-04-03
 **Completed:** 2026-04-04
 **Branch:** `milestone/M-TRUTH-01`
-**Spec:** `work/epics/E-20-execution-truth/M-TRUTH-01-execution-spec-outcome-design.md`
+**Spec:** `work/done/E-20-execution-truth/M-TRUTH-01-execution-spec-outcome-design.md`
 **Status:** complete
 
 ## Acceptance Criteria

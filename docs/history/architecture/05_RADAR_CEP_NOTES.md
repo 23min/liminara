@@ -7,7 +7,7 @@ owner: history
 archived_on: 2026-04-04
 snapshot_date: 2026-04-04
 superseded_by:
-  - work/epics/E-11-radar/epic.md
+  - work/done/E-11-radar/epic.md
   - docs/architecture/08_EXECUTION_TRUTH_PLAN.md
 ---
 

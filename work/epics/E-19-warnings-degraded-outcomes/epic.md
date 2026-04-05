@@ -109,8 +109,8 @@ This epic should not introduce a separate warning callback or a UI-only degraded
 - Decision D-2026-04-02-012: hardening is limited to Radar-proven needs
 - Decision D-2026-04-02-013: sequence is Radar correctness -> Radar hardening -> VSME
 - Decision D-2026-04-02-015: avoid callback sprawl via unified execution spec
-- `work/epics/E-20-execution-truth/M-TRUTH-01-execution-spec-outcome-design.md`
-- `work/epics/E-20-execution-truth/M-TRUTH-02-core-runtime-contract-migration.md`
+- `work/done/E-20-execution-truth/M-TRUTH-01-execution-spec-outcome-design.md`
+- `work/done/E-20-execution-truth/M-TRUTH-02-core-runtime-contract-migration.md`
 - Radar summarize fallback: `runtime/python/src/ops/radar_summarize.py`
 - Observation projection: `runtime/apps/liminara_observation/lib/liminara/observation/view_model.ex`
 - Run inspector: `runtime/apps/liminara_web/lib/liminara_web/live/runs_live/show.ex`

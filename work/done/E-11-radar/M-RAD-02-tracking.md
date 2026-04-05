@@ -2,7 +2,7 @@
 
 **Started:** 2026-04-01
 **Branch:** `milestone/M-RAD-02`
-**Spec:** `work/epics/E-11-radar/M-RAD-02-extract-embed-dedup.md`
+**Spec:** `work/done/E-11-radar/M-RAD-02-extract-embed-dedup.md`
 
 ## Acceptance Criteria
 

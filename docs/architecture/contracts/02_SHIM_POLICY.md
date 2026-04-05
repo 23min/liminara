@@ -7,7 +7,7 @@ owner: architecture
 last_reviewed: 2026-04-04
 source_of_truth:
   - docs/architecture/contracts/00_TRUTH_MODEL.md
-  - work/epics/E-20-execution-truth/M-TRUTH-01-execution-spec-outcome-design.md
+  - work/done/E-20-execution-truth/M-TRUTH-01-execution-spec-outcome-design.md
 ---
 
 # Compatibility Shim Policy

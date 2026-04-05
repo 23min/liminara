@@ -3,7 +3,7 @@
 **Started:** 2026-04-05
 **Completed:** 2026-04-05
 **Branch:** `milestone/M-TRUTH-03`
-**Spec:** `work/epics/E-20-execution-truth/M-TRUTH-03-radar-semantic-cleanup.md`
+**Spec:** `work/done/E-20-execution-truth/M-TRUTH-03-radar-semantic-cleanup.md`
 **Status:** complete
 
 ## Acceptance Criteria

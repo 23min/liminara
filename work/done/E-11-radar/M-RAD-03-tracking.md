@@ -2,7 +2,7 @@
 
 **Started:** 2026-04-02
 **Branch:** `milestone/M-RAD-03`
-**Spec:** `work/epics/E-11-radar/M-RAD-03-cluster-rank-render.md`
+**Spec:** `work/done/E-11-radar/M-RAD-03-cluster-rank-render.md`
 
 ## Acceptance Criteria
 

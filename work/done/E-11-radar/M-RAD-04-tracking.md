@@ -3,7 +3,7 @@
 **Started:** 2026-04-03
 **Completed:** 2026-04-03
 **Branch:** `milestone/M-RAD-04`
-**Spec:** `work/epics/E-11-radar/M-RAD-04-webui-scheduler.md`
+**Spec:** `work/done/E-11-radar/M-RAD-04-webui-scheduler.md`
 **Status:** complete
 
 ## Acceptance Criteria

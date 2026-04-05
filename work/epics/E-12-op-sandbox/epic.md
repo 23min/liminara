@@ -218,8 +218,8 @@ If the runtime has to fall back to partial enforcement, that condition should su
 
 - Decision D-2026-04-02-011: Layered sandbox, not containers
 - Decision D-2026-04-01-005: Raw Erlang Ports for Python execution
-- `work/epics/E-20-execution-truth/M-TRUTH-01-execution-spec-outcome-design.md`
-- `work/epics/E-20-execution-truth/M-TRUTH-02-core-runtime-contract-migration.md`
+- `work/done/E-20-execution-truth/M-TRUTH-01-execution-spec-outcome-design.md`
+- `work/done/E-20-execution-truth/M-TRUTH-02-core-runtime-contract-migration.md`
 - `work/epics/E-19-warnings-degraded-outcomes/epic.md`
 - Port executor: `runtime/apps/liminara_core/lib/liminara/executor/port.ex`
 - Op runner: `runtime/python/src/liminara_op_runner.py`

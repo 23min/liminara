@@ -15,7 +15,7 @@ Build a daily intelligence briefing pipeline that fetches ~50 configured sources
 
 Radar (omvärldsbevakning) is the first domain pack built on the Liminara runtime. It validates the full stack: Pack behaviour, Python ops via :port (E-10), recordable decisions with LLM calls, vector-based deduplication, and the observation UI for viewing results.
 
-Sources span AI/LLM orchestration, Elixir/BEAM ecosystem, EU sustainability/compliance, workflow engines, and Nordic tech — all adjacent to Liminara's domain. The source list is maintained in a separate config file (`work/epics/E-11-radar/sources.md`).
+Sources span AI/LLM orchestration, Elixir/BEAM ecosystem, EU sustainability/compliance, workflow engines, and Nordic tech — all adjacent to Liminara's domain. The source list is maintained in a separate config file (`work/done/E-11-radar/sources.md`).
 
 Radar is designed for daily use by the project owner as a real intelligence tool, not a demo. It should produce genuinely useful briefings from day one.
 
@@ -170,7 +170,7 @@ The original planning estimate assumed paid embedding APIs. Current implemented 
 - Design plan: `docs/analysis/15_Radar_Pack_Plan.md`
 - Live sequencing truth: `work/roadmap.md`
 - Follow-on epic: `work/epics/E-11b-radar-serendipity/epic.md`
-- Source list: `work/epics/E-11-radar/sources.md`
+- Source list: `work/done/E-11-radar/sources.md`
 - Decision D-2026-04-01-003: Python ops via :port
 - Decision D-2026-04-01-004: Radar before compliance packs
 - Decision D-020: dynamic DAGs and serendipity deferment after VSME

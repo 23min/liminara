@@ -317,6 +317,6 @@ Required validation:
 ## References
 
 - `docs/architecture/08_EXECUTION_TRUTH_PLAN.md`
-- `work/epics/E-20-execution-truth/epic.md`
+- `work/done/E-20-execution-truth/epic.md`
 - `work/epics/E-19-warnings-degraded-outcomes/epic.md`
 - `work/epics/E-12-op-sandbox/epic.md`

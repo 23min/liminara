@@ -257,10 +257,9 @@ One paragraph: overall assessment (approve / request changes).
 ### Where things stand
 
 - **Phase 4** (Observation Layer): **complete** — E-09 done, in `work/done/`
-- **Phase 5a** (Radar Correctness): **complete** — M-RAD-06 merged into `epic/E-11-radar`
-- **Phase 5b** (Radar Complete): **complete** — M-RAD-04 merged into `epic/E-11-radar`
-- **Phase 5c** (Radar Hardening): **in progress** — E-20 Execution Truth is complete; the next active epic is E-19 Warnings & Degraded Outcomes, followed by E-12 Op Sandbox
-- **Validation note:** M-TRUTH-03 completed with green focused Radar validation (`mix test apps/liminara_radar/test` plus focused Radar Python pytest files); full umbrella validation has not been rerun on the epic branch after the squash merge yet
+- **Phase 5a** (Radar Correctness): **complete** — E-11 done, in `work/done/`
+- **Phase 5b** (Radar Complete): **complete** — E-10, E-11 done, in `work/done/`
+- **Phase 5c** (Radar Hardening): **in progress** — E-20 done (in `work/done/`); next is E-19 Warnings & Degraded Outcomes, then E-12 Op Sandbox
 - **Sequencing (D-013):** `Radar correctness -> Radar hardening -> VSME -> platform generalization`
 
 ### Key references
@@ -269,10 +268,6 @@ One paragraph: overall assessment (approve / request changes).
 - **Decisions:** `work/decisions.md` (D-012 through D-022 are the most recent)
 - **Truth governance:** `docs/architecture/contracts/00_TRUTH_MODEL.md`, `docs/architecture/contracts/01_CONTRACT_MATRIX.md`, `docs/architecture/contracts/02_SHIM_POLICY.md`
 - **Archived architecture:** `docs/history/architecture/` — moved snapshots and design notes that are no longer current authority
-- **Phase 5c epic specs in worktree:** `work/epics/E-20-execution-truth/epic.md`, `work/epics/E-19-warnings-degraded-outcomes/epic.md`, `work/epics/E-12-op-sandbox/epic.md`
+- **Phase 5c epic specs:** `work/epics/E-19-warnings-degraded-outcomes/epic.md`, `work/epics/E-12-op-sandbox/epic.md`
+- **Completed E-20:** `work/done/E-20-execution-truth/` (epic + milestone specs + tracking)
 - **Known gaps:** `work/gaps.md` (sandbox spec, dag-map interactivity, remaining non-Radar execution-spec bridge cleanup)
-- **Epic branch:** `epic/E-20-execution-truth` (from `main`)
-- **Milestone branch:** `milestone/M-TRUTH-03` (merged into the epic branch)
-- **Previous milestone:** `M-TRUTH-02` complete — `work/epics/E-20-execution-truth/M-TRUTH-02-core-runtime-contract-migration.md`
-- **Milestone spec:** `work/epics/E-20-execution-truth/M-TRUTH-03-radar-semantic-cleanup.md`
-- **Tracking:** `work/milestones/tracking/M-TRUTH-03-tracking.md`

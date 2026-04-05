@@ -145,8 +145,8 @@ Use the repository TDD conventions:
 ## Spec Reference
 
 - `docs/architecture/08_EXECUTION_TRUTH_PLAN.md`
-- `work/epics/E-20-execution-truth/epic.md`
-- `work/epics/E-20-execution-truth/M-TRUTH-02-core-runtime-contract-migration.md`
+- `work/done/E-20-execution-truth/epic.md`
+- `work/done/E-20-execution-truth/M-TRUTH-02-core-runtime-contract-migration.md`
 
 ## Related ADRs
 

@@ -2,7 +2,7 @@
 
 **Started:** 2026-04-03
 **Branch:** `milestone/M-RAD-06`
-**Spec:** `work/epics/E-11-radar/M-RAD-06-replay-correctness.md`
+**Spec:** `work/done/E-11-radar/M-RAD-06-replay-correctness.md`
 
 ## Acceptance Criteria
 

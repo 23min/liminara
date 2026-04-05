@@ -6,8 +6,8 @@ status: active
 owner: E-20
 last_reviewed: 2026-04-04
 source_of_truth:
-  - work/epics/E-20-execution-truth/epic.md
-  - work/epics/E-20-execution-truth/M-TRUTH-01-execution-spec-outcome-design.md
+  - work/done/E-20-execution-truth/epic.md
+  - work/done/E-20-execution-truth/M-TRUTH-01-execution-spec-outcome-design.md
   - docs/architecture/contracts/02_SHIM_POLICY.md
 ---
 

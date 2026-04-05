@@ -15,7 +15,7 @@ Create the Radar Pack module, a source configuration system with ~47 sources, an
 
 This is the first Radar milestone and the first real Pack built on the runtime. It depends on E-10 (Port Executor) for Python op execution.
 
-The source list is curated in `work/epics/E-11-radar/sources.md` — 47 sources across 7 categories (AI/LLM, Elixir/BEAM, EU sustainability, workflow engines, HN keyword feeds, Nordic tech, aggregators).
+The source list is curated in `work/done/E-11-radar/sources.md` — 47 sources across 7 categories (AI/LLM, Elixir/BEAM, EU sustainability, workflow engines, HN keyword feeds, Nordic tech, aggregators).
 
 Relevant existing code:
 - `Liminara.Pack` behaviour — `runtime/apps/liminara_core/lib/liminara/pack.ex`

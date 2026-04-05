@@ -2,7 +2,7 @@
 
 **Started:** 2026-04-04
 **Branch:** `milestone/M-TRUTH-02`
-**Spec:** `work/epics/E-20-execution-truth/M-TRUTH-02-core-runtime-contract-migration.md`
+**Spec:** `work/done/E-20-execution-truth/M-TRUTH-02-core-runtime-contract-migration.md`
 **Status:** implementation complete
 
 ## Acceptance Criteria

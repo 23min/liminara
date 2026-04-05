@@ -145,7 +145,7 @@ Use the repository TDD conventions:
 ## Spec Reference
 
 - `docs/architecture/08_EXECUTION_TRUTH_PLAN.md`
-- `work/epics/E-20-execution-truth/epic.md`
+- `work/done/E-20-execution-truth/epic.md`
 
 ## Related ADRs
 

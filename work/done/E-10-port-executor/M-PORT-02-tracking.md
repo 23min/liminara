@@ -2,7 +2,7 @@
 
 **Started:** 2026-04-01
 **Branch:** `milestone/M-PORT-01` (both milestones on same branch)
-**Spec:** `work/epics/E-10-port-executor/M-PORT-02-integration-test.md`
+**Spec:** `work/done/E-10-port-executor/M-PORT-02-integration-test.md`
 
 ## Acceptance Criteria
 
