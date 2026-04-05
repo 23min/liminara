@@ -68,7 +68,7 @@ Tightly scoped to capabilities Radar has already proven it needs for production 
 - [ ] E-20 Execution Truth
   - First blocking Phase 5c slice after M-RAD-04 is finished and validated
   - [x] M-TRUTH-01 Execution spec + outcome design
-  - [ ] M-TRUTH-02 Core runtime contract migration
+  - [x] M-TRUTH-02 Core runtime contract migration
   - [ ] M-TRUTH-03 Radar semantic cleanup
 - [ ] E-19 Warnings & Degraded Outcomes
   - [ ] First-class warning/degraded-success contract for ops and runs

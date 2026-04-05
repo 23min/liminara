@@ -168,3 +168,4 @@ Sandbox config recorded in run events for provenance.
 - AI instruction changes land in `.ai-repo/` and are propagated by `./.ai/sync.sh`, not by hand-editing generated files
 **Consequences:** Architecture docs now carry frontmatter describing truth class and ownership. Historical material keeps chronology without pretending to be current. Completion status and semantic quality stay separate. Migration glue becomes visible, bounded, and reviewable.
 
+

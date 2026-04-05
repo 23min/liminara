@@ -27,6 +27,13 @@ Thumbs.db
 # Claude Code local settings
 .claude/settings.local.json
 
+# Generated assistant adapter surfaces (rebuild locally with `bash .ai/sync.sh`)
+.github/copilot-instructions.md
+.github/skills/
+.claude/agents/
+.claude/skills/
+.claude/rules/ai-framework.md
+
 # Python
 __pycache__/
 *.pyc

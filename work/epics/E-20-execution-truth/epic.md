@@ -65,7 +65,7 @@ This epic is the first blocking slice of Phase 5c. M-RAD-04 is now closed, so E-
 | ID | Title | Summary | Depends on | Status |
 |----|-------|---------|------------|--------|
 | M-TRUTH-01 | Execution spec + outcome design | Lock the canonical op shape, runtime execution context, and warning-bearing success contract before more hardening code lands | M-RAD-04-webui-scheduler | complete |
-| M-TRUTH-02 | Core runtime contract migration | Add the new runtime structures and compatibility shims so execution and replay can operate on one truthful contract | M-TRUTH-01 | not started |
+| M-TRUTH-02 | Core runtime contract migration | Add the new runtime structures and compatibility shims so execution and replay can operate on one truthful contract | M-TRUTH-01 | complete |
 | M-TRUTH-03 | Radar semantic cleanup | Refactor Radar onto the truthful contract: side-effect boundaries, runtime identity, and degraded-output semantics | M-TRUTH-02 | not started |
 
 ## References
@@ -73,6 +73,7 @@ This epic is the first blocking slice of Phase 5c. M-RAD-04 is now closed, so E-
 - `docs/architecture/08_EXECUTION_TRUTH_PLAN.md`
 - `docs/architecture/contracts/00_TRUTH_MODEL.md`
 - `docs/architecture/contracts/02_SHIM_POLICY.md`
+- `work/epics/E-20-execution-truth/M-TRUTH-03-radar-semantic-cleanup.md`
 - Decision D-2026-04-02-012: bounded Radar hardening before VSME
 - Decision D-2026-04-02-013: sequencing rule
 - Decision D-2026-04-02-015: unified execution spec replaces callback sprawl

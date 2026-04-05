@@ -52,10 +52,10 @@ Follow Conventional Commits v1.0.0:
 
 <optional body>
 
-Co-Authored-By: Claude <noreply@anthropic.com>
+Co-Authored-By: GitHub Copilot <noreply@github.com>
 ```
 Types: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `ci`, `build`
-Always include Co-Authored-By when Claude contributed.
+Always include Co-Authored-By when GitHub Copilot contributed.
 
 ## Git workflow
 
