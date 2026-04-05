@@ -7,10 +7,25 @@ The shared framework lives in `.ai/` (submodule). This directory is repo-local.
 
 ```
 .ai-repo/
+├── config/    ← structured repo-owned artifact layout config
 ├── skills/    ← project-specific skill checklists
 ├── rules/     ← project-specific conventions and constraints
 └── README.md  ← you are here
 ```
+
+## Config
+
+The canonical artifact layout for this repo lives in `.ai-repo/config/artifact-layout.json`.
+
+Generated assistant surfaces such as `CLAUDE.md`, `.claude/`, and `.github/` should mirror that resolved layout. They are not the source of truth for where epics, milestones, roadmap files, or tracking docs live.
+
+For Liminara specifically, the config intentionally describes a mixed layout:
+- roadmap at `work/roadmap.md`
+- epic specs as `epic.md` inside each epic folder
+- milestone specs inside the owning epic folder
+- tracking docs in `work/milestones/tracking/`
+
+Note: the current framework validator still requires `trackingDocPathTemplate` to contain `<epic>`. The configured template therefore uses a normalizing `.../<epic>/../...` segment, but the canonical human-facing tracking location remains `work/milestones/tracking/<milestone-id>-tracking.md`.
 
 ## Skills
 

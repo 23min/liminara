@@ -1,0 +1,10 @@
+{
+  "roadmapPath": "work/roadmap.md",
+  "epicRootPath": "work/epics/",
+  "epicSpecFileName": "epic.md",
+  "milestoneSpecPathTemplate": "work/epics/<epic>/<milestone-id>-<slug>.md",
+  "trackingDocPathTemplate": "work/milestones/tracking/<epic>/../<milestone-id>-tracking.md",
+  "completedEpicPathTemplate": "work/done/<epic>/",
+  "epicIdPattern": "E-{NN}[optional-letter]",
+  "milestoneIdPattern": "M-<TRACK>-<NN>"
+}

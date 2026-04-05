@@ -28,6 +28,7 @@ Liminara is **a runtime for reproducible nondeterministic computation**. It reco
 ## Truth discipline
 
 - `work/roadmap.md` is the only current sequencing and build-plan source.
+- `.ai-repo/config/artifact-layout.json` is the canonical artifact layout source for roadmap, epic, milestone, and tracking paths. Generated assistant surfaces must mirror it rather than redefine it.
 - `docs/architecture/` contains only live or decided-next architecture. Historical material belongs in `docs/history/`.
 - `docs/history/` is context, not authority.
 - If current behavior is disputed, live code, tests, and canonical persistence specs win.

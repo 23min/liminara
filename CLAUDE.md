@@ -37,12 +37,13 @@ Read the agent file. Adopt its role and constraints. Follow its skill workflow.
 - No exceptions for logic code unless the user explicitly waives it
 
 ### Branches
-- Epic work: `epic/<slug>` integration branch from `main`
-- Milestone work: `milestone/<id>` branch from epic branch
+- Follow repo-specific branch conventions when they refine the framework defaults.
+- Framework default epic work: `epic/<slug>` integration branch from `main`
+- Framework default milestone work: `milestone/<id>` branch from the repo's configured base branch
 - Do NOT commit milestone work directly to `main`
 
 ### Tracking Artifacts
-- Tracking doc: `work/milestones/tracking/<id>-tracking.md` — update after each AC
+- Tracking doc: use the repo's configured tracking path and naming convention — update after each AC
 - Decisions: `work/decisions.md` — log architectural/technical decisions made
 - Gaps: `work/gaps.md` — log discovered issues deferred for later
 - Agent learnings: `work/agent-history/<agent>.md` — append patterns and pitfalls
@@ -79,6 +80,21 @@ Read the agent file. Adopt its role and constraints. Follow its skill workflow.
 | `.ai/templates/` | Document templates |
 | `.ai-repo/` | Project-specific extensions |
 
+## Resolved Artifact Layout
+
+These values are resolved from framework defaults in .ai/paths.md and repo overrides in .ai-repo/config/artifact-layout.json.
+
+| Field | Value | Purpose |
+|-------|-------|---------|
+| `roadmapPath` | `work/roadmap.md` | High-level roadmap path |
+| `epicRootPath` | `work/epics/` | Root directory containing epic folders |
+| `epicSpecFileName` | `epic.md` | Default epic spec filename inside each epic folder |
+| `milestoneSpecPathTemplate` | `work/epics/<epic>/<milestone-id>-<slug>.md` | Milestone spec location template |
+| `trackingDocPathTemplate` | `work/milestones/tracking/<epic>/../<milestone-id>-tracking.md` | Milestone tracking doc location template |
+| `completedEpicPathTemplate` | `work/done/<epic>/` | Completed epic archive template |
+| `epicIdPattern` | `E-{NN}[optional-letter]` | Epic ID naming pattern |
+| `milestoneIdPattern` | `M-<TRACK>-<NN>` | Milestone ID naming pattern |
+
 ## Project-Specific Rules
 
 # Liminara — Project Rules
@@ -111,6 +127,7 @@ Liminara is **a runtime for reproducible nondeterministic computation**. It reco
 ## Truth discipline
 
 - `work/roadmap.md` is the only current sequencing and build-plan source.
+- `.ai-repo/config/artifact-layout.json` is the canonical artifact layout source for roadmap, epic, milestone, and tracking paths. Generated assistant surfaces must mirror it rather than redefine it.
 - `docs/architecture/` contains only live or decided-next architecture. Historical material belongs in `docs/history/`.
 - `docs/history/` is context, not authority.
 - If current behavior is disputed, live code, tests, and canonical persistence specs win.
@@ -170,32 +187,6 @@ Always include Co-Authored-By when GitHub Copilot contributed.
 2. **VSME** — SME sustainability reporting (first compliance pack)
 3. **House Compiler** — design → manufacturing. Has a buyer.
 4. **DPP** — Digital Product Passport (Feb 2027 enforcement)
-
-# Path Overrides for Liminara
-
-These override `.ai/paths.md` defaults to match Liminara's existing structure.
-
-| Variable | Override | Reason |
-|----------|---------|--------|
-| `ROADMAP_PATH` | `work/roadmap.md` | Roadmap lives in work/, not root |
-| `MILESTONE_PATH` | `work/epics/<epic-slug>/` | Milestones live inside their epic folder |
-| `TRACKING_PATH` | `work/milestones/tracking/` | Default (unchanged) |
-| `EPICS_PATH` | `work/epics/` | Default (unchanged) |
-| `COMPLETED_EPICS` | `work/done/` | Completed epics move here |
-
-## Milestone Convention
-
-Milestones live inside their epic folder, not in a separate `work/milestones/` directory:
-```
-work/epics/E-10-radar/
-  epic.md                    # Epic spec
-  M-RAD-01-fetcher.md        # Milestone spec
-  M-RAD-01-fetcher-log.md    # Session log
-  M-RAD-02-extraction.md
-  ...
-```
-
-Tracking docs still go to `work/milestones/tracking/` for quick lookup across epics.
 
 # TDD Conventions for Liminara
 
