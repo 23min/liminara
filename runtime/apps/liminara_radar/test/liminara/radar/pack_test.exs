@@ -138,21 +138,24 @@ defmodule Liminara.Radar.PackTest do
       assert :ok = Plan.validate(plan)
     end
 
-    test "dedup and compose_briefing receive the same run_id" do
+    test "dedup and compose_briefing do not synthesize runtime run_id inputs" do
       plan = Radar.plan([@rss_source])
       dedup = Plan.get_node(plan, "dedup")
       compose = Plan.get_node(plan, "compose_briefing")
 
-      {:literal, dedup_id} = dedup.inputs["run_id"]
-      {:literal, compose_id} = compose.inputs["run_id"]
-
-      assert dedup_id == compose_id
-      assert dedup_id =~ ~r/^radar-\d{8}T\d{6}$/
+      refute Map.has_key?(dedup.inputs, "run_id")
+      refute Map.has_key?(compose.inputs, "run_id")
+      assert Map.has_key?(compose.inputs, "date")
     end
 
-    test "rank receives an explicit reference_time" do
+    test "rank receives an explicit no-history contract and reference_time" do
       plan = Radar.plan([@rss_source])
       rank = Plan.get_node(plan, "rank")
+
+      refute Map.has_key?(rank.inputs, "historical_centroid")
+
+      {:literal, history_basis} = rank.inputs["history_basis"]
+      assert history_basis == "none"
 
       {:literal, ref_time} = rank.inputs["reference_time"]
       assert ref_time =~ ~r/^\d{4}-\d{2}-\d{2}T/

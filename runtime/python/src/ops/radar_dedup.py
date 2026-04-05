@@ -37,10 +37,11 @@ def _get_or_create_table(db, dims):
         return db.create_table("items", schema=schema)
 
 
-def execute(inputs):
+def execute(inputs, context=None):
     items = json.loads(inputs.get("items", "[]"))
     db_path = inputs.get("lancedb_path", "/tmp/radar_lancedb")
-    run_id = inputs.get("run_id", "unknown")
+    run_id = (context or {}).get("run_id") or inputs.get("run_id", "unknown")
+    created_at = (context or {}).get("started_at")
     dims = int(inputs.get("dims", "256"))
     dup_threshold = float(inputs.get("dup_threshold", str(DEFAULT_DUP_THRESHOLD)))
     ambiguous_threshold = float(inputs.get("ambiguous_threshold", str(DEFAULT_AMBIGUOUS_THRESHOLD)))
@@ -94,7 +95,7 @@ def execute(inputs):
 
     # Add new items to history
     if new_items:
-        now = datetime.now(timezone.utc).isoformat()
+        now = created_at or datetime.now(timezone.utc).isoformat()
         rows = [
             {
                 "item_id": item["id"],

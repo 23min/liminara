@@ -70,6 +70,16 @@ print(json.dumps(module._cluster_vec({topic_idx}, item_idx={item_idx}, dims={dim
 
 
 class TestCluster:
+    def test_cluster_uses_canonical_success_shape(self):
+        result = cluster_execute(
+            {
+                "items": json.dumps([]),
+                "embedded_items": json.dumps([]),
+            }
+        )
+
+        assert set(result.keys()) == {"outputs"}
+
     def test_cluster_fixture_is_independent_of_python_hash_seed(self):
         """Same topic fixture vectors should not vary with Python hash salt."""
         first = _cluster_vec_for_hash_seed(1, topic_idx=0, item_idx=3)

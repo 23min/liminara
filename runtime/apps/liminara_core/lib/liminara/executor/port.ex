@@ -241,7 +241,6 @@ defmodule Liminara.Executor.Port do
   end
 
   defp normalize_success(%{"outputs" => outputs} = response) do
-    # Temporary legacy/canonical protocol bridge. Remove in M-TRUTH-03 after Python ops emit only the canonical success shape.
     %OpResult{
       outputs: outputs,
       decisions: Map.get(response, "decisions", []),

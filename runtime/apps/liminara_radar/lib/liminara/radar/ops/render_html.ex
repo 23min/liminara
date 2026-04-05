@@ -1,6 +1,8 @@
 defmodule Liminara.Radar.Ops.RenderHtml do
   @behaviour Liminara.Op
 
+  alias Liminara.Radar.Ops.Specs
+
   @impl true
   def name, do: "render_html"
 
@@ -9,6 +11,11 @@ defmodule Liminara.Radar.Ops.RenderHtml do
 
   @impl true
   def determinism, do: :pure
+
+  @impl true
+  def execution_spec do
+    Specs.inline(name(), version(), :pure, outputs: %{html: :artifact})
+  end
 
   @impl true
   def execute(inputs) do

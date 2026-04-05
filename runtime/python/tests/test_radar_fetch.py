@@ -86,6 +86,16 @@ class TestFetchRss:
         assert data["items"] == []
         assert data["error"] is not None
         assert "500" in data["error"]
+        assert result["warnings"] == [
+            {
+                "code": "radar_fetch_rss_failed",
+                "severity": "degraded",
+                "summary": "Failed to fetch RSS source test_src",
+                "cause": data["error"],
+                "remediation": "Check source availability, URL, or feed health; Radar will continue with partial coverage",
+                "affected_outputs": ["result"],
+            }
+        ]
 
     @patch("ops.radar_fetch_rss.httpx.get")
     def test_connection_error_returns_empty_with_error(self, mock_get):
@@ -97,6 +107,7 @@ class TestFetchRss:
         data = json.loads(result["outputs"]["result"])
         assert data["items"] == []
         assert "Connection refused" in data["error"]
+        assert result["warnings"][0]["code"] == "radar_fetch_rss_failed"
 
     @patch("ops.radar_fetch_rss.httpx.get")
     def test_malformed_xml_returns_empty(self, mock_get):
@@ -137,6 +148,16 @@ class TestFetchWeb:
         data = json.loads(result["outputs"]["result"])
         assert data["items"] == []
         assert data["error"] is not None
+        assert result["warnings"] == [
+            {
+                "code": "radar_fetch_web_failed",
+                "severity": "degraded",
+                "summary": "Failed to fetch web source test_web",
+                "cause": data["error"],
+                "remediation": "Check source availability or URL; Radar will continue with partial coverage",
+                "affected_outputs": ["result"],
+            }
+        ]
 
     @patch("ops.radar_fetch_web.httpx.get")
     def test_empty_page_returns_empty_items(self, mock_get):

@@ -36,17 +36,22 @@ def _make_item(item_id, title="Item", source_id="s1", published=None, url=None):
     return item
 
 
-def _rank(clusters, historical_centroid=None):
+def _rank(clusters, history_basis="none"):
     return rank_execute(
         {
             "clusters": json.dumps(clusters),
-            "historical_centroid": json.dumps(historical_centroid or [0.0] * 32),
+            "history_basis": history_basis,
             "reference_time": REF_TIME,
         }
     )
 
 
 class TestRank:
+    def test_rank_uses_canonical_success_shape(self):
+        result = _rank([])
+
+        assert set(result.keys()) == {"outputs"}
+
     def test_items_ranked_by_novelty_within_cluster(self):
         """Items with higher novelty score come first."""
         items = [
@@ -148,6 +153,40 @@ class TestRank:
         for c in ranked:
             assert "cluster_score" in c
 
+    def test_no_history_contract_is_explicit_in_rank_output(self):
+        clusters = [_make_cluster("c0", [_make_item("a1", "Item")])]
+
+        result = _rank(clusters)
+
+        ranked = json.loads(result["outputs"]["ranked_clusters"])
+        assert ranked[0]["scoring_context"] == {
+            "history_basis": "none",
+            "reference_time": REF_TIME,
+        }
+        assert ranked[0]["items"][0]["score_breakdown"]["history"] == 0.0
+
+    def test_missing_publication_is_explicit_in_rank_output(self):
+        clusters = [_make_cluster("c0", [_make_item("a1", "Undated")])]
+
+        result = _rank(clusters)
+
+        ranked = json.loads(result["outputs"]["ranked_clusters"])
+        item = ranked[0]["items"][0]
+
+        assert item["publication_status"] == "missing"
+        assert item["score_breakdown"]["recency"] == 0.15
+
+    def test_invalid_publication_is_explicit_in_rank_output(self):
+        clusters = [_make_cluster("c0", [_make_item("a1", "Broken", published="not-a-date")])]
+
+        result = _rank(clusters)
+
+        ranked = json.loads(result["outputs"]["ranked_clusters"])
+        item = ranked[0]["items"][0]
+
+        assert item["publication_status"] == "invalid"
+        assert item["score_breakdown"]["recency"] == 0.15
+
     def test_same_inputs_same_outputs_with_fixed_time(self):
         """With fixed reference_time, rank op is genuinely pure."""
         items = [
@@ -171,7 +210,7 @@ class TestRank:
             rank_execute(
                 {
                     "clusters": json.dumps(clusters),
-                    "historical_centroid": json.dumps([0.0] * 32),
+                    "history_basis": "none",
                     "reference_time": "",
                 }
             )
@@ -186,7 +225,36 @@ class TestRank:
             rank_execute(
                 {
                     "clusters": json.dumps(clusters),
-                    "historical_centroid": json.dumps([0.0] * 32),
+                    "history_basis": "none",
                     "reference_time": "not-a-date",
+                }
+            )
+
+    def test_missing_history_basis_raises(self):
+        """Rank op requires an explicit no-history contract until real history exists."""
+        clusters = [_make_cluster("c0", [_make_item("a1", "Item")])]
+
+        import pytest
+
+        with pytest.raises(ValueError, match="history_basis is required"):
+            rank_execute(
+                {
+                    "clusters": json.dumps(clusters),
+                    "reference_time": REF_TIME,
+                }
+            )
+
+    def test_unknown_history_basis_raises(self):
+        """Unsupported history basis values fail closed instead of pretending history exists."""
+        clusters = [_make_cluster("c0", [_make_item("a1", "Item")])]
+
+        import pytest
+
+        with pytest.raises(ValueError, match="unsupported history_basis"):
+            rank_execute(
+                {
+                    "clusters": json.dumps(clusters),
+                    "history_basis": "centroid",
+                    "reference_time": REF_TIME,
                 }
             )

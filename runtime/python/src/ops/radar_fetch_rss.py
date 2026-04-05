@@ -16,14 +16,25 @@ def execute(inputs):
         response = httpx.get(feed_url, timeout=timeout, follow_redirects=True)
         response.raise_for_status()
     except Exception as e:
+        error = f"{type(e).__name__}: {e}"
         return {
             "outputs": {
                 "result": json.dumps({
                     "items": [],
-                    "error": f"{type(e).__name__}: {e}",
+                    "error": error,
                     "source_id": source_id,
                 })
-            }
+            },
+            "warnings": [
+                {
+                    "code": "radar_fetch_rss_failed",
+                    "severity": "degraded",
+                    "summary": f"Failed to fetch RSS source {source_id}",
+                    "cause": error,
+                    "remediation": "Check source availability, URL, or feed health; Radar will continue with partial coverage",
+                    "affected_outputs": ["result"],
+                }
+            ],
         }
 
     feed = feedparser.parse(response.text)

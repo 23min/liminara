@@ -4,6 +4,7 @@ import json
 import sys
 from pathlib import Path
 
+import lancedb
 import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
@@ -13,6 +14,15 @@ from ops.radar_dedup import execute as dedup_execute
 
 
 class TestEmbed:
+    def test_embed_uses_canonical_success_shape(self):
+        result = embed_execute({
+            "items": json.dumps([]),
+            "provider": "mock",
+            "provider_config": json.dumps({}),
+        })
+
+        assert set(result.keys()) == {"outputs"}
+
     def test_items_get_embeddings(self):
         items = [
             {"id": "a1", "title": "Test", "clean_text": "Hello world", "url": "https://a.com"},
@@ -50,6 +60,15 @@ class TestEmbed:
 
 
 class TestDedup:
+    def test_dedup_uses_canonical_success_shape(self, tmp_path):
+        result = dedup_execute({
+            "items": json.dumps([]),
+            "lancedb_path": str(tmp_path / "lancedb"),
+            "dims": "32",
+        })
+
+        assert set(result.keys()) == {"outputs"}
+
     def test_novel_items_against_empty_history(self, tmp_path):
         items = [
             {"id": "a1", "title": "Novel", "clean_text": "Brand new story", "url": "https://a.com",
@@ -147,3 +166,28 @@ class TestDedup:
         assert "new_count" in stats
         assert "duplicate_count" in stats
         assert "ambiguous_count" in stats
+
+    def test_runtime_context_controls_persisted_run_id_and_created_at(self, tmp_path):
+        db_path = str(tmp_path / "lancedb")
+        started_at = "2026-04-05T14:20:00+00:00"
+
+        items = [
+            {"id": "a1", "title": "Story A", "clean_text": "A", "url": "https://a.com",
+             "embedding": [0.1] * 32, "source_id": "s1"},
+        ]
+
+        dedup_execute(
+            {
+                "items": json.dumps(items),
+                "lancedb_path": db_path,
+                "dims": "32",
+            },
+            {"run_id": "runtime-run-123", "started_at": started_at},
+        )
+
+        table = lancedb.connect(db_path).open_table("items")
+        rows = table.search([0.1] * 32).limit(1).to_list()
+
+        assert len(rows) == 1
+        assert rows[0]["run_id"] == "runtime-run-123"
+        assert rows[0]["created_at"] == started_at

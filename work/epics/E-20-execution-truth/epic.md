@@ -1,7 +1,7 @@
 ---
 id: E-20-execution-truth
 phase: 5
-status: in progress
+status: complete
 depends_on: E-11-radar
 ---
 
@@ -54,11 +54,11 @@ This epic is the first blocking slice of Phase 5c. M-RAD-04 is now closed, so E-
 
 ## Success Criteria
 
-- [ ] The canonical op contract is defined in a way that E-19 and E-12 can consume directly
-- [ ] Runtime execution context is explicitly defined and separated from plan inputs
-- [ ] Warning-bearing success is defined without overloading decisions or ad hoc UI state
-- [ ] Radar has a path to remove current semantic mismatches around dedup, run identity, and silent degraded output
-- [ ] Any remaining legacy callbacks are clearly marked as temporary exceptions with removal triggers rather than normalized as a second long-term surface area
+- [x] The canonical op contract is defined in a way that E-19 and E-12 can consume directly
+- [x] Runtime execution context is explicitly defined and separated from plan inputs
+- [x] Warning-bearing success is defined without overloading decisions or ad hoc UI state
+- [x] Radar has a path to remove current semantic mismatches around dedup, run identity, and silent degraded output
+- [x] Any remaining legacy callbacks are clearly marked as temporary exceptions with removal triggers rather than normalized as a second long-term surface area
 
 ## Milestones
 
@@ -66,7 +66,7 @@ This epic is the first blocking slice of Phase 5c. M-RAD-04 is now closed, so E-
 |----|-------|---------|------------|--------|
 | M-TRUTH-01 | Execution spec + outcome design | Lock the canonical op shape, runtime execution context, and warning-bearing success contract before more hardening code lands | M-RAD-04-webui-scheduler | complete |
 | M-TRUTH-02 | Core runtime contract migration | Add the new runtime structures and compatibility shims so execution and replay can operate on one truthful contract | M-TRUTH-01 | complete |
-| M-TRUTH-03 | Radar semantic cleanup | Refactor Radar onto the truthful contract: side-effect boundaries, runtime identity, and degraded-output semantics | M-TRUTH-02 | not started |
+| M-TRUTH-03 | Radar semantic cleanup | Refactor Radar onto the truthful contract: side-effect boundaries, runtime identity, and degraded-output semantics | M-TRUTH-02 | complete |
 
 ## References
 

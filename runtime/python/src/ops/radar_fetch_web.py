@@ -16,14 +16,25 @@ def execute(inputs):
         response = httpx.get(url, timeout=timeout, follow_redirects=True)
         response.raise_for_status()
     except Exception as e:
+        error = f"{type(e).__name__}: {e}"
         return {
             "outputs": {
                 "result": json.dumps({
                     "items": [],
-                    "error": f"{type(e).__name__}: {e}",
+                    "error": error,
                     "source_id": source_id,
                 })
-            }
+            },
+            "warnings": [
+                {
+                    "code": "radar_fetch_web_failed",
+                    "severity": "degraded",
+                    "summary": f"Failed to fetch web source {source_id}",
+                    "cause": error,
+                    "remediation": "Check source availability or URL; Radar will continue with partial coverage",
+                    "affected_outputs": ["result"],
+                }
+            ],
         }
 
     extracted = trafilatura.extract(response.text, include_links=True, include_tables=False)

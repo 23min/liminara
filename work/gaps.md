@@ -47,3 +47,11 @@ Discovered work items deferred for later.
 - Mental map preservation — don't reposition existing nodes on incremental re-render (complex, needed for smooth live updates)
 - Node state animations — breathing effect for running nodes (nice-to-have, on dag-map roadmap as "someday")
 
+## Remaining execution-spec compatibility bridge outside Radar
+**Discovered:** 2026-04-05 (M-TRUTH-03 wrap)
+**Relates to:** E-20 Execution Truth, M-TRUTH-03
+**Severity:** Cleanup follow-on — not blocking E-19, but keeps one legacy runtime bridge alive outside migrated Radar paths
+**Items:**
+- Remove `Liminara.Op.derive_execution_spec/1` after non-Radar test/support modules stop exporting legacy callback-derived specs
+- Current known users: `runtime/apps/liminara_core/test/support/test_port_ops.ex` and `runtime/apps/liminara_core/test/liminara/executor/dispatch_test.exs`
+

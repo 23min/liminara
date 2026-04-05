@@ -111,3 +111,22 @@
 - Full-suite supervision tests should not assume `Liminara.Run.DynamicSupervisor` is empty after other runtime tests have executed; assert child shape, not pristine suite order.
 - In `Run.Server`, synchronous failure branches inside `dispatch_ready/1` must not call `maybe_complete/1` mid-batch. Ready siblings may still need dispatch, and early completion can emit duplicate terminal events for one run.
 - Keep replay error taxonomy separated by missing artifact type: missing `execution_context.json` should surface `missing_replay_execution_context`, while missing stored decisions/output hashes should stay `missing_replay_recording`.
+
+## M-TRUTH-03: Radar Semantic Cleanup (2026-04-05)
+
+### Patterns that worked
+- Treat the Radar pack boundary as a contract freeze surface: one explicit spec helper (`Liminara.Radar.Ops.Specs`) made it practical to migrate every current Radar op to `execution_spec/0` in one coherent slice instead of leaving half the pack on runtime derivation.
+- For runtime-owned identity, update the plan shape and the consuming op in the same red/green cycle. Removing synthetic `run_id` inputs without moving `ComposeBriefing` to `execute/2` just leaves dead wiring or false positives.
+- Side-effecting ops can still truthfully replay through `replay_policy: :replay_recorded`; that was the right fit for Radar dedup because replay should inject stored outputs rather than skip downstream data or rerun LanceDB mutation.
+- Dedup boundary tests need two separate assertions: repeated live runs must not cache across mutable history, and replay must reuse recorded outputs even after live history has changed.
+- End-to-end Radar replay tests that pass through `Summarize` should explicitly unset `ANTHROPIC_API_KEY`; otherwise the suite becomes environment-sensitive and can drift between degraded-warning coverage and live LLM behavior.
+- If a pack does not have historical state yet, require an explicit no-history literal like `history_basis: "none"` instead of threading inert placeholder payloads such as `historical_centroid: []`; the contract stays truthful and future extension points remain obvious.
+- Once a pack has explicit execution specs everywhere, delete the legacy `executor/0`, `python_op/0`, and `env_vars/0` hints from the pack modules too; leaving them behind keeps the migration technically green but semantically half-finished.
+
+### Pitfalls
+- `function_exported?/3` can still lie in contract tests unless the module is loaded first. Use `Code.ensure_loaded/1` in explicit-spec assertions for pack modules, not only in runtime helpers.
+- LanceDB table objects do not expose the list API you might expect from search results; in Python tests, read rows through `table.search(...).limit(...).to_list()` rather than assuming the table itself has `to_list()`.
+- Runtime-context-aware Python ops should test persisted fields directly at the storage layer. It is easy to believe context plumbing works because outputs look right while stored metadata still falls back to wall clock or plan-local defaults.
+- Once degraded fallback paths move from synthetic decisions to warnings, replay assertions must compare discovery provenance to replay provenance instead of assuming discovery always emits `decision_recorded` events.
+- Missing-data scoring defaults need an explicit output marker. A silent fallback score for missing or invalid publication dates is another form of semantic drift unless the ranked artifact says that recency used a fallback basis.
+- Existing behavior tests often prove the data content but not the wire contract. Add one cheap `set(result.keys())` assertion per untouched Python op family when retiring a bridge so canonical-shape drift cannot hide behind green feature tests.

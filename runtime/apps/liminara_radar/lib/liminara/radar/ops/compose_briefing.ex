@@ -1,6 +1,8 @@
 defmodule Liminara.Radar.Ops.ComposeBriefing do
   @behaviour Liminara.Op
 
+  alias Liminara.{ExecutionContext, ExecutionSpec}
+
   @impl true
   def name, do: "compose_briefing"
 
@@ -11,11 +13,29 @@ defmodule Liminara.Radar.Ops.ComposeBriefing do
   def determinism, do: :pure
 
   @impl true
-  def execute(inputs) do
+  def execution_spec do
+    ExecutionSpec.new(%{
+      identity: %{name: "compose_briefing", version: "1.0"},
+      determinism: %{class: :pure, cache_policy: :content_addressed, replay_policy: :reexecute},
+      execution: %{
+        executor: :inline,
+        entrypoint: "compose_briefing",
+        requires_execution_context: true
+      },
+      contracts: %{outputs: %{briefing: :artifact}}
+    })
+  end
+
+  @impl true
+  def execute(_inputs) do
+    raise "runtime execution context required"
+  end
+
+  @impl true
+  def execute(inputs, %ExecutionContext{} = context) do
     clusters = Jason.decode!(inputs["ranked_clusters"])
     summaries = Jason.decode!(inputs["summaries"])
     source_health = Jason.decode!(inputs["source_health"])
-    run_id = inputs["run_id"]
     date = inputs["date"]
 
     summary_map = Map.new(summaries, fn s -> {s["cluster_id"], s} end)
@@ -33,7 +53,7 @@ defmodule Liminara.Radar.Ops.ComposeBriefing do
       Enum.reduce(enriched_clusters, 0, fn c, acc -> acc + length(c["items"]) end)
 
     briefing = %{
-      "run_id" => run_id,
+      "run_id" => context.run_id,
       "date" => date,
       "stats" => %{
         "cluster_count" => length(enriched_clusters),

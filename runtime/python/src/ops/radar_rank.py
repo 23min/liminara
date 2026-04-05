@@ -9,22 +9,24 @@ import numpy as np
 
 def execute(inputs):
     clusters = json.loads(inputs.get("clusters", "[]"))
-    historical_centroid = json.loads(inputs.get("historical_centroid", "[]"))
+    history_basis = _parse_history_basis(inputs.get("history_basis", ""))
     reference_time = inputs.get("reference_time", "")
 
     if not clusters:
         return {"outputs": {"ranked_clusters": json.dumps([])}}
 
-    hist_cent = np.array(historical_centroid) if historical_centroid else None
-
     # Parse reference time — makes recency scoring deterministic
     ref_dt = _parse_reference_time(reference_time)
 
     for cluster in clusters:
-        _score_items(cluster, hist_cent, ref_dt)
+        _score_items(cluster, ref_dt)
         # Sort items by novelty_score descending, stable by id
         cluster["items"].sort(key=lambda x: (-x["novelty_score"], x["id"]))
         cluster["cluster_score"] = _cluster_score(cluster)
+        cluster["scoring_context"] = {
+            "history_basis": history_basis,
+            "reference_time": reference_time,
+        }
 
     # Sort clusters by cluster_score descending, stable by cluster_id
     clusters.sort(key=lambda c: (-c["cluster_score"], c["cluster_id"]))
@@ -32,9 +34,8 @@ def execute(inputs):
     return {"outputs": {"ranked_clusters": json.dumps(clusters)}}
 
 
-def _score_items(cluster, historical_centroid, ref_dt):
+def _score_items(cluster, ref_dt):
     items = cluster["items"]
-    centroid = np.array(cluster["centroid"]) if cluster.get("centroid") else None
 
     # Source diversity: how many unique sources in this cluster
     source_counts = Counter(item.get("source_id", "") for item in items)
@@ -42,26 +43,26 @@ def _score_items(cluster, historical_centroid, ref_dt):
 
     for item in items:
         score = 0.0
-
-        # Distance from historical centroid (novelty of angle)
-        has_history = (
-            historical_centroid is not None
-            and centroid is not None
-            and np.linalg.norm(historical_centroid) > 0
-        )
-        if has_history:
-            sim = _cosine_similarity(centroid, historical_centroid)
-            score += (1.0 - sim) * 0.4  # Up to 0.4 points
+        history_component = 0.0
 
         # Source diversity: item's source appears alongside other sources
+        diversity_component = 0.0
         if total_sources > 1:
-            score += min(total_sources / 5.0, 1.0) * 0.3  # Up to 0.3 points
+            diversity_component = min(total_sources / 5.0, 1.0) * 0.3  # Up to 0.3 points
+            score += diversity_component
 
         # Recency
-        recency = _recency_score(item, ref_dt)
-        score += recency * 0.3  # Up to 0.3 points
+        recency, publication_status = _recency_score(item, ref_dt)
+        recency_component = recency * 0.3  # Up to 0.3 points
+        score += recency_component
 
         item["novelty_score"] = round(score, 4)
+        item["publication_status"] = publication_status
+        item["score_breakdown"] = {
+            "history": round(history_component, 4),
+            "source_diversity": round(diversity_component, 4),
+            "recency": round(recency_component, 4),
+        }
 
 
 def _cluster_score(cluster):
@@ -87,18 +88,26 @@ def _parse_reference_time(ref_str):
         raise ValueError(f"invalid reference_time: {ref_str!r}") from e
 
 
+def _parse_history_basis(value):
+    if not value:
+        raise ValueError("history_basis is required — rank must declare whether historical context exists")
+    if value != "none":
+        raise ValueError(f"unsupported history_basis: {value!r}")
+    return value
+
+
 def _recency_score(item, ref_dt):
     published = item.get("published")
     if not published:
-        return 0.5  # Default for items without date
+        return 0.5, "missing"  # Default for items without date
 
     try:
         dt = datetime.fromisoformat(published.replace("Z", "+00:00"))
         hours_old = (ref_dt - dt).total_seconds() / 3600
         # Exponential decay: 1.0 for now, ~0.5 at 24h, ~0.25 at 48h
-        return max(0.0, min(1.0, np.exp(-hours_old / 24.0)))
+        return max(0.0, min(1.0, np.exp(-hours_old / 24.0))), "present"
     except (ValueError, TypeError):
-        return 0.5
+        return 0.5, "invalid"
 
 
 def _cosine_similarity(a, b):

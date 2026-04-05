@@ -40,34 +40,39 @@ def execute(inputs):
 
     api_key = os.environ.get("ANTHROPIC_API_KEY", "")
     if not api_key:
-        # No API key — treat all ambiguous as "keep" (safe default)
-        decisions = [
-            {"item_id": item["id"], "verdict": "different", "rationale": "no API key, defaulting to keep"}
-            for item in ambiguous_items
-        ]
         return {
             "outputs": {
                 "items": json.dumps(ambiguous_items),
-                "decisions": json.dumps(decisions),
+                "decisions": json.dumps([]),
             },
-            "decisions": decisions,
+            "decisions": [],
+            "warnings": [
+                _safe_default_warning(
+                    "ANTHROPIC_API_KEY is not configured",
+                    "Configure ANTHROPIC_API_KEY to enable LLM dedup resolution",
+                )
+            ],
         }
 
     if anthropic is None:
-        decisions = [
-            {"item_id": item["id"], "verdict": "different", "rationale": "anthropic SDK not installed"}
-            for item in ambiguous_items
-        ]
         return {
-            "outputs": {"items": json.dumps(ambiguous_items), "decisions": json.dumps(decisions)},
-            "decisions": decisions,
+            "outputs": {"items": json.dumps(ambiguous_items), "decisions": json.dumps([])},
+            "decisions": [],
+            "warnings": [
+                _safe_default_warning(
+                    "anthropic SDK is not installed in the Radar Python environment",
+                    "Install the anthropic package in the runtime Python environment",
+                )
+            ],
         }
     client = anthropic.Anthropic(api_key=api_key)
 
     kept_items = []
     decisions = []
+    warnings = []
 
     for item in ambiguous_items:
+        llm_failed = False
         prompt = PROMPT_TEMPLATE.format(
             new_title=item.get("title", ""),
             new_url=item.get("url", ""),
@@ -85,26 +90,56 @@ def execute(inputs):
             response_text = response.content[0].text
             verdict_data = json.loads(response_text)
         except Exception as e:
-            verdict_data = {"verdict": "different", "rationale": f"LLM error: {e}"}
+            verdict_data = {"verdict": "different", "rationale": "safe default keep"}
+            warnings.append(_llm_error_warning(str(e)))
+            llm_failed = True
 
-        decision = {
-            "decision_type": "llm_dedup_check",
-            "item_id": item["id"],
-            "item_title": item.get("title", ""),
-            "match_title": item.get("_match_title", ""),
-            "similarity": item.get("_similarity", 0),
-            "verdict": verdict_data.get("verdict", "different"),
-            "rationale": verdict_data.get("rationale", ""),
-        }
-        decisions.append(decision)
+        if not llm_failed:
+            decision = {
+                "decision_type": "llm_dedup_check",
+                "item_id": item["id"],
+                "item_title": item.get("title", ""),
+                "match_title": item.get("_match_title", ""),
+                "similarity": item.get("_similarity", 0),
+                "verdict": verdict_data.get("verdict", "different"),
+                "rationale": verdict_data.get("rationale", ""),
+            }
+            decisions.append(decision)
 
         if verdict_data.get("verdict") == "different":
             kept_items.append(item)
 
-    return {
+    result = {
         "outputs": {
             "items": json.dumps(kept_items),
             "decisions": json.dumps(decisions),
         },
         "decisions": decisions,
+    }
+
+    if warnings:
+        result["warnings"] = warnings
+
+    return result
+
+
+def _safe_default_warning(cause, remediation):
+    return {
+        "code": "radar_llm_dedup_safe_default",
+        "severity": "degraded",
+        "summary": "Keeping ambiguous items because LLM dedup is unavailable",
+        "cause": cause,
+        "remediation": remediation,
+        "affected_outputs": ["items"],
+    }
+
+
+def _llm_error_warning(cause):
+    return {
+        "code": "radar_llm_dedup_llm_error",
+        "severity": "degraded",
+        "summary": "Keeping ambiguous items after an LLM dedup error",
+        "cause": cause,
+        "remediation": "Check Anthropic availability and credentials; replay will preserve this degraded keep decision",
+        "affected_outputs": ["items"],
     }

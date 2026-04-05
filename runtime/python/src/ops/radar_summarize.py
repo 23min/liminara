@@ -45,6 +45,7 @@ def execute(inputs):
     client = anthropic.Anthropic(api_key=api_key)
     summaries = []
     decisions = []
+    warnings = []
 
     for cluster in clusters:
         items_text = _format_items(cluster["items"])
@@ -52,6 +53,7 @@ def execute(inputs):
             label=cluster.get("label", "Unknown"),
             items_text=items_text,
         )
+        llm_failed = False
 
         try:
             response = client.messages.create(
@@ -64,8 +66,10 @@ def execute(inputs):
         except Exception as e:
             data = {
                 "summary": f"Summary unavailable for cluster: {cluster.get('label', 'Unknown')}",
-                "key_takeaways": [f"LLM error: {e}"],
+                "key_takeaways": ["Summary generation failed; see warning details"],
             }
+            warnings.append(_llm_error_warning(str(e)))
+            llm_failed = True
 
         summary = {
             "cluster_id": cluster["cluster_id"],
@@ -74,17 +78,18 @@ def execute(inputs):
         }
         summaries.append(summary)
 
-        decision = {
-            "decision_type": "cluster_summary",
-            "cluster_id": cluster["cluster_id"],
-            "cluster_label": cluster.get("label", ""),
-            "item_count": len(cluster["items"]),
-            "summary": data.get("summary", ""),
-            "rationale": _decision_rationale(data),
-        }
-        decisions.append(decision)
+        if not llm_failed:
+            decision = {
+                "decision_type": "cluster_summary",
+                "cluster_id": cluster["cluster_id"],
+                "cluster_label": cluster.get("label", ""),
+                "item_count": len(cluster["items"]),
+                "summary": data.get("summary", ""),
+                "rationale": _decision_rationale(data),
+            }
+            decisions.append(decision)
 
-    return {
+    result = {
         "outputs": {
             "summaries": json.dumps(summaries),
             "decisions": json.dumps(decisions),
@@ -92,22 +97,25 @@ def execute(inputs):
         "decisions": decisions,
     }
 
+    if warnings:
+        result["warnings"] = warnings
+
+    return result
+
 
 def _decision_rationale(data):
-    takeaways = str(data.get("key_takeaways", ""))
-    if "error" in takeaways.lower():
-        return f"LLM error: {data.get('key_takeaways', [''])[0]}"
     return "haiku summary"
 
 
 def _placeholder_summaries(clusters, api_key):
     """Generate placeholder summaries when no API key or SDK available."""
     if not api_key:
-        reason = "no API key, defaulting to placeholder"
+        cause = "ANTHROPIC_API_KEY is not configured"
+        remediation = "Configure ANTHROPIC_API_KEY to enable live summaries"
     else:
-        reason = "anthropic SDK not installed"
+        cause = "anthropic SDK is not installed in the Radar Python environment"
+        remediation = "Install the anthropic package in the runtime Python environment"
     summaries = []
-    decisions = []
 
     for cluster in clusters:
         titles = [item.get("title", "") for item in cluster["items"]]
@@ -121,23 +129,33 @@ def _placeholder_summaries(clusters, api_key):
         }
         summaries.append(summary)
 
-        decisions.append(
-            {
-                "decision_type": "cluster_summary",
-                "cluster_id": cluster["cluster_id"],
-                "cluster_label": cluster.get("label", ""),
-                "item_count": len(cluster["items"]),
-                "summary": summary["summary"],
-                "rationale": reason,
-            }
-        )
-
     return {
         "outputs": {
             "summaries": json.dumps(summaries),
-            "decisions": json.dumps(decisions),
+            "decisions": json.dumps([]),
         },
-        "decisions": decisions,
+        "decisions": [],
+        "warnings": [
+            {
+                "code": "radar_summarize_placeholder",
+                "severity": "degraded",
+                "summary": "Using placeholder summaries because Anthropic access is unavailable",
+                "cause": cause,
+                "remediation": remediation,
+                "affected_outputs": ["summaries"],
+            }
+        ],
+    }
+
+
+def _llm_error_warning(cause):
+    return {
+        "code": "radar_summarize_llm_error",
+        "severity": "degraded",
+        "summary": "Fell back to a placeholder summary after an LLM error",
+        "cause": cause,
+        "remediation": "Check Anthropic availability and credentials; replay will preserve this degraded summary",
+        "affected_outputs": ["summaries"],
     }
 
 

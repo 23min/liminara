@@ -82,7 +82,7 @@ defmodule Liminara.RadarReplayTestPack do
     })
     |> Plan.add_node("rank", Rank, %{
       "clusters" => {:ref, "cluster", "clusters"},
-      "historical_centroid" => {:literal, Jason.encode!([])},
+      "history_basis" => {:literal, "none"},
       "reference_time" => {:literal, ref_time}
     })
     |> Plan.add_node("summarize", Summarize, %{
@@ -92,7 +92,6 @@ defmodule Liminara.RadarReplayTestPack do
       "ranked_clusters" => {:ref, "rank", "ranked_clusters"},
       "summaries" => {:ref, "summarize", "summaries"},
       "source_health" => {:literal, Jason.encode!([])},
-      "run_id" => {:literal, "radar-replay-test"},
       "date" => {:literal, "2026-04-01"}
     })
     |> Plan.add_node("render_html", RenderHtml, %{

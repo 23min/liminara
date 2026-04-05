@@ -168,4 +168,10 @@ Sandbox config recorded in run events for provenance.
 - AI instruction changes land in `.ai-repo/` and are propagated by `./.ai/sync.sh`, not by hand-editing generated files
 **Consequences:** Architecture docs now carry frontmatter describing truth class and ownership. Historical material keeps chronology without pretending to be current. Completion status and semantic quality stay separate. Migration glue becomes visible, bounded, and reviewable.
 
+## D-2026-04-05-023: Radar run identity is runtime-owned; dedup remains single-op side-effecting with recorded replay
+**Status:** active
+**Context:** M-TRUTH-03 needs Radar to stop fabricating runtime identity in the pack. Before this slice, `Radar.plan/1` injected synthetic `run_id` literals into both `dedup` and `compose_briefing`, `ComposeBriefing` consumed that plan-time value directly, and `Dedup` both mutated LanceDB history and stamped persisted rows while still advertising `:pure` semantics.
+**Decision:** Runtime `ExecutionContext` is the sole source of Radar run identity. `ComposeBriefing` is migrated to an explicit context-aware execution spec and reads `run_id` from the runtime context, not plan inputs. While Radar dedup still remains one op that both classifies items and mutates LanceDB history, it is now classified truthfully as `:side_effecting` with `cache_policy: :none` and `replay_policy: :replay_recorded`, and it consumes runtime context for persisted `run_id` and `started_at` instead of plan-synthesized values.
+**Consequences:** Radar plans no longer fabricate a value named `run_id`. Replay keeps rendered briefings identical because context-aware composition reuses the stored source execution context rather than inventing a replay-time replacement. Dedup no longer claims pure/cacheable semantics, and replay avoids re-running LanceDB writes while still supplying recorded outputs downstream.
+
 

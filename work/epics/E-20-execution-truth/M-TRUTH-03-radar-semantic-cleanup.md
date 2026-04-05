@@ -1,7 +1,7 @@
 ---
 id: M-TRUTH-03-radar-semantic-cleanup
 epic: E-20-execution-truth
-status: draft
+status: complete
 depends_on: M-TRUTH-02-core-runtime-contract-migration
 ---
 

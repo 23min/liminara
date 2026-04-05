@@ -12,6 +12,11 @@ from ops.radar_normalize import execute as normalize_execute
 
 
 class TestNormalize:
+    def test_normalize_uses_canonical_success_shape(self):
+        result = normalize_execute({"items": json.dumps([])})
+
+        assert set(result.keys()) == {"outputs"}
+
     def test_rss_items_pass_through_summary(self):
         items = [
             {

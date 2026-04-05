@@ -49,10 +49,40 @@ class TestLlmDedupCheck:
             decisions = json.loads(result["outputs"]["decisions"])
 
             assert len(kept) == 2  # all kept
-            assert len(decisions) == 2
-            assert all(d["verdict"] == "different" for d in decisions)
+            assert decisions == []
+            assert result["decisions"] == []
+            assert result["warnings"] == [
+                {
+                    "code": "radar_llm_dedup_safe_default",
+                    "severity": "degraded",
+                    "summary": "Keeping ambiguous items because LLM dedup is unavailable",
+                    "cause": "ANTHROPIC_API_KEY is not configured",
+                    "remediation": "Configure ANTHROPIC_API_KEY to enable LLM dedup resolution",
+                    "affected_outputs": ["items"],
+                }
+            ]
         finally:
             os.environ.update(env)
+
+    @patch.dict(os.environ, {"ANTHROPIC_API_KEY": "test-key"})
+    @patch("ops.radar_llm_dedup.anthropic", None)
+    def test_missing_sdk_defaults_to_keep_with_warning(self):
+        items = [make_ambiguous_item("a1")]
+        result = llm_dedup_execute({"items": json.dumps(items)})
+
+        kept = json.loads(result["outputs"]["items"])
+        assert len(kept) == 1
+        assert result["decisions"] == []
+        assert result["warnings"] == [
+            {
+                "code": "radar_llm_dedup_safe_default",
+                "severity": "degraded",
+                "summary": "Keeping ambiguous items because LLM dedup is unavailable",
+                "cause": "anthropic SDK is not installed in the Radar Python environment",
+                "remediation": "Install the anthropic package in the runtime Python environment",
+                "affected_outputs": ["items"],
+            }
+        ]
 
     @patch.dict(os.environ, {"ANTHROPIC_API_KEY": "test-key"})
     @patch("ops.radar_llm_dedup.anthropic")
@@ -113,7 +143,18 @@ class TestLlmDedupCheck:
         decisions = json.loads(result["outputs"]["decisions"])
 
         assert len(kept) == 1  # kept on error (safe default)
-        assert "LLM error" in decisions[0]["rationale"]
+        assert decisions == []
+        assert result["decisions"] == []
+        assert result["warnings"] == [
+            {
+                "code": "radar_llm_dedup_llm_error",
+                "severity": "degraded",
+                "summary": "Keeping ambiguous items after an LLM dedup error",
+                "cause": "API timeout",
+                "remediation": "Check Anthropic availability and credentials; replay will preserve this degraded keep decision",
+                "affected_outputs": ["items"],
+            }
+        ]
 
     def test_dict_shaped_input_extracts_ambiguous_items(self):
         """Input from dedup is a dict with new/ambiguous/duplicate lists."""
@@ -134,6 +175,7 @@ class TestLlmDedupCheck:
             # Should only process the 1 ambiguous item, not all 3
             assert len(kept) == 1
             assert kept[0]["id"] == "a1"
-            assert len(decisions) == 1
+            assert decisions == []
+            assert result["warnings"][0]["code"] == "radar_llm_dedup_safe_default"
         finally:
             os.environ.update(env)

@@ -56,8 +56,38 @@ class TestSummarize:
         assert "key_takeaways" in summaries[0]
 
         decisions = result["decisions"]
-        assert len(decisions) == 1
-        assert decisions[0]["rationale"] == "no API key, defaulting to placeholder"
+        assert decisions == []
+        assert json.loads(result["outputs"]["decisions"]) == []
+
+        assert result["warnings"] == [
+            {
+                "code": "radar_summarize_placeholder",
+                "severity": "degraded",
+                "summary": "Using placeholder summaries because Anthropic access is unavailable",
+                "cause": "ANTHROPIC_API_KEY is not configured",
+                "remediation": "Configure ANTHROPIC_API_KEY to enable live summaries",
+                "affected_outputs": ["summaries"],
+            }
+        ]
+
+    @patch("ops.radar_summarize.anthropic", None)
+    def test_missing_sdk_returns_placeholder_warning(self):
+        clusters = [_make_cluster("c0", [_make_item("a1", "Test Item")])]
+
+        with patch.dict("os.environ", {"ANTHROPIC_API_KEY": "test-key"}, clear=True):
+            result = summarize_execute({"clusters": json.dumps(clusters)})
+
+        assert result["decisions"] == []
+        assert result["warnings"] == [
+            {
+                "code": "radar_summarize_placeholder",
+                "severity": "degraded",
+                "summary": "Using placeholder summaries because Anthropic access is unavailable",
+                "cause": "anthropic SDK is not installed in the Radar Python environment",
+                "remediation": "Install the anthropic package in the runtime Python environment",
+                "affected_outputs": ["summaries"],
+            }
+        ]
 
     @patch("ops.radar_summarize.anthropic")
     def test_haiku_called_per_cluster(self, mock_anthropic):
@@ -150,5 +180,15 @@ class TestSummarize:
         assert "summary" in summaries[0]
 
         decisions = result["decisions"]
-        rationale = decisions[0].get("rationale", "").lower()
-        assert "error" in rationale
+        assert decisions == []
+        assert json.loads(result["outputs"]["decisions"]) == []
+        assert result["warnings"] == [
+            {
+                "code": "radar_summarize_llm_error",
+                "severity": "degraded",
+                "summary": "Fell back to a placeholder summary after an LLM error",
+                "cause": "API error",
+                "remediation": "Check Anthropic availability and credentials; replay will preserve this degraded summary",
+                "affected_outputs": ["summaries"],
+            }
+        ]

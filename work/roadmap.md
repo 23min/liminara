@@ -65,11 +65,11 @@ Finish the Radar pack as a working local MVP.
 
 Tightly scoped to capabilities Radar has already proven it needs for production deployment on a single VM.
 
-- [ ] E-20 Execution Truth
+- [x] E-20 Execution Truth
   - First blocking Phase 5c slice after M-RAD-04 is finished and validated
   - [x] M-TRUTH-01 Execution spec + outcome design
   - [x] M-TRUTH-02 Core runtime contract migration
-  - [ ] M-TRUTH-03 Radar semantic cleanup
+  - [x] M-TRUTH-03 Radar semantic cleanup
 - [ ] E-19 Warnings & Degraded Outcomes
   - [ ] First-class warning/degraded-success contract for ops and runs
   - [ ] Observation + UI surfacing of cause, severity, remediation, and output impact

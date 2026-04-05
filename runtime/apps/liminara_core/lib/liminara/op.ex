@@ -59,8 +59,10 @@ defmodule Liminara.Op do
   Resolve the canonical execution spec for an op.
 
   Prefers explicit `execution_spec/0`. Legacy callbacks are derived through a
-  bounded runtime shim during M-TRUTH-02 and must not be treated as a second
-  first-class long-term contract surface.
+  bounded runtime shim and must not be treated as a second first-class
+  long-term contract surface. Radar no longer relies on this path; remaining
+  users are non-Radar/test modules and should migrate before the shim is
+  removed from core.
   """
   @spec execution_spec(module()) :: ExecutionSpec.t()
   def execution_spec(op_module) do
@@ -69,7 +71,9 @@ defmodule Liminara.Op do
     if function_exported?(op_module, :execution_spec, 0) do
       op_module.execution_spec()
     else
-      # Temporary legacy bridge. Remove in M-TRUTH-03 once pack modules stop relying on legacy callbacks.
+      # Remaining compatibility path for non-Radar/test modules that still rely
+      # on legacy callback derivation. Remove after those modules migrate to
+      # explicit execution_spec/0.
       derive_execution_spec(op_module)
     end
   end

@@ -1,6 +1,7 @@
 defmodule Liminara.Radar.Ops.ComposeBriefingTest do
   use ExUnit.Case, async: true
 
+  alias Liminara.{ExecutionContext, Op}
   alias Liminara.Radar.Ops.ComposeBriefing
 
   @sample_clusters Jason.encode!([
@@ -60,16 +61,34 @@ defmodule Liminara.Radar.Ops.ComposeBriefingTest do
                    %{"source_id" => "s3", "items_fetched" => 0, "error" => "timeout"}
                  ])
 
+  defp compose_briefing(opts \\ []) do
+    ranked_clusters = Keyword.get(opts, :ranked_clusters, @sample_clusters)
+    summaries = Keyword.get(opts, :summaries, @sample_summaries)
+    source_health = Keyword.get(opts, :source_health, @sample_health)
+    run_id = Keyword.get(opts, :run_id, "run_001")
+    date = Keyword.get(opts, :date, "2026-04-02")
+
+    ComposeBriefing.execute(
+      %{
+        "ranked_clusters" => ranked_clusters,
+        "summaries" => summaries,
+        "source_health" => source_health,
+        "date" => date
+      },
+      %ExecutionContext{
+        run_id: run_id,
+        started_at: date <> "T12:00:00Z",
+        pack_id: "radar",
+        pack_version: "0.1.0",
+        replay_of_run_id: nil,
+        topic_id: nil
+      }
+    )
+  end
+
   describe "ComposeBriefing" do
     test "assembles briefing with all expected fields" do
-      {:ok, outputs} =
-        ComposeBriefing.execute(%{
-          "ranked_clusters" => @sample_clusters,
-          "summaries" => @sample_summaries,
-          "source_health" => @sample_health,
-          "run_id" => "run_001",
-          "date" => "2026-04-02"
-        })
+      {:ok, outputs} = compose_briefing()
 
       briefing = Jason.decode!(outputs["briefing"])
 
@@ -83,14 +102,7 @@ defmodule Liminara.Radar.Ops.ComposeBriefingTest do
     end
 
     test "clusters are in ranked order" do
-      {:ok, outputs} =
-        ComposeBriefing.execute(%{
-          "ranked_clusters" => @sample_clusters,
-          "summaries" => @sample_summaries,
-          "source_health" => @sample_health,
-          "run_id" => "run_001",
-          "date" => "2026-04-02"
-        })
+      {:ok, outputs} = compose_briefing()
 
       briefing = Jason.decode!(outputs["briefing"])
       cluster_ids = Enum.map(briefing["clusters"], & &1["cluster_id"])
@@ -98,14 +110,7 @@ defmodule Liminara.Radar.Ops.ComposeBriefingTest do
     end
 
     test "items within clusters are in ranked order" do
-      {:ok, outputs} =
-        ComposeBriefing.execute(%{
-          "ranked_clusters" => @sample_clusters,
-          "summaries" => @sample_summaries,
-          "source_health" => @sample_health,
-          "run_id" => "run_001",
-          "date" => "2026-04-02"
-        })
+      {:ok, outputs} = compose_briefing()
 
       briefing = Jason.decode!(outputs["briefing"])
       first_cluster = hd(briefing["clusters"])
@@ -114,14 +119,7 @@ defmodule Liminara.Radar.Ops.ComposeBriefingTest do
     end
 
     test "summaries are attached to clusters" do
-      {:ok, outputs} =
-        ComposeBriefing.execute(%{
-          "ranked_clusters" => @sample_clusters,
-          "summaries" => @sample_summaries,
-          "source_health" => @sample_health,
-          "run_id" => "run_001",
-          "date" => "2026-04-02"
-        })
+      {:ok, outputs} = compose_briefing()
 
       briefing = Jason.decode!(outputs["briefing"])
       first = hd(briefing["clusters"])
@@ -130,14 +128,7 @@ defmodule Liminara.Radar.Ops.ComposeBriefingTest do
     end
 
     test "source health included" do
-      {:ok, outputs} =
-        ComposeBriefing.execute(%{
-          "ranked_clusters" => @sample_clusters,
-          "summaries" => @sample_summaries,
-          "source_health" => @sample_health,
-          "run_id" => "run_001",
-          "date" => "2026-04-02"
-        })
+      {:ok, outputs} = compose_briefing()
 
       briefing = Jason.decode!(outputs["briefing"])
       assert is_list(briefing["source_health"])
@@ -146,18 +137,24 @@ defmodule Liminara.Radar.Ops.ComposeBriefingTest do
 
     test "empty clusters produce valid briefing" do
       {:ok, outputs} =
-        ComposeBriefing.execute(%{
-          "ranked_clusters" => Jason.encode!([]),
-          "summaries" => Jason.encode!([]),
-          "source_health" => Jason.encode!([]),
-          "run_id" => "run_empty",
-          "date" => "2026-04-02"
-        })
+        compose_briefing(
+          ranked_clusters: Jason.encode!([]),
+          summaries: Jason.encode!([]),
+          source_health: Jason.encode!([]),
+          run_id: "run_empty"
+        )
 
       briefing = Jason.decode!(outputs["briefing"])
       assert briefing["clusters"] == []
       assert briefing["stats"]["cluster_count"] == 0
       assert briefing["stats"]["item_count"] == 0
+    end
+
+    test "uses runtime execution context for run identity" do
+      {:ok, outputs} = compose_briefing(run_id: "runtime-run-123")
+
+      briefing = Jason.decode!(outputs["briefing"])
+      assert briefing["run_id"] == "runtime-run-123"
     end
   end
 
@@ -166,8 +163,13 @@ defmodule Liminara.Radar.Ops.ComposeBriefingTest do
       assert ComposeBriefing.name() == "compose_briefing"
     end
 
-    test "determinism is pure" do
-      assert ComposeBriefing.determinism() == :pure
+    test "execution spec requires runtime execution context" do
+      spec = Op.execution_spec(ComposeBriefing)
+
+      assert spec.identity.name == "compose_briefing"
+      assert spec.determinism.class == :pure
+      assert spec.execution.entrypoint == "compose_briefing"
+      assert spec.execution.requires_execution_context == true
     end
   end
 end

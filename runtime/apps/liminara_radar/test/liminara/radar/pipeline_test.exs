@@ -6,6 +6,7 @@ defmodule Liminara.Radar.PipelineTest do
   """
   use ExUnit.Case, async: true
 
+  alias Liminara.ExecutionContext
   alias Liminara.Radar.Ops.{ComposeBriefing, RenderHtml}
 
   # Fixture: 4 items across 2 topics, pre-clustered and ranked
@@ -77,19 +78,28 @@ defmodule Liminara.Radar.PipelineTest do
     test "compose + render produces valid HTML with all expected content" do
       # Step 1: Compose briefing
       {:ok, compose_out} =
-        ComposeBriefing.execute(%{
-          "ranked_clusters" => Jason.encode!(@clusters),
-          "summaries" => Jason.encode!(@summaries),
-          "source_health" => Jason.encode!(@source_health),
-          "run_id" => "radar-20260402T120000",
-          "date" => "2026-04-02"
-        })
+        ComposeBriefing.execute(
+          %{
+            "ranked_clusters" => Jason.encode!(@clusters),
+            "summaries" => Jason.encode!(@summaries),
+            "source_health" => Jason.encode!(@source_health),
+            "date" => "2026-04-02"
+          },
+          %ExecutionContext{
+            run_id: "runtime-run-001",
+            started_at: "2026-04-02T12:00:00Z",
+            pack_id: "radar",
+            pack_version: "0.1.0",
+            replay_of_run_id: nil,
+            topic_id: nil
+          }
+        )
 
       briefing_json = compose_out["briefing"]
       briefing = Jason.decode!(briefing_json)
 
       # Verify briefing structure
-      assert briefing["run_id"] == "radar-20260402T120000"
+      assert briefing["run_id"] == "runtime-run-001"
       assert briefing["date"] == "2026-04-02"
       assert briefing["stats"]["cluster_count"] == 2
       assert briefing["stats"]["item_count"] == 4
@@ -128,7 +138,7 @@ defmodule Liminara.Radar.PipelineTest do
       assert String.contains?(html, "src_elixir")
 
       # Verify HTML contains run metadata
-      assert String.contains?(html, "radar-20260402T120000")
+      assert String.contains?(html, "runtime-run-001")
       assert String.contains?(html, "2026-04-02")
 
       # Verify self-contained (no external references)
@@ -138,13 +148,22 @@ defmodule Liminara.Radar.PipelineTest do
 
     test "empty pipeline produces valid HTML with no-items message" do
       {:ok, compose_out} =
-        ComposeBriefing.execute(%{
-          "ranked_clusters" => Jason.encode!([]),
-          "summaries" => Jason.encode!([]),
-          "source_health" => Jason.encode!([]),
-          "run_id" => "radar-empty",
-          "date" => "2026-04-02"
-        })
+        ComposeBriefing.execute(
+          %{
+            "ranked_clusters" => Jason.encode!([]),
+            "summaries" => Jason.encode!([]),
+            "source_health" => Jason.encode!([]),
+            "date" => "2026-04-02"
+          },
+          %ExecutionContext{
+            run_id: "runtime-empty",
+            started_at: "2026-04-02T12:00:00Z",
+            pack_id: "radar",
+            pack_version: "0.1.0",
+            replay_of_run_id: nil,
+            topic_id: nil
+          }
+        )
 
       {:ok, render_out} = RenderHtml.execute(%{"briefing" => compose_out["briefing"]})
 
