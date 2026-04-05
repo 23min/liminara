@@ -1,23 +1,40 @@
 ---
 id: M-RAD-05-serendipity
-epic: E-11-radar
+epic: E-11b-radar-serendipity
 status: not started
-depends_on: M-RAD-03-cluster-rank-render
+depends_on: E-16-dynamic-dags
 ---
 
 # M-RAD-05: Serendipity Exploration
 
+## Deferred Status
+
+This milestone is intentionally deferred, not abandoned.
+
+- Epic home: `E-11b Radar Serendipity`
+- Deferral reason: D-2026-04-02-020 moved serendipity after VSME because it depends on dynamic DAG support (`E-16`).
+- Core Radar prerequisite: E-11 is complete and provides the ranked-item pipeline that serendipity extends.
+- Implementation intent to preserve: select the most novel items, explore related coverage and counterpoints, follow outbound links, merge relevant discoveries back into the briefing, and recommend promising new permanent sources for human review.
+
 ## Goal
 
-Add automated discovery to the Radar pipeline: for the most novel items, explore the web for related stories, follow links, find counter-narratives, and evaluate newly discovered sources. Every judgment is a recorded decision, making exploration fully replayable. After this milestone, Radar doesn't just report — it discovers.
+Add automated discovery to the Radar pipeline: for the most novel items, explore the web for related stories, follow links, find counter-narratives, and evaluate newly discovered sources. Every judgment is a recorded decision, making exploration fully replayable. After this milestone, Radar doesn't just report - it discovers.
 
 ## Context
 
-This is an enhancement milestone. The core pipeline (M-RAD-01 through M-RAD-04) already produces useful briefings from configured sources. Serendipity adds a layer of automated curiosity on top: it takes the most interesting items and explores further.
+This is an enhancement milestone. The core pipeline (M-RAD-01 through M-RAD-04) already produces useful briefings from configured sources. M-RAD-06 later closed the replay correctness gaps in that core path. Serendipity adds a layer of automated curiosity on top: it takes the most interesting items and explores further.
 
 This is the feature that differentiates Radar from an RSS reader. It also validates Liminara's decision recording for multi-step LLM-driven exploration.
 
-Depends on M-RAD-03 (not M-RAD-04) — the exploration integrates into the pipeline before clustering, not into the UI.
+Functional dependency remains the ranked-item pipeline introduced in M-RAD-03, but the execution-sequencing dependency is now `E-16 Dynamic DAGs`, which is why this milestone lives in `E-11b` rather than the closed `E-11` epic.
+
+## What Must Not Be Lost
+
+- Exploration is selective, not broad crawling: it starts from top novel items and outliers only.
+- Query generation, relevance judgments, counterpoint selection, and source-evaluation calls are recorded decisions.
+- Exploration is budget-capped and allowed to stop gracefully with partial results.
+- Discovered items merge back into the main briefing pipeline before clustering.
+- New-source discovery is advisory only: the system recommends candidate sources, but a human still curates the permanent watchlist.
 
 ## Acceptance Criteria
 
@@ -59,7 +76,7 @@ Depends on M-RAD-03 (not M-RAD-04) — the exploration integrates into the pipel
    - For each newly discovered URL domain that isn't in the source config:
    - Haiku evaluates: "Is this a source worth adding to the permanent watchlist?"
    - Returns: `{recommended_sources: [{url, domain, rationale}], decisions}`
-   - Recommendations are informational — human reviews and adds to config manually
+   - Recommendations are informational - human reviews and adds to config manually
 
 7. **Budget enforcement:**
    - Total Tavily API calls per run capped (configurable, default 15)
@@ -80,41 +97,41 @@ Depends on M-RAD-03 (not M-RAD-04) — the exploration integrates into the pipel
 ## Tests
 
 ### SelectForExploration tests (Elixir)
-- 20 items with varying novelty → top 3 selected
-- Budget cap of 2 → only 2 selected even if 3 qualify
-- All items equal novelty → stable selection (deterministic)
-- Empty input → empty selection
+- 20 items with varying novelty -> top 3 selected
+- Budget cap of 2 -> only 2 selected even if 3 qualify
+- All items equal novelty -> stable selection (deterministic)
+- Empty input -> empty selection
 
-### ExploreWeb tests (Python — pytest)
-- Mock Haiku → generates search queries
-- Mock Tavily → returns search results
+### ExploreWeb tests (Python - pytest)
+- Mock Haiku -> generates search queries
+- Mock Tavily -> returns search results
 - Queries and rationale recorded as decisions
 - Replay: uses recorded queries, still calls Tavily (search results are side-effecting)
 
-### FollowLinks tests (Python — pytest)
-- Mock HTTP → fetches and extracts text from links
-- Broken link → skipped, logged
-- No outbound links → empty result
+### FollowLinks tests (Python - pytest)
+- Mock HTTP -> fetches and extracts text from links
+- Broken link -> skipped, logged
+- No outbound links -> empty result
 
-### FindCounterpoint tests (Python — pytest)
-- Mock Haiku → generates counterpoint query
-- Mock Tavily → returns counter-narrative results
+### FindCounterpoint tests (Python - pytest)
+- Mock Haiku -> generates counterpoint query
+- Mock Tavily -> returns counter-narrative results
 - Decision recorded with rationale
 
-### EvaluateDiscoveries tests (Python — pytest)
-- Discovered items with high relevance → kept
-- Discovered items with low relevance → rejected
-- Ambiguous items → Haiku judgment recorded
-- Empty discoveries → empty result
+### EvaluateDiscoveries tests (Python - pytest)
+- Discovered items with high relevance -> kept
+- Discovered items with low relevance -> rejected
+- Ambiguous items -> Haiku judgment recorded
+- Empty discoveries -> empty result
 
-### EvaluateNewSources tests (Python — pytest)
-- New domain found → Haiku evaluates, returns recommendation
-- Known domain (in source config) → skipped
-- Multiple items from same new domain → evaluated once
+### EvaluateNewSources tests (Python - pytest)
+- New domain found -> Haiku evaluates, returns recommendation
+- Known domain (in source config) -> skipped
+- Multiple items from same new domain -> evaluated once
 
 ### Budget tests
-- Set budget to 5 Tavily calls → exploration stops after 5
-- Set budget to 0 → no exploration at all
+- Set budget to 5 Tavily calls -> exploration stops after 5
+- Set budget to 0 -> no exploration at all
 - Verify cost tracking artifact includes exploration costs
 
 ### Integration test
@@ -154,9 +171,9 @@ class SearchProvider(Protocol):
 ### Exploration DAG (per explored item)
 
 ```
-selected_item → explore_web → evaluate_discoveries
-              → follow_links → evaluate_discoveries
-              → find_counterpoint → evaluate_discoveries
+selected_item -> explore_web -> evaluate_discoveries
+              -> follow_links -> evaluate_discoveries
+              -> find_counterpoint -> evaluate_discoveries
                                           ↓
                                   evaluate_new_sources
 ```
@@ -210,7 +227,8 @@ Respond in JSON: {"recommend": true/false, "rationale": "..."}
 
 ## Dependencies
 
-- M-RAD-03 (pipeline producing ranked items with embeddings)
+- E-11 core Radar pipeline
+- E-16 Dynamic DAGs
 - `TAVILY_API_KEY` env var
 - `ANTHROPIC_API_KEY` env var
 - Python package: `tavily-python`

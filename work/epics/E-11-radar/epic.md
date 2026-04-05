@@ -1,7 +1,7 @@
 ---
 id: E-11-radar
 phase: 5
-status: not started
+status: complete
 depends_on: E-10-port-executor
 ---
 
@@ -19,13 +19,19 @@ Sources span AI/LLM orchestration, Elixir/BEAM ecosystem, EU sustainability/comp
 
 Radar is designed for daily use by the project owner as a real intelligence tool, not a demo. It should produce genuinely useful briefings from day one.
 
+## Current Status
+
+- Core Radar Pack delivery is complete: M-RAD-01 through M-RAD-04 shipped the pack, fetch pipeline, extract/embed/dedup flow, clustering/ranking/rendering, web UI, and scheduler.
+- Replay correctness follow-on M-RAD-06 is also complete and closes the replay/run-id gaps referenced in older Radar tracking notes.
+- Serendipity exploration is not part of the completed E-11 scope. It now lives in its own deferred follow-on epic, `E-11b Radar Serendipity`, until dynamic DAG support lands.
+
 ## Scope
 
 ### In Scope
 
 - Radar Pack module implementing `Liminara.Pack` behaviour (`id/version/ops/plan`)
 - Source configuration: ~50 sources with enabled flag, tags, type (rss/api/web), health tracking
-- Python ops via :port: RSS/HTTP fetch (feedparser + httpx), text extraction (trafilatura), embedding (API), vector dedup (LanceDB), LLM calls (Anthropic Haiku)
+- Python ops via :port: RSS/HTTP fetch (feedparser + httpx), text extraction (trafilatura), embedding (local model2vec), vector dedup (LanceDB), LLM calls (Anthropic Haiku)
 - Dedup strategy: vector similarity against LanceDB history (>0.92 skip, <0.7 keep, 0.7-0.92 LLM check as recordable decision)
 - Clustering by topic (embedding-based), ranking by novelty
 - LLM cluster summaries (recordable decisions via Haiku)
@@ -33,8 +39,7 @@ Radar is designed for daily use by the project owner as a real intelligence tool
 - LiveView briefing page (`/radar/briefings/:run_id`)
 - GenServer scheduler (configurable daily trigger, OTP-supervised)
 - Source health tracking: per-source contribution metrics, cull recommendations
-- Serendipity exploration (enhancement milestone): web search, link following, counterpoint, source evaluation
-- Swappable providers: embedding (TBD, decide during M-RAD-02), search (Tavily primary)
+- Replay-correct execution with recorded decisions and stable briefing reproduction (M-RAD-06)
 
 ### Out of Scope
 
@@ -45,54 +50,55 @@ Radar is designed for daily use by the project owner as a real intelligence tool
 - Deployment to production server (future — runs locally/devcontainer)
 - Custom ML models or fine-tuning
 - Source discovery automation (manual curation for v1)
+- Serendipity exploration / discovery expansion (moved to E-11b Radar Serendipity after dynamic DAG support)
 
 ## Constraints
 
 - Depends on E-10 (Port Executor) for Python op execution
 - LLM provider: Anthropic (Haiku for extraction/dedup/summaries) — user has API key
-- Embedding provider: TBD — decide during M-RAD-02 (no OpenAI key; evaluate Voyage AI, Jina, Google Gemini, or Cohere)
-- Search provider: Tavily (1,000 free queries/month, no CC required, AI-agent optimized)
-- No local compute for embeddings — must use API-based provider
+- Embedding provider: local model2vec selected in M-RAD-02 (no paid embedding API on the current path)
 - Python dependencies managed via `uv` (runtime/python/)
 - All LLM and search calls must be recordable decisions (replayable)
-- Budget awareness: target <$1/day for API costs at 50 sources
+- Budget awareness: current E-11 cost is dominated by Haiku calls and stays within the original <$1/day target
 
 ## Success Criteria
 
-- [ ] `mix radar.run` executes the full pipeline: fetch → extract → embed → dedup → cluster → rank → summarize → render
-- [ ] Briefing is viewable at `/radar/briefings/:run_id` in the existing web UI
-- [ ] Every LLM judgment (dedup check, cluster summary) is recorded as a decision
-- [ ] Replaying a run with recorded decisions produces the same briefing (no LLM calls)
-- [ ] Dedup correctly identifies duplicate stories across sources (>0.92 similarity → skip)
-- [ ] Source health is tracked: which sources contribute items, which are stale/empty
-- [ ] GenServer scheduler triggers runs on a configurable daily schedule
-- [ ] The pipeline handles source failures gracefully (one broken RSS feed doesn't block the run)
-- [ ] Serendipity exploration (M-RAD-05) discovers relevant content via web search with budget cap
+- [x] `mix radar.run` executes the full pipeline: fetch -> extract -> embed -> dedup -> cluster -> rank -> summarize -> render
+- [x] Briefing is viewable at `/radar/briefings/:run_id` in the existing web UI
+- [x] Every LLM judgment (dedup check, cluster summary) is recorded as a decision
+- [x] Replaying a run with recorded decisions produces the same briefing (no LLM calls)
+- [x] Dedup correctly identifies duplicate stories across sources (>0.92 similarity -> skip)
+- [x] Source health is tracked: which sources contribute items, which are stale/empty
+- [x] GenServer scheduler triggers runs on a configurable daily schedule
+- [x] The pipeline handles source failures gracefully (one broken RSS feed doesn't block the run)
+
+Deferred follow-on: M-RAD-05 serendipity now lives in `work/epics/E-11b-radar-serendipity/` and is not required for E-11 completion.
 
 ## Risks & Open Questions
 
+Most of the original E-11 delivery risks were resolved during implementation. The remaining notes below are retained as core Radar delivery context.
+
 | Risk / Question | Impact | Mitigation |
 |----------------|--------|------------|
-| Embedding provider availability/pricing | High | TBD during M-RAD-02. Multiple options (Voyage, Jina, Gemini, Cohere). Provider is swappable. |
+| Embedding provider availability/pricing | Resolved | M-RAD-02 selected local model2vec, removing paid embedding API dependency from the current path. |
 | LanceDB maturity for production use | Med | Embedded, no server needed. If issues arise, swap for simple JSON + numpy cosine similarity. |
 | Source RSS feeds breaking/changing | Med | Per-source error handling, health tracking, graceful degradation. Broken source = warning, not failure. |
 | Haiku quality for cluster summarization | Med | Test during M-RAD-03. Can upgrade to Sonnet for summaries if Haiku is insufficient. Cost impact is small. |
-| API cost creep with 50 sources daily | Low | Budget tracking per run. Embeddings are the main cost — estimate during M-RAD-02 provider selection. |
-| Tavily free tier changes | Low | Search provider is swappable. Brave and Serper are fallbacks. |
+| API cost creep with 50 sources daily | Low | Budget tracking per run. Local embeddings removed the largest variable cost; current spend is mainly Haiku usage. |
 
 ## Milestones
 
 | ID | Title | Summary | Depends on | Status |
 |----|-------|---------|------------|--------|
-| M-RAD-01 | Pack + source config + fetch | Radar Pack module, source config (~50 sources), RSS/HTTP fetch ops via :port, raw response artifacts, source health tracking | E-10 | not started |
-| M-RAD-02 | Extract + embed + dedup | Normalize (trafilatura), embed (API, provider TBD), LanceDB vector store, dedup pipeline, ambiguous-zone LLM check (recordable) | M-RAD-01 | not started |
-| M-RAD-03 | Cluster + rank + render | Cluster by embeddings, rank by novelty, Haiku summaries per cluster (recordable), compose briefing, render HTML artifact | M-RAD-02 | not started |
-| M-RAD-04 | Web UI + scheduler | LiveView briefing page, observation UI integration, GenServer scheduler, source health dashboard | M-RAD-03 | not started |
-| M-RAD-05 | Serendipity exploration | Web search (Tavily), follow links, counterpoint search, source evaluation. All recordable. Budget cap. *(Enhancement)* | M-RAD-03 | not started |
+| M-RAD-01 | Pack + source config + fetch | Radar Pack module, source config (~50 sources), RSS/HTTP fetch ops via :port, raw response artifacts, source health tracking | E-10 | complete |
+| M-RAD-02 | Extract + embed + dedup | Normalize (trafilatura), local model2vec embeddings, LanceDB vector store, dedup pipeline, ambiguous-zone LLM check (recordable) | M-RAD-01 | complete |
+| M-RAD-03 | Cluster + rank + render | Cluster by embeddings, rank by novelty, Haiku summaries per cluster (recordable), compose briefing, render HTML artifact | M-RAD-02 | complete |
+| M-RAD-04 | Web UI + scheduler | LiveView briefing page, observation UI integration, GenServer scheduler, source health dashboard | M-RAD-03 | complete |
+| M-RAD-06 | Replay correctness | Replay-safe artifact identity, deterministic briefings, environment recording, and truth-model cleanup for Radar runs | M-RAD-04 | complete |
 
 ## DAG Structure
 
-### Core Pipeline (M-RAD-01 through M-RAD-04)
+### Core Pipeline (completed E-11 plus M-RAD-06 correctness follow-on)
 
 ```
 init_config
@@ -123,23 +129,6 @@ init_config
       render_html
 ```
 
-### With Serendipity (M-RAD-05)
-
-```
-    rank_novel
-        │
-   ┌────┼────┐
-   │    │    │
-explore_1 explore_2 explore_3  [recordable]
-follow_1  counter_2 follow_3   [recordable/side_effecting]
-   │    │    │
-   └── evaluate_all ──┘        [recordable]
-        │
-   evaluate_new_sources        [recordable]
-        │
-   cluster_all  (merges known + discovered items)
-```
-
 ## Dedup Strategy
 
 ```
@@ -163,23 +152,27 @@ Each run produces a source health artifact:
 
 Sources with sustained zero contribution are flagged for review. Manual cull via config edit.
 
-## Cost Estimate
+## Cost Notes
 
-| Component | Per run (50 sources) | Monthly (daily) |
-|-----------|---------------------|-----------------|
+The original planning estimate assumed paid embedding APIs. Current implemented scope is cheaper and narrower:
+
+| Component | Current E-11 run | Monthly (daily) |
+|-----------|------------------|-----------------|
 | HTTP fetching | ~free | ~free |
 | Text extraction | ~free (local trafilatura) | ~free |
-| Embeddings (API) | ~$0.01-0.05 | ~$0.30-1.50 |
-| Dedup LLM checks (Haiku, ambiguous only) | ~$0.02 | ~$0.60 |
-| Cluster summarization (Haiku) | ~$0.05 | ~$1.50 |
-| Serendipity search (Tavily free tier) | $0 | $0 |
-| **Total per run** | **~$0.08-0.12** | **~$2.40-3.60** |
+| Embeddings (local model2vec) | ~free | ~free |
+| Dedup LLM checks (Haiku, ambiguous only) | small, volume-dependent | small, volume-dependent |
+| Cluster summarization (Haiku) | small, volume-dependent | small, volume-dependent |
+| **Total current run cost** | **dominated by Haiku usage** | **well below the original <$1/day target in normal operation** |
 
 ## References
 
 - Design plan: `docs/analysis/15_Radar_Pack_Plan.md`
+- Live sequencing truth: `work/roadmap.md`
+- Follow-on epic: `work/epics/E-11b-radar-serendipity/epic.md`
 - Source list: `work/epics/E-11-radar/sources.md`
 - Decision D-2026-04-01-003: Python ops via :port
 - Decision D-2026-04-01-004: Radar before compliance packs
+- Decision D-020: dynamic DAGs and serendipity deferment after VSME
 - Pack behaviour: `runtime/apps/liminara_core/lib/liminara/pack.ex`
 - Executor: `runtime/apps/liminara_core/lib/liminara/executor.ex`

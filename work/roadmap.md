@@ -123,7 +123,7 @@ Promote only cross-pack-proven concerns into reusable runtime abstractions. Item
   - [ ] Inspect intermediate artifacts and decisions at any point in the run
   - [ ] Visual diff between runs (same plan, different decisions)
 - [ ] E-11b Radar Serendipity (depends on E-16 dynamic DAGs)
-  - [ ] M-RAD-05 Serendipity exploration (Tavily, enhancement)
+  - [ ] M-RAD-05 Serendipity exploration: select novel/outlier items, search related coverage and counterpoints, follow links, merge relevant discoveries before clustering, and recommend new sources for human review
 
 ## Phase 8: House Compiler — Not started [directional thesis]
 

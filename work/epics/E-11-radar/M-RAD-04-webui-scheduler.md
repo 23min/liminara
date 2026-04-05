@@ -144,7 +144,7 @@ Source health per run is stored as an artifact by M-RAD-01's CollectItems op. Th
 - Historical trend charts (source health over time)
 - Oban integration (Phase 6)
 - Authentication / multi-user
-- Serendipity (M-RAD-05)
+- Serendipity (M-RAD-05, now tracked under E-11b Radar Serendipity)
 
 ## Dependencies
 

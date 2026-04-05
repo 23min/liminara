@@ -169,7 +169,7 @@ Use pre-computed embeddings in test fixtures to avoid API calls. The embedding p
 - Clustering and ranking (M-RAD-03)
 - Briefing composition
 - Web UI
-- Serendipity exploration
+- Serendipity exploration (M-RAD-05, now tracked under E-11b Radar Serendipity)
 - Source health dashboard (basic health is M-RAD-01; dashboard is M-RAD-04)
 
 ## Dependencies

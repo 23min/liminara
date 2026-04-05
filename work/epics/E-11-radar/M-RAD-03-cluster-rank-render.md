@@ -154,7 +154,7 @@ At ~50 sources, expect 5-15 clusters per run:
 
 - Web UI for viewing briefings (M-RAD-04 — HTML artifact is viewable via file:// or artifact viewer)
 - Scheduling (M-RAD-04)
-- Serendipity exploration (M-RAD-05)
+- Serendipity exploration (M-RAD-05, now tracked under E-11b Radar Serendipity)
 - Email/Slack delivery
 - Interactive briefing (click-to-expand, search within briefing)
 
