@@ -161,7 +161,6 @@ defmodule LiminaraWeb.RunsLive.Index do
       {:ok, names} ->
         names
         |> Enum.map(&List.to_string/1)
-        |> Enum.reject(&test_run?/1)
         |> Enum.map(fn name ->
           path = Path.join([runs_root, name, "events.jsonl"])
           {name, events_mtime(path)}
@@ -187,16 +186,17 @@ defmodule LiminaraWeb.RunsLive.Index do
 
       {first_line, last_line} ->
         first = Jason.decode!(first_line)
+        pack_id = get_in(first, ["payload", "pack_id"]) || "unknown"
 
         # Only show runs that begin with run_started — skip test artifacts
-        if first["event_type"] != "run_started" do
+        if first["event_type"] != "run_started" or not real_run?(run_id, pack_id) do
           nil
         else
           last = if last_line == first_line, do: first, else: Jason.decode!(last_line)
 
           %{
             run_id: run_id,
-            pack_id: get_in(first, ["payload", "pack_id"]) || "unknown",
+            pack_id: pack_id,
             status: event_type_to_status(last["event_type"]),
             started_at: first["timestamp"]
           }
@@ -245,7 +245,8 @@ defmodule LiminaraWeb.RunsLive.Index do
   # A run is considered "real" if its pack_id isn't "anonymous", or its ID
   # starts with a known prefix. This avoids maintaining a blocklist of test prefixes.
   @real_prefixes ~w(demo- run- radar- report- house- factory- software-)
-  defp test_run?(run_id) do
-    not Enum.any?(@real_prefixes, &String.starts_with?(run_id, &1))
+
+  defp real_run?(run_id, pack_id) do
+    pack_id != "anonymous" or Enum.any?(@real_prefixes, &String.starts_with?(run_id, &1))
   end
 end

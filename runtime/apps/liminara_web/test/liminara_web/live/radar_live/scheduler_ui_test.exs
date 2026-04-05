@@ -5,7 +5,12 @@ defmodule LiminaraWeb.RadarLive.SchedulerUITest do
 
   describe "scheduler status on briefings page" do
     test "shows scheduler status when scheduler is running", %{conn: conn} do
-      {:ok, pid} = Scheduler.start_link(daily_at: ~T[06:00:00], run_fn: fn -> :ok end, name: :test_scheduler_ui)
+      {:ok, pid} =
+        Scheduler.start_link(
+          daily_at: ~T[06:00:00],
+          run_fn: fn -> :ok end,
+          name: :test_scheduler_ui
+        )
 
       Application.put_env(:liminara_radar, :scheduler_pid, pid)
 
@@ -19,7 +24,12 @@ defmodule LiminaraWeb.RadarLive.SchedulerUITest do
     end
 
     test "shows run now button", %{conn: conn} do
-      {:ok, pid} = Scheduler.start_link(daily_at: ~T[06:00:00], run_fn: fn -> :ok end, name: :test_scheduler_btn)
+      {:ok, pid} =
+        Scheduler.start_link(
+          daily_at: ~T[06:00:00],
+          run_fn: fn -> :ok end,
+          name: :test_scheduler_btn
+        )
 
       Application.put_env(:liminara_radar, :scheduler_pid, pid)
 

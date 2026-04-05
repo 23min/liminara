@@ -60,7 +60,10 @@ defmodule LiminaraWeb.RadarLive.BriefingShow do
         </div>
 
         <div style="margin-bottom:16px;">
-          <a href={"/runs/#{@run_id}"} style="font-size:11px; color:var(--dm-muted); text-decoration:none; letter-spacing:0.04em;">
+          <a
+            href={"/runs/#{@run_id}"}
+            style="font-size:11px; color:var(--dm-muted); text-decoration:none; letter-spacing:0.04em;"
+          >
             View full run details &rarr;
           </a>
         </div>
@@ -119,7 +122,9 @@ defmodule LiminaraWeb.RadarLive.BriefingShow do
         first = List.first(events)
         last = List.last(events)
 
-        briefing_json = get_artifact(runs_root, store_root, run_id, "compose_briefing", "briefing")
+        briefing_json =
+          get_artifact(runs_root, store_root, run_id, "compose_briefing", "briefing")
+
         html_content = get_artifact(runs_root, store_root, run_id, "render_html", "html")
 
         briefing = if briefing_json, do: Jason.decode!(briefing_json), else: nil

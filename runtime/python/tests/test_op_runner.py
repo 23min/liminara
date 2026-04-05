@@ -10,7 +10,7 @@ import pytest
 # Add src/ to path so we can import the runner
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from liminara_op_runner import dispatch, handle_request, read_message, write_message
+from liminara_op_runner import dispatch, handle_request
 
 
 def frame(obj: dict) -> bytes:

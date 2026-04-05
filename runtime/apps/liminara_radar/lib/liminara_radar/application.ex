@@ -19,7 +19,10 @@ defmodule LiminaraRadar.Application do
     if Keyword.get(config, :enabled, false) do
       daily_at = Keyword.get(config, :daily_at, ~T[06:00:00])
 
-      [{Liminara.Radar.Scheduler, daily_at: daily_at, run_fn: &run_radar/0, name: Liminara.Radar.Scheduler}]
+      [
+        {Liminara.Radar.Scheduler,
+         daily_at: daily_at, run_fn: &run_radar/0, name: Liminara.Radar.Scheduler}
+      ]
     else
       []
     end

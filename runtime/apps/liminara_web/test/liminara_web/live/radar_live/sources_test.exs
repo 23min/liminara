@@ -20,9 +20,17 @@ defmodule LiminaraWeb.RadarLive.SourcesTest do
     Application.put_env(:liminara_radar, :sources_path, sources_path)
 
     on_exit(fn ->
-      if prev_store, do: Application.put_env(:liminara_core, :store_root, prev_store), else: Application.delete_env(:liminara_core, :store_root)
-      if prev_runs, do: Application.put_env(:liminara_core, :runs_root, prev_runs), else: Application.delete_env(:liminara_core, :runs_root)
-      if prev_sources, do: Application.put_env(:liminara_radar, :sources_path, prev_sources), else: Application.delete_env(:liminara_radar, :sources_path)
+      if prev_store,
+        do: Application.put_env(:liminara_core, :store_root, prev_store),
+        else: Application.delete_env(:liminara_core, :store_root)
+
+      if prev_runs,
+        do: Application.put_env(:liminara_core, :runs_root, prev_runs),
+        else: Application.delete_env(:liminara_core, :runs_root)
+
+      if prev_sources,
+        do: Application.put_env(:liminara_radar, :sources_path, prev_sources),
+        else: Application.delete_env(:liminara_radar, :sources_path)
     end)
 
     %{store_root: store_root, runs_root: runs_root, sources_path: sources_path}
@@ -35,11 +43,17 @@ defmodule LiminaraWeb.RadarLive.SourcesTest do
 
   defp create_run_with_health(runs_root, store_root, run_id, source_health) do
     {:ok, ev1} =
-      Event.Store.append(runs_root, run_id, "run_started", %{
-        "pack_id" => "radar",
-        "pack_version" => "0.1.0",
-        "plan_hash" => "sha256:fake"
-      }, nil)
+      Event.Store.append(
+        runs_root,
+        run_id,
+        "run_started",
+        %{
+          "pack_id" => "radar",
+          "pack_version" => "0.1.0",
+          "plan_hash" => "sha256:fake"
+        },
+        nil
+      )
 
     health_json = Jason.encode!(source_health)
     {:ok, health_hash} = Artifact.Store.put(store_root, health_json)
@@ -51,20 +65,38 @@ defmodule LiminaraWeb.RadarLive.SourcesTest do
     })
 
     {:ok, ev2} =
-      Event.Store.append(runs_root, run_id, "op_completed", %{
-        "node_id" => "collect_items",
-        "output_hashes" => [health_hash, "sha256:fake"]
-      }, ev1.event_hash)
+      Event.Store.append(
+        runs_root,
+        run_id,
+        "op_completed",
+        %{
+          "node_id" => "collect_items",
+          "output_hashes" => [health_hash, "sha256:fake"]
+        },
+        ev1.event_hash
+      )
 
-    Event.Store.append(runs_root, run_id, "run_completed", %{
-      "outcome" => "success"
-    }, ev2.event_hash)
+    Event.Store.append(
+      runs_root,
+      run_id,
+      "run_completed",
+      %{
+        "outcome" => "success"
+      },
+      ev2.event_hash
+    )
   end
 
   describe "sources dashboard" do
     test "renders the page", %{conn: conn, sources_path: sources_path} do
       write_sources(sources_path, [
-        %{"id" => "hn", "name" => "Hacker News", "type" => "web", "tags" => ["news"], "enabled" => true}
+        %{
+          "id" => "hn",
+          "name" => "Hacker News",
+          "type" => "web",
+          "tags" => ["news"],
+          "enabled" => true
+        }
       ])
 
       {:ok, _view, html} = live(conn, "/radar/sources")
@@ -73,9 +105,27 @@ defmodule LiminaraWeb.RadarLive.SourcesTest do
 
     test "shows all configured sources", %{conn: conn, sources_path: sources_path} do
       write_sources(sources_path, [
-        %{"id" => "hn", "name" => "Hacker News", "type" => "web", "tags" => ["news"], "enabled" => true},
-        %{"id" => "arxiv", "name" => "ArXiv", "type" => "rss", "tags" => ["research"], "enabled" => true},
-        %{"id" => "old_blog", "name" => "Old Blog", "type" => "rss", "tags" => ["tech"], "enabled" => false}
+        %{
+          "id" => "hn",
+          "name" => "Hacker News",
+          "type" => "web",
+          "tags" => ["news"],
+          "enabled" => true
+        },
+        %{
+          "id" => "arxiv",
+          "name" => "ArXiv",
+          "type" => "rss",
+          "tags" => ["research"],
+          "enabled" => true
+        },
+        %{
+          "id" => "old_blog",
+          "name" => "Old Blog",
+          "type" => "rss",
+          "tags" => ["tech"],
+          "enabled" => false
+        }
       ])
 
       {:ok, _view, html} = live(conn, "/radar/sources")
@@ -86,7 +136,13 @@ defmodule LiminaraWeb.RadarLive.SourcesTest do
 
     test "shows source type and tags", %{conn: conn, sources_path: sources_path} do
       write_sources(sources_path, [
-        %{"id" => "hn", "name" => "Hacker News", "type" => "web", "tags" => ["news", "tech"], "enabled" => true}
+        %{
+          "id" => "hn",
+          "name" => "Hacker News",
+          "type" => "web",
+          "tags" => ["news", "tech"],
+          "enabled" => true
+        }
       ])
 
       {:ok, _view, html} = live(conn, "/radar/sources")
@@ -96,8 +152,20 @@ defmodule LiminaraWeb.RadarLive.SourcesTest do
 
     test "shows enabled/disabled status", %{conn: conn, sources_path: sources_path} do
       write_sources(sources_path, [
-        %{"id" => "hn", "name" => "Hacker News", "type" => "web", "tags" => ["news"], "enabled" => true},
-        %{"id" => "old", "name" => "Old Feed", "type" => "rss", "tags" => ["tech"], "enabled" => false}
+        %{
+          "id" => "hn",
+          "name" => "Hacker News",
+          "type" => "web",
+          "tags" => ["news"],
+          "enabled" => true
+        },
+        %{
+          "id" => "old",
+          "name" => "Old Feed",
+          "type" => "rss",
+          "tags" => ["tech"],
+          "enabled" => false
+        }
       ])
 
       {:ok, _view, html} = live(conn, "/radar/sources")
@@ -112,7 +180,13 @@ defmodule LiminaraWeb.RadarLive.SourcesTest do
       store_root: store_root
     } do
       write_sources(sources_path, [
-        %{"id" => "hn", "name" => "Hacker News", "type" => "web", "tags" => ["news"], "enabled" => true}
+        %{
+          "id" => "hn",
+          "name" => "Hacker News",
+          "type" => "web",
+          "tags" => ["news"],
+          "enabled" => true
+        }
       ])
 
       create_run_with_health(runs_root, store_root, "radar-20260403T060000-src00000", [
@@ -130,7 +204,13 @@ defmodule LiminaraWeb.RadarLive.SourcesTest do
       store_root: store_root
     } do
       write_sources(sources_path, [
-        %{"id" => "dead", "name" => "Dead Feed", "type" => "rss", "tags" => ["tech"], "enabled" => true}
+        %{
+          "id" => "dead",
+          "name" => "Dead Feed",
+          "type" => "rss",
+          "tags" => ["tech"],
+          "enabled" => true
+        }
       ])
 
       # Create 7+ runs with zero items for this source
@@ -148,7 +228,13 @@ defmodule LiminaraWeb.RadarLive.SourcesTest do
 
     test "toggle enabled/disabled", %{conn: conn, sources_path: sources_path} do
       write_sources(sources_path, [
-        %{"id" => "hn", "name" => "Hacker News", "type" => "web", "tags" => ["news"], "enabled" => true}
+        %{
+          "id" => "hn",
+          "name" => "Hacker News",
+          "type" => "web",
+          "tags" => ["news"],
+          "enabled" => true
+        }
       ])
 
       {:ok, view, _html} = live(conn, "/radar/sources")

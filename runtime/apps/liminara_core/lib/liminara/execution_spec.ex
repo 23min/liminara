@@ -44,6 +44,8 @@ defmodule Liminara.ExecutionSpec do
 
   defstruct [:identity, :determinism, :execution, :isolation, :contracts]
 
+  @type t :: %__MODULE__{}
+
   @doc """
   Build an ExecutionSpec with canonical section defaults.
   """

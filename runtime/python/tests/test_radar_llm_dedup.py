@@ -6,8 +6,6 @@ import sys
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from ops.radar_llm_dedup import execute as llm_dedup_execute
@@ -105,7 +103,9 @@ class TestLlmDedupCheck:
     @patch("ops.radar_llm_dedup.anthropic")
     def test_different_verdict_keeps_item(self, mock_anthropic):
         mock_response = MagicMock()
-        mock_response.content = [MagicMock(text='{"verdict": "different", "rationale": "Different angle"}')]
+        mock_response.content = [
+            MagicMock(text='{"verdict": "different", "rationale": "Different angle"}')
+        ]
         mock_anthropic.Anthropic.return_value.messages.create.return_value = mock_response
 
         items = [make_ambiguous_item("a1")]
@@ -121,7 +121,13 @@ class TestLlmDedupCheck:
         mock_response.content = [MagicMock(text='{"verdict": "same", "rationale": "Duplicate"}')]
         mock_anthropic.Anthropic.return_value.messages.create.return_value = mock_response
 
-        items = [make_ambiguous_item("a1", title="Breaking News", match_title="Breaking News Update")]
+        items = [
+            make_ambiguous_item(
+                "a1",
+                title="Breaking News",
+                match_title="Breaking News Update",
+            )
+        ]
         result = llm_dedup_execute({"items": json.dumps(items)})
 
         assert "decisions" in result
@@ -151,7 +157,10 @@ class TestLlmDedupCheck:
                 "severity": "degraded",
                 "summary": "Keeping ambiguous items after an LLM dedup error",
                 "cause": "API timeout",
-                "remediation": "Check Anthropic availability and credentials; replay will preserve this degraded keep decision",
+                "remediation": (
+                    "Check Anthropic availability and credentials; "
+                    "replay will preserve this degraded keep decision"
+                ),
                 "affected_outputs": ["items"],
             }
         ]

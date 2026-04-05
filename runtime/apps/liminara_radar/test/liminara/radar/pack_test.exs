@@ -34,7 +34,7 @@ defmodule Liminara.Radar.PackTest do
     test "ops returns a list of modules" do
       ops = Radar.ops()
       assert is_list(ops)
-      assert length(ops) > 0
+      refute Enum.empty?(ops)
       assert Enum.all?(ops, &is_atom/1)
     end
   end

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import importlib
 from typing import Protocol
 
 
@@ -15,12 +16,14 @@ def get_provider(provider_name: str, **kwargs) -> EmbeddingProvider:
     """Factory: instantiate an embedding provider by name."""
     if provider_name == "mock":
         from providers.embedding_mock import MockEmbeddingProvider
+
         return MockEmbeddingProvider(**kwargs)
     elif provider_name == "model2vec":
         from providers.embedding_model2vec import Model2VecEmbeddingProvider
+
         return Model2VecEmbeddingProvider(**kwargs)
     elif provider_name == "voyage":
-        from providers.embedding_voyage import VoyageEmbeddingProvider
-        return VoyageEmbeddingProvider(**kwargs)
+        provider_module = importlib.import_module("providers.embedding_voyage")
+        return provider_module.VoyageEmbeddingProvider(**kwargs)
     else:
         raise ValueError(f"Unknown embedding provider: {provider_name}")

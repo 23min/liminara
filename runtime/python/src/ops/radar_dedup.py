@@ -7,7 +7,6 @@ import lancedb
 import numpy as np
 import pyarrow as pa
 
-
 # Thresholds depend on embedding model. model2vec (potion-base-8M) uses lower
 # values than transformer models. These are configurable via inputs.
 DEFAULT_DUP_THRESHOLD = 0.55
@@ -25,15 +24,17 @@ def _get_or_create_table(db, dims):
     try:
         return db.open_table("items")
     except Exception:
-        schema = pa.schema([
-            pa.field("item_id", pa.string()),
-            pa.field("embedding", pa.list_(pa.float32(), dims)),
-            pa.field("title", pa.string()),
-            pa.field("url", pa.string()),
-            pa.field("source_id", pa.string()),
-            pa.field("run_id", pa.string()),
-            pa.field("created_at", pa.string()),
-        ])
+        schema = pa.schema(
+            [
+                pa.field("item_id", pa.string()),
+                pa.field("embedding", pa.list_(pa.float32(), dims)),
+                pa.field("title", pa.string()),
+                pa.field("url", pa.string()),
+                pa.field("source_id", pa.string()),
+                pa.field("run_id", pa.string()),
+                pa.field("created_at", pa.string()),
+            ]
+        )
         return db.create_table("items", schema=schema)
 
 
@@ -48,10 +49,15 @@ def execute(inputs, context=None):
 
     if not items:
         empty_result = {
-            "new_items": [], "ambiguous_items": [], "duplicate_items": [],
+            "new_items": [],
+            "ambiguous_items": [],
+            "duplicate_items": [],
         }
         stats = {
-            "total_items": 0, "new_count": 0, "ambiguous_count": 0, "duplicate_count": 0,
+            "total_items": 0,
+            "new_count": 0,
+            "ambiguous_count": 0,
+            "duplicate_count": 0,
         }
         return {"outputs": {"result": json.dumps(empty_result), "dedup_stats": json.dumps(stats)}}
 

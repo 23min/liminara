@@ -1,15 +1,24 @@
 """Radar LLM dedup check — resolves ambiguous items via Haiku."""
 
+import importlib
 import json
 import os
-
-try:
-    import anthropic
-except ImportError:
-    anthropic = None
+from typing import Any, cast
 
 
-PROMPT_TEMPLATE = """Compare these two news items. Are they about the same story/event from different sources, or genuinely different stories?
+def _load_anthropic() -> Any | None:
+    try:
+        return importlib.import_module("anthropic")
+    except ImportError:
+        return None
+
+
+anthropic = _load_anthropic()
+
+
+PROMPT_TEMPLATE = """Compare these two news items.
+Are they about the same story/event from different sources,
+or genuinely different stories?
 
 Item A (new):
 Title: {new_title}
@@ -87,7 +96,7 @@ def execute(inputs):
                 max_tokens=200,
                 messages=[{"role": "user", "content": prompt}],
             )
-            response_text = response.content[0].text
+            response_text = cast(Any, response.content[0]).text
             verdict_data = json.loads(response_text)
         except Exception as e:
             verdict_data = {"verdict": "different", "rationale": "safe default keep"}
@@ -140,6 +149,9 @@ def _llm_error_warning(cause):
         "severity": "degraded",
         "summary": "Keeping ambiguous items after an LLM dedup error",
         "cause": cause,
-        "remediation": "Check Anthropic availability and credentials; replay will preserve this degraded keep decision",
+        "remediation": (
+            "Check Anthropic availability and credentials; "
+            "replay will preserve this degraded keep decision"
+        ),
         "affected_outputs": ["items"],
     }

@@ -19,11 +19,13 @@ def execute(inputs):
         error = f"{type(e).__name__}: {e}"
         return {
             "outputs": {
-                "result": json.dumps({
-                    "items": [],
-                    "error": error,
-                    "source_id": source_id,
-                })
+                "result": json.dumps(
+                    {
+                        "items": [],
+                        "error": error,
+                        "source_id": source_id,
+                    }
+                )
             },
             "warnings": [
                 {
@@ -31,7 +33,10 @@ def execute(inputs):
                     "severity": "degraded",
                     "summary": f"Failed to fetch RSS source {source_id}",
                     "cause": error,
-                    "remediation": "Check source availability, URL, or feed health; Radar will continue with partial coverage",
+                    "remediation": (
+                        "Check source availability, URL, or feed health; "
+                        "Radar will continue with partial coverage"
+                    ),
                     "affected_outputs": ["result"],
                 }
             ],
@@ -56,12 +61,14 @@ def execute(inputs):
 
     return {
         "outputs": {
-            "result": json.dumps({
-                "items": items,
-                "error": None,
-                "source_id": source_id,
-                "etag": etag,
-                "last_modified": last_modified,
-            })
+            "result": json.dumps(
+                {
+                    "items": items,
+                    "error": None,
+                    "source_id": source_id,
+                    "etag": etag,
+                    "last_modified": last_modified,
+                }
+            )
         }
     }

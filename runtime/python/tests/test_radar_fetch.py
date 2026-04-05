@@ -1,12 +1,9 @@
 """Tests for Radar fetch ops using fixtures (no real HTTP)."""
 
 import json
-from unittest.mock import patch, MagicMock
-
-import pytest
-
 import sys
 from pathlib import Path
+from unittest.mock import MagicMock, patch
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
@@ -92,7 +89,10 @@ class TestFetchRss:
                 "severity": "degraded",
                 "summary": "Failed to fetch RSS source test_src",
                 "cause": data["error"],
-                "remediation": "Check source availability, URL, or feed health; Radar will continue with partial coverage",
+                "remediation": (
+                    "Check source availability, URL, or feed health; "
+                    "Radar will continue with partial coverage"
+                ),
                 "affected_outputs": ["result"],
             }
         ]
@@ -154,7 +154,9 @@ class TestFetchWeb:
                 "severity": "degraded",
                 "summary": "Failed to fetch web source test_web",
                 "cause": data["error"],
-                "remediation": "Check source availability or URL; Radar will continue with partial coverage",
+                "remediation": (
+                    "Check source availability or URL; Radar will continue with partial coverage"
+                ),
                 "affected_outputs": ["result"],
             }
         ]

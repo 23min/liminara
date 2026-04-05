@@ -188,7 +188,10 @@ class TestSummarize:
                 "severity": "degraded",
                 "summary": "Fell back to a placeholder summary after an LLM error",
                 "cause": "API error",
-                "remediation": "Check Anthropic availability and credentials; replay will preserve this degraded summary",
+                "remediation": (
+                    "Check Anthropic availability and credentials; "
+                    "replay will preserve this degraded summary"
+                ),
                 "affected_outputs": ["summaries"],
             }
         ]

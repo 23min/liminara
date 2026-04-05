@@ -2,7 +2,7 @@
 
 import json
 from collections import Counter
-from datetime import datetime, timezone
+from datetime import datetime
 
 import numpy as np
 
@@ -81,7 +81,9 @@ def _cluster_score(cluster):
 
 def _parse_reference_time(ref_str):
     if not ref_str:
-        raise ValueError("reference_time is required — rank op is :pure and must not use wall clock")
+        raise ValueError(
+            "reference_time is required — rank op is :pure and must not use wall clock"
+        )
     try:
         return datetime.fromisoformat(ref_str.replace("Z", "+00:00"))
     except (ValueError, TypeError) as e:
@@ -90,7 +92,9 @@ def _parse_reference_time(ref_str):
 
 def _parse_history_basis(value):
     if not value:
-        raise ValueError("history_basis is required — rank must declare whether historical context exists")
+        raise ValueError(
+            "history_basis is required — rank must declare whether historical context exists"
+        )
     if value != "none":
         raise ValueError(f"unsupported history_basis: {value!r}")
     return value

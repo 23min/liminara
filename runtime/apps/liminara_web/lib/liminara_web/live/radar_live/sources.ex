@@ -70,7 +70,9 @@ defmodule LiminaraWeb.RadarLive.Sources do
                 <td style="padding:8px 12px;">
                   {src.name}
                   <%= if src.inactive? do %>
-                    <span style="font-size:10px; color:#e65100; margin-left:4px;">(inactive — cull candidate)</span>
+                    <span style="font-size:10px; color:#e65100; margin-left:4px;">
+                      (inactive — cull candidate)
+                    </span>
                   <% end %>
                 </td>
                 <td style="padding:8px 12px; color:var(--dm-muted);">{src.type}</td>
@@ -90,7 +92,7 @@ defmodule LiminaraWeb.RadarLive.Sources do
                     phx-value-id={src.id}
                     style="font-size:10px; cursor:pointer; border:1px solid var(--dm-border); background:none; padding:2px 8px; border-radius:3px;"
                   >
-                    <%= if src.enabled, do: "Disable", else: "Enable" %>
+                    {if src.enabled, do: "Disable", else: "Enable"}
                   </button>
                 </td>
               </tr>
@@ -123,7 +125,9 @@ defmodule LiminaraWeb.RadarLive.Sources do
 
     Enum.reduce(run_ids, %{}, fn run_id, acc ->
       case extract_source_health(runs_root, store_root, run_id) do
-        nil -> acc
+        nil ->
+          acc
+
         health ->
           Enum.reduce(health, acc, fn entry, a ->
             sid = entry["source_id"]
@@ -153,7 +157,10 @@ defmodule LiminaraWeb.RadarLive.Sources do
       id = src["id"]
       history = Map.get(health_history, id, [])
       last_items = List.first(history) || 0
-      avg_items = if history == [], do: 0, else: Float.round(Enum.sum(history) / length(history), 1)
+
+      avg_items =
+        if history == [], do: 0, else: Float.round(Enum.sum(history) / length(history), 1)
+
       run_count = length(history)
       inactive? = run_count >= 7 and Enum.all?(history, &(&1 == 0))
 

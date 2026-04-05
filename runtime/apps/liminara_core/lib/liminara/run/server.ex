@@ -403,12 +403,11 @@ defmodule Liminara.Run.Server do
       [] ->
         state
 
-      _ ->
-        # Dispatch all pending_ready nodes in this batch, then re-check.
-        state = Enum.reduce(pending_ready, state, &dispatch_if_pending/2)
+      [node_id | _rest] ->
+        state = dispatch_if_pending(node_id, state)
 
-        # Re-check: synchronous completions (cache hits) may have
-        # unblocked new nodes.
+        # Re-check after each dispatch so dependent nodes never enter the same
+        # batch before their upstream outputs or state transitions are visible.
         dispatch_ready(state)
     end
   end
@@ -435,27 +434,36 @@ defmodule Liminara.Run.Server do
         "input_hashes" => input_hashes
       })
 
+    dispatch_node_by_mode(state, node_id, node, op_module, input_hashes, spec, replay_policy)
+  end
+
+  defp dispatch_node_by_mode(state, node_id, node, op_module, input_hashes, spec, replay_policy) do
     cond do
-      state.replay != nil and state.replay_execution_context_error != nil and
-          replay_requires_source_execution_context?(state, node_id, spec, replay_policy) ->
+      replay_execution_context_failed?(state, node_id, spec, replay_policy) ->
         handle_replay_execution_context_error(state, node_id, replay_policy)
 
-      # Replay: branch on canonical replay policy.
       state.replay != nil and replay_policy == :skip ->
         handle_replay_skip(state, node_id)
 
       state.replay != nil and replay_policy == :replay_recorded ->
         handle_replay_inject(state, node_id)
 
-      # Cache hit
-      check_cache(op_module, input_hashes) != :miss ->
-        {:hit, output_hashes} = check_cache(op_module, input_hashes)
-        handle_cache_hit(state, node_id, output_hashes)
-
-      # Normal execution via Task
       true ->
-        dispatch_task(state, node_id, node, input_hashes, spec)
+        dispatch_cached_or_task(state, node_id, node, op_module, input_hashes, spec)
     end
+  end
+
+  defp dispatch_cached_or_task(state, node_id, node, op_module, input_hashes, spec) do
+    case check_cache(op_module, input_hashes) do
+      {:hit, output_hashes} -> handle_cache_hit(state, node_id, output_hashes)
+      :miss -> dispatch_task(state, node_id, node, input_hashes, spec)
+    end
+  end
+
+  defp replay_execution_context_failed?(state, node_id, spec, replay_policy) do
+    state.replay != nil and
+      state.replay_execution_context_error != nil and
+      replay_requires_source_execution_context?(state, node_id, spec, replay_policy)
   end
 
   defp dispatch_task(state, node_id, node, _input_hashes, spec) do

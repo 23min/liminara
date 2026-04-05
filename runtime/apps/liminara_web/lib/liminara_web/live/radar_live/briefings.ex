@@ -43,7 +43,10 @@ defmodule LiminaraWeb.RadarLive.Briefings do
               · Last run {format_scheduler_time(@scheduler.last_run_at)}
             <% end %>
           </span>
-          <button phx-click="run_now" style="font-size:10px; cursor:pointer; border:1px solid var(--dm-border); background:none; padding:2px 8px; border-radius:3px;">
+          <button
+            phx-click="run_now"
+            style="font-size:10px; cursor:pointer; border:1px solid var(--dm-border); background:none; padding:2px 8px; border-radius:3px;"
+          >
             Run now
           </button>
         </div>
@@ -66,7 +69,10 @@ defmodule LiminaraWeb.RadarLive.Briefings do
             <%= for b <- @briefings do %>
               <tr style="border-bottom:1px solid var(--dm-border);">
                 <td style="padding:8px 12px;">
-                  <.link navigate={~p"/radar/briefings/#{b.run_id}"} style="color:var(--dm-ink); text-decoration:none;">
+                  <.link
+                    navigate={~p"/radar/briefings/#{b.run_id}"}
+                    style="color:var(--dm-ink); text-decoration:none;"
+                  >
                     {b.run_id}
                   </.link>
                 </td>
@@ -96,7 +102,7 @@ defmodule LiminaraWeb.RadarLive.Briefings do
     |> Enum.filter(&String.starts_with?(&1, "radar-"))
     |> Enum.map(fn run_id -> load_briefing_summary(runs_root, store_root, run_id) end)
     |> Enum.reject(&is_nil/1)
-    |> Enum.sort_by(&(&1.run_id), :desc)
+    |> Enum.sort_by(& &1.run_id, :desc)
   end
 
   defp load_briefing_summary(runs_root, store_root, run_id) do

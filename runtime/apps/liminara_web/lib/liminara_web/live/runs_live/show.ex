@@ -208,9 +208,11 @@ defmodule LiminaraWeb.RunsLive.Show do
             <dd>{length(@view_model.nodes)}</dd>
           </div>
           <div style="margin-left:auto;">
-            <a href={"http://localhost:#{Application.get_env(:liminara_observation, :a2ui_port, 4006)}/?run_id=#{@run_id}"}
-               target="_blank"
-               style="font-size:13px; color:#888; text-decoration:none; border:1px solid #ccc; border-radius:4px; padding:3px 10px;">
+            <a
+              href={"http://localhost:#{Application.get_env(:liminara_observation, :a2ui_port, 4006)}/?run_id=#{@run_id}"}
+              target="_blank"
+              style="font-size:13px; color:#888; text-decoration:none; border:1px solid #ccc; border-radius:4px; padding:3px 10px;"
+            >
               A2UI
             </a>
           </div>
@@ -497,11 +499,12 @@ defmodule LiminaraWeb.RunsLive.Show do
 
     nodes =
       Enum.map(plan.insert_order, fn node_id ->
+        node = Map.fetch!(plan.nodes, node_id)
         status = Map.get(status_map, node_id, "pending")
         cls = status_to_cls(status)
         dim = status == "pending"
 
-        %{id: node_id, label: node_id, cls: cls, dim: dim}
+        %{id: node_id, label: dag_label(node), cls: cls, dim: dim}
       end)
 
     # Extract edges from plan refs
@@ -541,6 +544,12 @@ defmodule LiminaraWeb.RunsLive.Show do
   defp extract_ref({:ref, ref_id}), do: [ref_id]
   defp extract_ref({:ref, ref_id, _key}), do: [ref_id]
   defp extract_ref(_), do: []
+
+  defp dag_label(%Plan.Node{op_module: op_module}) do
+    op_module
+    |> Module.split()
+    |> List.last()
+  end
 
   # Map run status to dag-map node class for coloring
   defp status_to_cls("completed"), do: "pure"

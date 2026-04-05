@@ -63,7 +63,8 @@ defmodule Liminara.Radar.Ops.DegradationWarningTest do
     end)
   end
 
-  test "summarize placeholder mode emits warnings and replay preserves them without decisions", ctx do
+  test "summarize placeholder mode emits warnings and replay preserves them without decisions",
+       ctx do
     clusters = [
       %{
         "cluster_id" => "c0",

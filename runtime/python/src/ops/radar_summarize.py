@@ -1,12 +1,19 @@
 """Radar summarize op — per-cluster Haiku summaries (recordable)."""
 
+import importlib
 import json
 import os
+from typing import Any, cast
 
-try:
-    import anthropic
-except ImportError:
-    anthropic = None
+
+def _load_anthropic() -> Any | None:
+    try:
+        return importlib.import_module("anthropic")
+    except ImportError:
+        return None
+
+
+anthropic = _load_anthropic()
 
 
 PROMPT_TEMPLATE = """You are summarizing a cluster of related news items \
@@ -61,7 +68,7 @@ def execute(inputs):
                 max_tokens=500,
                 messages=[{"role": "user", "content": prompt}],
             )
-            response_text = response.content[0].text
+            response_text = cast(Any, response.content[0]).text
             data = json.loads(response_text)
         except Exception as e:
             data = {
@@ -154,7 +161,10 @@ def _llm_error_warning(cause):
         "severity": "degraded",
         "summary": "Fell back to a placeholder summary after an LLM error",
         "cause": cause,
-        "remediation": "Check Anthropic availability and credentials; replay will preserve this degraded summary",
+        "remediation": (
+            "Check Anthropic availability and credentials; "
+            "replay will preserve this degraded summary"
+        ),
         "affected_outputs": ["summaries"],
     }
 

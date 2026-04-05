@@ -18,8 +18,13 @@ defmodule LiminaraWeb.RadarLive.BriefingsTest do
     Application.put_env(:liminara_core, :runs_root, runs_root)
 
     on_exit(fn ->
-      if prev_store, do: Application.put_env(:liminara_core, :store_root, prev_store), else: Application.delete_env(:liminara_core, :store_root)
-      if prev_runs, do: Application.put_env(:liminara_core, :runs_root, prev_runs), else: Application.delete_env(:liminara_core, :runs_root)
+      if prev_store,
+        do: Application.put_env(:liminara_core, :store_root, prev_store),
+        else: Application.delete_env(:liminara_core, :store_root)
+
+      if prev_runs,
+        do: Application.put_env(:liminara_core, :runs_root, prev_runs),
+        else: Application.delete_env(:liminara_core, :runs_root)
     end)
 
     %{store_root: store_root, runs_root: runs_root}
@@ -33,26 +38,38 @@ defmodule LiminaraWeb.RadarLive.BriefingsTest do
 
     # Write run_started event
     {:ok, ev1} =
-      Event.Store.append(runs_root, run_id, "run_started", %{
-        "pack_id" => "radar",
-        "pack_version" => "0.1.0",
-        "plan_hash" => "sha256:fake"
-      }, nil)
+      Event.Store.append(
+        runs_root,
+        run_id,
+        "run_started",
+        %{
+          "pack_id" => "radar",
+          "pack_version" => "0.1.0",
+          "plan_hash" => "sha256:fake"
+        },
+        nil
+      )
 
     # Write op events for render_html (so we can extract the briefing)
-    briefing_json = Jason.encode!(%{
-      "run_id" => run_id,
-      "date" => "2026-04-03",
-      "stats" => %{
-        "cluster_count" => cluster_count,
-        "item_count" => item_count,
-        "source_count" => source_count
-      },
-      "clusters" => [],
-      "source_health" => Enum.map(1..source_count, fn i ->
-        %{"source_id" => "src_#{i}", "items_fetched" => div(item_count, source_count), "error" => nil}
-      end)
-    })
+    briefing_json =
+      Jason.encode!(%{
+        "run_id" => run_id,
+        "date" => "2026-04-03",
+        "stats" => %{
+          "cluster_count" => cluster_count,
+          "item_count" => item_count,
+          "source_count" => source_count
+        },
+        "clusters" => [],
+        "source_health" =>
+          Enum.map(1..source_count, fn i ->
+            %{
+              "source_id" => "src_#{i}",
+              "items_fetched" => div(item_count, source_count),
+              "error" => nil
+            }
+          end)
+      })
 
     {:ok, briefing_hash} = Artifact.Store.put(store_root, briefing_json)
 
@@ -62,26 +79,47 @@ defmodule LiminaraWeb.RadarLive.BriefingsTest do
     prev_hash = ev1.event_hash
 
     # Store keyed output hashes in decision store (matches real run behavior)
-    Decision.Store.put_outputs(runs_root, run_id, "compose_briefing", %{"briefing" => briefing_hash})
+    Decision.Store.put_outputs(runs_root, run_id, "compose_briefing", %{
+      "briefing" => briefing_hash
+    })
+
     Decision.Store.put_outputs(runs_root, run_id, "render_html", %{"html" => html_hash})
 
     {:ok, ev2} =
-      Event.Store.append(runs_root, run_id, "op_completed", %{
-        "node_id" => "compose_briefing",
-        "output_hashes" => [briefing_hash]
-      }, prev_hash)
+      Event.Store.append(
+        runs_root,
+        run_id,
+        "op_completed",
+        %{
+          "node_id" => "compose_briefing",
+          "output_hashes" => [briefing_hash]
+        },
+        prev_hash
+      )
 
     {:ok, ev3} =
-      Event.Store.append(runs_root, run_id, "op_completed", %{
-        "node_id" => "render_html",
-        "output_hashes" => [html_hash]
-      }, ev2.event_hash)
+      Event.Store.append(
+        runs_root,
+        run_id,
+        "op_completed",
+        %{
+          "node_id" => "render_html",
+          "output_hashes" => [html_hash]
+        },
+        ev2.event_hash
+      )
 
     if status == :completed do
-      Event.Store.append(runs_root, run_id, "run_completed", %{
-        "outcome" => "success",
-        "artifact_hashes" => %{"render_html" => %{"html" => html_hash}}
-      }, ev3.event_hash)
+      Event.Store.append(
+        runs_root,
+        run_id,
+        "run_completed",
+        %{
+          "outcome" => "success",
+          "artifact_hashes" => %{"render_html" => %{"html" => html_hash}}
+        },
+        ev3.event_hash
+      )
     end
 
     %{briefing_hash: briefing_hash, html_hash: html_hash}
@@ -105,9 +143,15 @@ defmodule LiminaraWeb.RadarLive.BriefingsTest do
       assert html =~ "radar-20260403T060000-abc12345"
     end
 
-    test "shows status, item count, cluster count", %{conn: conn, runs_root: runs_root, store_root: store_root} do
+    test "shows status, item count, cluster count", %{
+      conn: conn,
+      runs_root: runs_root,
+      store_root: store_root
+    } do
       create_radar_run(runs_root, store_root, "radar-20260403T060000-abc12345",
-        item_count: 42, cluster_count: 7)
+        item_count: 42,
+        cluster_count: 7
+      )
 
       {:ok, _view, html} = live(conn, "/radar/briefings")
       assert html =~ "completed"
@@ -115,7 +159,11 @@ defmodule LiminaraWeb.RadarLive.BriefingsTest do
       assert html =~ "7"
     end
 
-    test "sorted by date newest first", %{conn: conn, runs_root: runs_root, store_root: store_root} do
+    test "sorted by date newest first", %{
+      conn: conn,
+      runs_root: runs_root,
+      store_root: store_root
+    } do
       create_radar_run(runs_root, store_root, "radar-20260401T060000-old00000")
       create_radar_run(runs_root, store_root, "radar-20260403T060000-new00000")
 
@@ -127,7 +175,11 @@ defmodule LiminaraWeb.RadarLive.BriefingsTest do
       assert new_pos < old_pos
     end
 
-    test "clicking a run navigates to detail page", %{conn: conn, runs_root: runs_root, store_root: store_root} do
+    test "clicking a run navigates to detail page", %{
+      conn: conn,
+      runs_root: runs_root,
+      store_root: store_root
+    } do
       create_radar_run(runs_root, store_root, "radar-20260403T060000-nav00000")
 
       {:ok, view, _html} = live(conn, "/radar/briefings")
@@ -139,7 +191,11 @@ defmodule LiminaraWeb.RadarLive.BriefingsTest do
   end
 
   describe "briefing detail page" do
-    test "renders HTML briefing inline", %{conn: conn, runs_root: runs_root, store_root: store_root} do
+    test "renders HTML briefing inline", %{
+      conn: conn,
+      runs_root: runs_root,
+      store_root: store_root
+    } do
       create_radar_run(runs_root, store_root, "radar-20260403T060000-detail00")
 
       {:ok, _view, html} = live(conn, "/radar/briefings/radar-20260403T060000-detail00")
@@ -148,7 +204,10 @@ defmodule LiminaraWeb.RadarLive.BriefingsTest do
 
     test "shows run metadata", %{conn: conn, runs_root: runs_root, store_root: store_root} do
       create_radar_run(runs_root, store_root, "radar-20260403T060000-meta0000",
-        item_count: 55, cluster_count: 12, source_count: 8)
+        item_count: 55,
+        cluster_count: 12,
+        source_count: 8
+      )
 
       {:ok, _view, html} = live(conn, "/radar/briefings/radar-20260403T060000-meta0000")
       assert html =~ "55"
@@ -156,15 +215,22 @@ defmodule LiminaraWeb.RadarLive.BriefingsTest do
       assert html =~ "8"
     end
 
-    test "shows source health summary", %{conn: conn, runs_root: runs_root, store_root: store_root} do
-      create_radar_run(runs_root, store_root, "radar-20260403T060000-health00",
-        source_count: 5)
+    test "shows source health summary", %{
+      conn: conn,
+      runs_root: runs_root,
+      store_root: store_root
+    } do
+      create_radar_run(runs_root, store_root, "radar-20260403T060000-health00", source_count: 5)
 
       {:ok, _view, html} = live(conn, "/radar/briefings/radar-20260403T060000-health00")
       assert html =~ "src_1"
     end
 
-    test "links to observation UI run detail", %{conn: conn, runs_root: runs_root, store_root: store_root} do
+    test "links to observation UI run detail", %{
+      conn: conn,
+      runs_root: runs_root,
+      store_root: store_root
+    } do
       run_id = "radar-20260403T060000-obslink0"
       create_radar_run(runs_root, store_root, run_id)
 

@@ -229,10 +229,12 @@ defmodule Liminara.Run do
         "input_hashes" => input_hashes
       })
 
-    # Replay mode: branch on canonical replay policy.
+    dispatch_node_by_mode(state, node_id, node, op_module, input_hashes, spec, replay_policy)
+  end
+
+  defp dispatch_node_by_mode(state, node_id, node, op_module, input_hashes, spec, replay_policy) do
     cond do
-      state.replay != nil and state.replay_execution_context_error != nil and
-          replay_requires_source_execution_context?(state, node_id, spec, replay_policy) ->
+      replay_execution_context_failed?(state, node_id, spec, replay_policy) ->
         handle_replay_execution_context_error(state, node_id, replay_policy)
 
       state.replay != nil and replay_policy == :skip ->
@@ -241,13 +243,22 @@ defmodule Liminara.Run do
       state.replay != nil and replay_policy == :replay_recorded ->
         handle_replay_inject(state, node_id)
 
-      check_cache(state, op_module, input_hashes) != :miss ->
-        {:hit, output_hashes} = check_cache(state, op_module, input_hashes)
-        handle_cache_hit(state, node_id, output_hashes)
-
       true ->
-        dispatch_execute(state, node_id, node, input_hashes, spec)
+        dispatch_cached_or_execute(state, node_id, node, op_module, input_hashes, spec)
     end
+  end
+
+  defp dispatch_cached_or_execute(state, node_id, node, op_module, input_hashes, spec) do
+    case check_cache(state, op_module, input_hashes) do
+      {:hit, output_hashes} -> handle_cache_hit(state, node_id, output_hashes)
+      :miss -> dispatch_execute(state, node_id, node, input_hashes, spec)
+    end
+  end
+
+  defp replay_execution_context_failed?(state, node_id, spec, replay_policy) do
+    state.replay != nil and
+      state.replay_execution_context_error != nil and
+      replay_requires_source_execution_context?(state, node_id, spec, replay_policy)
   end
 
   defp dispatch_execute(state, node_id, node, input_hashes, spec) do

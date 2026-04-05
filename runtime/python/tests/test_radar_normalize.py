@@ -4,8 +4,6 @@ import json
 import sys
 from pathlib import Path
 
-import pytest
-
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from ops.radar_normalize import execute as normalize_execute
@@ -83,7 +81,7 @@ class TestNormalize:
     def test_special_characters_preserved(self):
         items = [
             {
-                "title": "Ölämning & \"quotes\"",
+                "title": 'Ölämning & "quotes"',
                 "url": "https://example.com/ö",
                 "summary": "Café résumé naïve",
                 "published": "",
@@ -102,7 +100,10 @@ class TestNormalize:
                 "title": "Web Page",
                 "url": "https://example.com/page",
                 "summary": "Short summary",
-                "full_text": "This is the full extracted text from the web page, much longer than the summary.",
+                "full_text": (
+                    "This is the full extracted text from the web page, "
+                    "much longer than the summary."
+                ),
                 "published": "",
                 "source_id": "src_1",
             }

@@ -19,11 +19,13 @@ def execute(inputs):
         error = f"{type(e).__name__}: {e}"
         return {
             "outputs": {
-                "result": json.dumps({
-                    "items": [],
-                    "error": error,
-                    "source_id": source_id,
-                })
+                "result": json.dumps(
+                    {
+                        "items": [],
+                        "error": error,
+                        "source_id": source_id,
+                    }
+                )
             },
             "warnings": [
                 {
@@ -31,7 +33,10 @@ def execute(inputs):
                     "severity": "degraded",
                     "summary": f"Failed to fetch web source {source_id}",
                     "cause": error,
-                    "remediation": "Check source availability or URL; Radar will continue with partial coverage",
+                    "remediation": (
+                        "Check source availability or URL; "
+                        "Radar will continue with partial coverage"
+                    ),
                     "affected_outputs": ["result"],
                 }
             ],
@@ -41,21 +46,25 @@ def execute(inputs):
 
     items = []
     if extracted:
-        items.append({
-            "title": source.get("name", url),
-            "url": url,
-            "summary": extracted[:500] if len(extracted) > 500 else extracted,
-            "published": "",
-            "source_id": source_id,
-            "full_text": extracted,
-        })
+        items.append(
+            {
+                "title": source.get("name", url),
+                "url": url,
+                "summary": extracted[:500] if len(extracted) > 500 else extracted,
+                "published": "",
+                "source_id": source_id,
+                "full_text": extracted,
+            }
+        )
 
     return {
         "outputs": {
-            "result": json.dumps({
-                "items": items,
-                "error": None,
-                "source_id": source_id,
-            })
+            "result": json.dumps(
+                {
+                    "items": items,
+                    "error": None,
+                    "source_id": source_id,
+                }
+            )
         }
     }

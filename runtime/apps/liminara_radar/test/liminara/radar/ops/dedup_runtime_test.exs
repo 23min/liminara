@@ -89,7 +89,8 @@ defmodule Liminara.Radar.Ops.DedupRuntimeTest do
     assert completed["payload"]["cache_hit"] == false
   end
 
-  test "replay injects recorded dedup outputs instead of re-running against updated history", ctx do
+  test "replay injects recorded dedup outputs instead of re-running against updated history",
+       ctx do
     plan = dedup_plan(ctx, [sample_item("a1")])
     opts = run_opts(ctx)
 

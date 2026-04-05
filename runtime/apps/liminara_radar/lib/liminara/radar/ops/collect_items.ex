@@ -14,9 +14,7 @@ defmodule Liminara.Radar.Ops.CollectItems do
 
   @impl true
   def execution_spec do
-    Specs.inline(name(), version(), :pure,
-      outputs: %{items: :artifact, source_health: :artifact}
-    )
+    Specs.inline(name(), version(), :pure, outputs: %{items: :artifact, source_health: :artifact})
   end
 
   @impl true

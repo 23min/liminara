@@ -124,20 +124,34 @@ defmodule Liminara.Decision.Store do
   def verify(runs_root, run_id, node_id) do
     case get(runs_root, run_id, node_id) do
       {:ok, decisions} ->
-        results =
-          Enum.map(decisions, fn record ->
-            expected = Hash.hash_decision(record)
-            if record["decision_hash"] == expected, do: {:ok, expected}, else: :mismatch
-          end)
-
-        if Enum.all?(results, &match?({:ok, _}, &1)) do
-          {:ok, Enum.map(results, fn {:ok, h} -> h end)}
-        else
-          {:error, :hash_mismatch}
-        end
+        verify_decisions(decisions)
 
       {:error, :not_found} ->
         {:error, :not_found}
+    end
+  end
+
+  defp verify_decisions(decisions) do
+    decisions
+    |> Enum.reduce_while({:ok, []}, fn record, {:ok, hashes} ->
+      case verify_decision(record) do
+        {:ok, hash} -> {:cont, {:ok, [hash | hashes]}}
+        :mismatch -> {:halt, {:error, :hash_mismatch}}
+      end
+    end)
+    |> case do
+      {:ok, hashes} -> {:ok, Enum.reverse(hashes)}
+      {:error, :hash_mismatch} = error -> error
+    end
+  end
+
+  defp verify_decision(record) do
+    expected = Hash.hash_decision(record)
+
+    if record["decision_hash"] == expected do
+      {:ok, expected}
+    else
+      :mismatch
     end
   end
 

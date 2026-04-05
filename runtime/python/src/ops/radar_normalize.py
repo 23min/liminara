@@ -29,13 +29,15 @@ def execute(inputs):
         raw_text = item.get("full_text") or item.get("summary", "")
         clean_text = strip_html(raw_text)
 
-        normalized.append({
-            "id": make_item_id(item.get("url", ""), item.get("source_id", "")),
-            "title": item.get("title", ""),
-            "clean_text": clean_text,
-            "url": item.get("url", ""),
-            "published": item.get("published", ""),
-            "source_id": item.get("source_id", ""),
-        })
+        normalized.append(
+            {
+                "id": make_item_id(item.get("url", ""), item.get("source_id", "")),
+                "title": item.get("title", ""),
+                "clean_text": clean_text,
+                "url": item.get("url", ""),
+                "published": item.get("published", ""),
+                "source_id": item.get("source_id", ""),
+            }
+        )
 
     return {"outputs": {"items": json.dumps(normalized)}}
