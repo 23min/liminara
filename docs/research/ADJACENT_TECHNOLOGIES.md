@@ -248,7 +248,59 @@ Sources:
 
 ---
 
-## 10. Technology Synthesis — The Pattern
+## 10. Reactor — Saga Orchestration for Elixir
+
+[Reactor](https://hexdocs.pm/reactor/) (v1.0, from the [Ash project](https://github.com/ash-project/reactor)) is a **dynamic, concurrent, dependency-resolving saga orchestrator** for Elixir. It lets you define complex workflows as steps with declared arguments, automatically resolves those declarations into a DAG, executes steps concurrently where dependencies allow, and supports saga-style compensation (undo) when a step fails.
+
+```elixir
+# Reactor DSL — declarative steps with automatic dependency resolution
+defmodule CreateOrder do
+  use Reactor
+
+  input :customer_id
+  input :items
+
+  step :validate_inventory do
+    argument :items, input(:items)
+    run fn %{items: items} -> InventoryService.check(items) end
+  end
+
+  step :charge_payment do
+    argument :customer_id, input(:customer_id)
+    argument :items, result(:validate_inventory)
+    run fn args -> PaymentService.charge(args.customer_id, args.items) end
+    undo fn args, _result -> PaymentService.refund(args.customer_id) end
+  end
+end
+```
+
+Key features: composition (nested sub-reactors), control flow (`switch`, `map`, `group`, `around`), middleware with lifecycle hooks and telemetry, configurable retry with backoff, Mermaid diagram generation for visualization, and deep Ash Framework integration for resource actions.
+
+**Connection to Liminara:** Reactor and Liminara share the DAG-of-steps execution model — both build a directed acyclic graph from declared dependencies and execute concurrently where possible. The overlap ends at the purpose:
+
+| Dimension | Reactor | Liminara |
+|-----------|---------|----------|
+| **Core concern** | Reliability — execute or roll back | Reproducibility — execute and replay |
+| **DAG** | Ephemeral, in-memory during execution | Persisted as an artifact, replayable |
+| **Nondeterminism** | Not addressed — steps just run | Central concept — every choice captured as a Decision |
+| **Failure model** | Saga compensation (undo what was done) | Append-only event log (record what happened) |
+| **Determinism classes** | No concept | `pure`, `pinned_env`, `recordable`, `side_effecting` |
+| **Audit trail** | Telemetry/middleware hooks | Hash-chained JSONL event log, tamper-detectable |
+
+Reactor is a **workflow reliability** tool (distributed operations either all succeed or all roll back). Liminara is a **workflow reproducibility** tool (any run can be replayed and audited exactly). They have opposite philosophies about failure: Reactor erases it (compensate), Liminara preserves it (record).
+
+**Could Reactor serve as Liminara's execution engine?** Probably not cleanly. Reactor's DAG is ephemeral while Liminara's is a persisted artifact. Reactor has no hooks for "record this nondeterministic choice" at the decision boundary. Its undo model conflicts with append-only event logs. Liminara needs to intercept every op boundary for decision recording, which would fight Reactor's execution model.
+
+**Where the concept could be borrowed:** If Liminara ever needs compensation for `side_effecting` ops (e.g., an email was sent but a downstream op failed), the saga pattern is the right tool. This could be modeled as a `compensate` callback on ops with determinism class `side_effecting`, without adopting Reactor as a dependency.
+
+Sources:
+- [Reactor 1.0 Released — Elixir Forum](https://elixirforum.com/t/reactor-1-0-released-saga-orchestration-for-elixir/74083)
+- [Reactor in the Elixir Ecosystem — hexdocs](https://hexdocs.pm/reactor/ecosystem.html)
+- [Complex Workflows in Elixir with Reactor (+ AI Agents)](https://www.youtube.com/watch?v=0Dvn039qD8I) — talk building a travel booking system, then turning it into an AI agent via Ash AI
+
+---
+
+## 11. Technology Synthesis — The Pattern
 
 The best systems come from someone who recognized that a *combination* of existing ideas was new even if the pieces weren't:
 
@@ -272,6 +324,7 @@ The collection approach: gather interesting technologies, let them sit together,
 - W3C PROV — standard provenance vocabulary for interoperability
 - Certificate Transparency architecture — publicly auditable AI audit logs
 - CUE — lattice-based constraint composition for pack manifests and architecture rules
+- Saga compensation — borrow the pattern for `side_effecting` ops without adopting a framework dependency (see §10)
 
 ---
 
