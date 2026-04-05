@@ -76,13 +76,15 @@ defmodule Liminara.Executor.PortTest do
 
   describe "run/3 with echo op" do
     test "echo op returns inputs as outputs" do
-      assert {:ok, outputs, duration_ms} =
+      assert {:ok, result, duration_ms} =
                PortExecutor.run("echo", %{"message" => "hello"},
                  python_root: @python_root,
                  runner: @runner_path
                )
 
-      assert outputs == %{"message" => "hello"}
+      assert result.outputs == %{"message" => "hello"}
+      assert result.decisions == []
+      assert result.warnings == []
       assert is_integer(duration_ms) and duration_ms >= 0
     end
 
@@ -93,23 +95,23 @@ defmodule Liminara.Executor.PortTest do
         "text" => "hello world"
       }
 
-      assert {:ok, outputs, _duration} =
+      assert {:ok, result, _duration} =
                PortExecutor.run("echo", inputs,
                  python_root: @python_root,
                  runner: @runner_path
                )
 
-      assert outputs == inputs
+      assert result.outputs == inputs
     end
 
     test "echo op with empty inputs" do
-      assert {:ok, outputs, _duration} =
+      assert {:ok, result, _duration} =
                PortExecutor.run("echo", %{},
                  python_root: @python_root,
                  runner: @runner_path
                )
 
-      assert outputs == %{}
+      assert result.outputs == %{}
     end
   end
 
@@ -150,14 +152,14 @@ defmodule Liminara.Executor.PortTest do
       large_text = String.duplicate("x", 100_000)
       inputs = %{"data" => large_text}
 
-      assert {:ok, outputs, _duration} =
+      assert {:ok, result, _duration} =
                PortExecutor.run("echo", inputs,
                  python_root: @python_root,
                  runner: @runner_path,
                  timeout: 10_000
                )
 
-      assert outputs["data"] == large_text
+      assert result.outputs["data"] == large_text
     end
   end
 
@@ -209,13 +211,13 @@ defmodule Liminara.Executor.PortTest do
     end
 
     test "port ops still work with clean env" do
-      assert {:ok, outputs, _duration} =
+      assert {:ok, result, _duration} =
                PortExecutor.run("echo", %{"test" => "env_clean"},
                  python_root: @python_root,
                  runner: @runner_path
                )
 
-      assert outputs["test"] == "env_clean"
+      assert result.outputs["test"] == "env_clean"
     end
   end
 
@@ -223,13 +225,13 @@ defmodule Liminara.Executor.PortTest do
     test "host VIRTUAL_ENV does not leak to the child Python process" do
       System.put_env("VIRTUAL_ENV", "/fake/leaked/venv")
 
-      assert {:ok, outputs, _duration} =
+      assert {:ok, result, _duration} =
                PortExecutor.run("test_env_report", %{},
                  python_root: @python_root,
                  runner: @runner_path
                )
 
-      child_env = Jason.decode!(outputs["env"])
+      child_env = Jason.decode!(result.outputs["env"])
       # uv run sets its own VIRTUAL_ENV to the project venv,
       # but the host's value (/fake/leaked/venv) must NOT leak through
       refute child_env["VIRTUAL_ENV"] == "/fake/leaked/venv"
@@ -237,27 +239,27 @@ defmodule Liminara.Executor.PortTest do
     end
 
     test "PATH is visible to the child Python process" do
-      assert {:ok, outputs, _duration} =
+      assert {:ok, result, _duration} =
                PortExecutor.run("test_env_report", %{},
                  python_root: @python_root,
                  runner: @runner_path
                )
 
-      child_env = Jason.decode!(outputs["env"])
+      child_env = Jason.decode!(result.outputs["env"])
       assert Map.has_key?(child_env, "PATH")
     end
 
     test "extra_env vars are visible to the child Python process" do
       System.put_env("TEST_DECLARED_VAR", "declared_value")
 
-      assert {:ok, outputs, _duration} =
+      assert {:ok, result, _duration} =
                PortExecutor.run("test_env_report", %{},
                  python_root: @python_root,
                  runner: @runner_path,
                  extra_env: ["TEST_DECLARED_VAR"]
                )
 
-      child_env = Jason.decode!(outputs["env"])
+      child_env = Jason.decode!(result.outputs["env"])
       assert child_env["TEST_DECLARED_VAR"] == "declared_value"
       System.delete_env("TEST_DECLARED_VAR")
     end

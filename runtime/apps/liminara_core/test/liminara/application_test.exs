@@ -55,9 +55,15 @@ defmodule Liminara.ApplicationTest do
       assert Registry.lookup(Liminara.Run.Registry, "nonexistent_run") == []
     end
 
-    test "Run.DynamicSupervisor is a DynamicSupervisor with no children initially" do
+    test "Run.DynamicSupervisor is a DynamicSupervisor for run servers" do
       children = DynamicSupervisor.which_children(Liminara.Run.DynamicSupervisor)
-      assert children == []
+
+      assert is_list(children)
+
+      assert Enum.all?(children, fn {id, pid, type, modules} ->
+               id == :undefined and is_pid(pid) and type == :worker and
+                 modules == [Liminara.Run.Server]
+             end)
     end
   end
 

@@ -97,7 +97,7 @@ defmodule Liminara.SupervisedStoresTest do
       {:ok, hash} = Liminara.Decision.Store.put(run_id, record)
       assert hash =~ ~r/^sha256:/
 
-      {:ok, retrieved} = Liminara.Decision.Store.get(run_id, "test_node")
+      {:ok, [retrieved]} = Liminara.Decision.Store.get(run_id, "test_node")
       assert retrieved["node_id"] == "test_node"
       assert retrieved["decision_hash"] == hash
     end
@@ -112,7 +112,7 @@ defmodule Liminara.SupervisedStoresTest do
       }
 
       {:ok, hash} = Liminara.Decision.Store.put(run_id, record)
-      assert {:ok, ^hash} = Liminara.Decision.Store.verify(run_id, "verify_node")
+      assert {:ok, [^hash]} = Liminara.Decision.Store.verify(run_id, "verify_node")
     end
   end
 

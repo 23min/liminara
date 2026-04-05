@@ -13,7 +13,7 @@ defmodule Liminara.Event.Store do
 
   use GenServer
 
-  alias Liminara.{Canonical, Hash}
+  alias Liminara.{Canonical, ExecutionContext, Hash}
 
   # ── Supervised API (process-backed) ─────────────────────────────
 
@@ -68,6 +68,20 @@ defmodule Liminara.Event.Store do
   @spec read_plan(String.t()) :: {:ok, Liminara.Plan.t()} | {:error, :not_found}
   def read_plan(run_id) when is_binary(run_id) do
     GenServer.call(__MODULE__, {:read_plan, run_id})
+  end
+
+  @doc "Write execution context for a run via the supervised process."
+  @spec write_execution_context(String.t(), ExecutionContext.t()) :: :ok
+  def write_execution_context(run_id, %ExecutionContext{} = execution_context)
+      when is_binary(run_id) do
+    GenServer.call(__MODULE__, {:write_execution_context, run_id, execution_context})
+  end
+
+  @doc "Read execution context for a run via the supervised process."
+  @spec read_execution_context(String.t()) ::
+          {:ok, ExecutionContext.t()} | {:error, :not_found | :invalid}
+  def read_execution_context(run_id) when is_binary(run_id) do
+    GenServer.call(__MODULE__, {:read_execution_context, run_id})
   end
 
   # ── Direct API (stateless, explicit runs_root) ──────────────────
@@ -246,6 +260,42 @@ defmodule Liminara.Event.Store do
     end
   end
 
+  @doc "Write execution context JSON for a run."
+  @spec write_execution_context(Path.t(), String.t(), ExecutionContext.t()) :: :ok
+  def write_execution_context(runs_root, run_id, %ExecutionContext{} = execution_context) do
+    run_dir = Path.join(runs_root, run_id)
+    File.mkdir_p!(run_dir)
+    path = Path.join(run_dir, "execution_context.json")
+    File.write!(path, execution_context |> Map.from_struct() |> Jason.encode!(pretty: true))
+    :ok
+  end
+
+  @doc "Read execution context JSON for a run."
+  @spec read_execution_context(Path.t(), String.t()) ::
+          {:ok, ExecutionContext.t()} | {:error, :not_found | :invalid}
+  def read_execution_context(runs_root, run_id) do
+    path = Path.join([runs_root, run_id, "execution_context.json"])
+
+    case File.read(path) do
+      {:ok, content} ->
+        with {:ok, decoded} <- Jason.decode(content),
+             true <- is_map(decoded),
+             attrs <- execution_context_attrs(decoded),
+             true <- valid_execution_context_attrs?(attrs) do
+          {:ok, struct(ExecutionContext, attrs)}
+        else
+          {:error, _reason} -> {:error, :invalid}
+          false -> {:error, :invalid}
+        end
+
+      {:error, :enoent} ->
+        {:error, :not_found}
+
+      {:error, _reason} ->
+        {:error, :invalid}
+    end
+  end
+
   # ── GenServer callbacks ─────────────────────────────────────────
 
   @impl true
@@ -291,6 +341,18 @@ defmodule Liminara.Event.Store do
     {:reply, read_plan(root, run_id), state}
   end
 
+  def handle_call(
+        {:write_execution_context, run_id, execution_context},
+        _from,
+        %{runs_root: root} = state
+      ) do
+    {:reply, write_execution_context(root, run_id, execution_context), state}
+  end
+
+  def handle_call({:read_execution_context, run_id}, _from, %{runs_root: root} = state) do
+    {:reply, read_execution_context(root, run_id), state}
+  end
+
   # ── Private ─────────────────────────────────────────────────────
 
   defp events_path(runs_root, run_id) do
@@ -303,5 +365,55 @@ defmodule Liminara.Event.Store do
 
     Calendar.strftime(now, "%Y-%m-%dT%H:%M:%S") <>
       ".#{String.pad_leading(Integer.to_string(ms), 3, "0")}Z"
+  end
+
+  defp execution_context_attrs(attrs) do
+    allowed_keys = ExecutionContext |> struct() |> Map.keys() |> MapSet.new()
+
+    string_key_map =
+      allowed_keys
+      |> Enum.reject(&(&1 == :__struct__))
+      |> Map.new(fn key -> {Atom.to_string(key), key} end)
+
+    attrs
+    |> Enum.reduce(%{}, fn
+      {key, value}, acc when is_atom(key) ->
+        if MapSet.member?(allowed_keys, key) do
+          Map.put(acc, key, value)
+        else
+          acc
+        end
+
+      {key, value}, acc when is_binary(key) ->
+        if atom_key = string_key_map[key] do
+          Map.put(acc, atom_key, value)
+        else
+          acc
+        end
+
+      _, acc ->
+        acc
+    end)
+  end
+
+  defp valid_execution_context_attrs?(attrs) do
+    required_valid? =
+      Enum.all?([:run_id, :started_at, :pack_id, :pack_version], fn key ->
+        case Map.get(attrs, key) do
+          value when is_binary(value) and value != "" -> true
+          _ -> false
+        end
+      end)
+
+    optional_valid? =
+      Enum.all?([:replay_of_run_id, :topic_id], fn key ->
+        case Map.get(attrs, key) do
+          nil -> true
+          value when is_binary(value) -> true
+          _ -> false
+        end
+      end)
+
+    required_valid? and optional_valid?
   end
 end

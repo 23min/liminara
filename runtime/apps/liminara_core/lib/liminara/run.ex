@@ -6,7 +6,19 @@ defmodule Liminara.Run do
   subscribe/unsubscribe API for :pg-based event broadcasting.
   """
 
-  alias Liminara.{Artifact, Cache, Canonical, Decision, Event, Executor, Hash, Plan}
+  alias Liminara.{
+    Artifact,
+    Cache,
+    Canonical,
+    Decision,
+    Event,
+    ExecutionContext,
+    Executor,
+    Hash,
+    Op,
+    OpResult,
+    Plan
+  }
 
   @doc "Subscribe the calling process to events from the given run."
   @spec subscribe(String.t()) :: :ok
@@ -50,82 +62,110 @@ defmodule Liminara.Run do
     pack_version = Keyword.fetch!(opts, :pack_version)
     store_root = Keyword.fetch!(opts, :store_root)
     runs_root = Keyword.fetch!(opts, :runs_root)
+    {:ok, task_supervisor} = Task.Supervisor.start_link()
+    Process.unlink(task_supervisor)
 
-    run_id = generate_run_id(pack_id)
+    try do
+      run_id = generate_run_id(pack_id)
+      replay_run_id = Keyword.get(opts, :replay)
 
-    state = %{
-      plan: plan,
-      run_id: run_id,
-      pack_id: pack_id,
-      pack_version: pack_version,
-      store_root: store_root,
-      runs_root: runs_root,
-      cache: Keyword.get(opts, :cache),
-      replay: Keyword.get(opts, :replay),
-      completed: MapSet.new(),
-      # node_id => %{output_key => artifact_hash}
-      outputs: %{},
-      prev_hash: nil,
-      event_count: 0
-    }
+      replay_requires_source_execution_context =
+        plan_replay_requires_source_execution_context?(plan, replay_run_id, runs_root)
 
-    # Persist the plan
-    Event.Store.write_plan(runs_root, run_id, plan)
+      {execution_context, replay_execution_context_error} =
+        resolve_execution_context(runs_root, run_id, pack_id, pack_version, replay_run_id)
 
-    # Emit run_started
-    state =
-      emit_event(state, "run_started", %{
-        "run_id" => run_id,
-        "pack_id" => pack_id,
-        "pack_version" => pack_version,
-        "plan_hash" => Plan.hash(plan)
-      })
+      state = %{
+        plan: plan,
+        run_id: run_id,
+        pack_id: pack_id,
+        pack_version: pack_version,
+        store_root: store_root,
+        runs_root: runs_root,
+        cache: Keyword.get(opts, :cache),
+        replay: replay_run_id,
+        task_supervisor: task_supervisor,
+        replay_requires_source_execution_context: replay_requires_source_execution_context,
+        replay_execution_context_error: replay_execution_context_error,
+        execution_context: execution_context,
+        completed: MapSet.new(),
+        # node_id => %{output_key => artifact_hash}
+        outputs: %{},
+        prev_hash: nil,
+        event_count: 0
+      }
 
-    # Run the scheduler loop
-    case scheduler_loop(state) do
-      {:ok, state} ->
-        # Collect all artifact hashes
-        artifact_hashes =
-          state.outputs
-          |> Map.values()
-          |> Enum.flat_map(&Map.values/1)
+      # Persist the plan
+      Event.Store.write_plan(runs_root, run_id, plan)
 
-        state =
-          emit_event(state, "run_completed", %{
-            "run_id" => run_id,
-            "outcome" => "success",
-            "artifact_hashes" => artifact_hashes
-          })
+      unless replay_execution_context_error != nil and replay_requires_source_execution_context do
+        Event.Store.write_execution_context(runs_root, run_id, execution_context)
+      end
 
-        # Write seal
-        Event.Store.write_seal(runs_root, run_id)
+      # Emit run_started
+      state =
+        emit_event(state, "run_started", %{
+          "run_id" => run_id,
+          "pack_id" => pack_id,
+          "pack_version" => pack_version,
+          "plan_hash" => Plan.hash(plan),
+          "execution_context" =>
+            if(replay_execution_context_error != nil and replay_requires_source_execution_context,
+              do: nil,
+              else: execution_context_payload(execution_context)
+            )
+        })
 
-        {:ok,
-         %Result{
-           run_id: run_id,
-           status: :success,
-           outputs: state.outputs,
-           event_count: state.event_count
-         }}
+      # Run the scheduler loop
+      case scheduler_loop(state) do
+        {:ok, state} ->
+          # Collect all artifact hashes
+          artifact_hashes =
+            state.outputs
+            |> Map.values()
+            |> Enum.flat_map(&Map.values/1)
 
-      {:error, state, node_id, reason} ->
-        state =
-          emit_event(state, "run_failed", %{
-            "run_id" => run_id,
-            "error_type" => "op_failure",
-            "error_message" => inspect(reason),
-            "failed_node" => node_id
-          })
+          state =
+            emit_event(state, "run_completed", %{
+              "run_id" => run_id,
+              "outcome" => "success",
+              "artifact_hashes" => artifact_hashes
+            })
 
-        {:ok,
-         %Result{
-           run_id: run_id,
-           status: :failed,
-           outputs: state.outputs,
-           event_count: state.event_count,
-           failed_nodes: [node_id],
-           node_states: build_node_states(state, node_id)
-         }}
+          # Write seal
+          Event.Store.write_seal(runs_root, run_id)
+
+          {:ok,
+           %Result{
+             run_id: run_id,
+             status: :success,
+             outputs: state.outputs,
+             event_count: state.event_count
+           }}
+
+        {:error, state, node_id, reason} ->
+          state =
+            emit_event(state, "run_failed", %{
+              "run_id" => run_id,
+              "error_type" => "op_failure",
+              "error_message" => inspect(reason),
+              "failed_node" => node_id
+            })
+
+          {:ok,
+           %Result{
+             run_id: run_id,
+             status: :failed,
+             outputs: state.outputs,
+             event_count: state.event_count,
+             failed_nodes: [node_id],
+             node_states: build_node_states(state, node_id)
+           }}
+      end
+    after
+      if Process.alive?(task_supervisor) do
+        Process.exit(task_supervisor, :shutdown)
+      end
     end
   end
 
@@ -175,24 +215,30 @@ defmodule Liminara.Run do
     node = Plan.get_node(state.plan, node_id)
     op_module = node.op_module
     input_hashes = compute_input_hashes(state, node.inputs)
-    determinism = op_module.determinism()
+    spec = Op.execution_spec(op_module)
+    determinism = spec.determinism.class || op_module.determinism()
+    replay_policy = Op.replay_policy(spec)
 
     # Emit op_started
     state =
       emit_event(state, "op_started", %{
         "node_id" => node_id,
-        "op_id" => op_module.name(),
-        "op_version" => op_module.version(),
+        "op_id" => spec.identity.name || op_module.name(),
+        "op_version" => spec.identity.version || op_module.version(),
         "determinism" => Atom.to_string(determinism),
         "input_hashes" => input_hashes
       })
 
-    # Replay mode: skip side-effecting, inject recordable decisions
+    # Replay mode: branch on canonical replay policy.
     cond do
-      state.replay != nil and determinism == :side_effecting ->
+      state.replay != nil and state.replay_execution_context_error != nil and
+          replay_requires_source_execution_context?(state, node_id, spec, replay_policy) ->
+        handle_replay_execution_context_error(state, node_id, replay_policy)
+
+      state.replay != nil and replay_policy == :skip ->
         handle_replay_skip(state, node_id)
 
-      state.replay != nil and determinism == :recordable ->
+      state.replay != nil and replay_policy == :replay_recorded ->
         handle_replay_inject(state, node_id)
 
       check_cache(state, op_module, input_hashes) != :miss ->
@@ -200,19 +246,24 @@ defmodule Liminara.Run do
         handle_cache_hit(state, node_id, output_hashes)
 
       true ->
-        dispatch_execute(state, node_id, node, input_hashes)
+        dispatch_execute(state, node_id, node, input_hashes, spec)
     end
   end
 
-  defp dispatch_execute(state, node_id, node, input_hashes) do
+  defp dispatch_execute(state, node_id, node, input_hashes, spec) do
     resolved_inputs = resolve_inputs(state, node.inputs)
 
-    case Executor.run(node.op_module, resolved_inputs) do
-      {:ok, outputs, duration_ms} ->
-        handle_success(state, node_id, outputs, duration_ms, [], input_hashes)
+    case Executor.run(node.op_module, resolved_inputs,
+           execution_spec: spec,
+           task_supervisor: state.task_supervisor,
+           execution_context:
+             maybe_execution_context(node.op_module, spec, state.execution_context)
+         ) do
+      {:ok, %OpResult{} = result, duration_ms} ->
+        handle_success(state, node_id, result, duration_ms, input_hashes)
 
-      {:ok, outputs, duration_ms, decisions} ->
-        handle_success(state, node_id, outputs, duration_ms, decisions, input_hashes)
+      {:gate, prompt, duration_ms} ->
+        handle_gate_failure(state, node_id, prompt, duration_ms)
 
       {:error, reason, duration_ms} ->
         state =
@@ -227,15 +278,52 @@ defmodule Liminara.Run do
     end
   end
 
+  defp handle_gate_failure(state, node_id, prompt, duration_ms) do
+    state =
+      emit_event(state, "gate_requested", %{
+        "node_id" => node_id,
+        "prompt" => prompt
+      })
+
+    state =
+      emit_event(state, "op_failed", %{
+        "node_id" => node_id,
+        "error_type" => "gate_requires_run_server",
+        "error_message" => "gate ops require Run.Server in synchronous mode",
+        "duration_ms" => duration_ms
+      })
+
+    {:error, state, node_id, {:gate_requires_run_server, prompt}}
+  end
+
+  defp handle_replay_execution_context_error(state, node_id, replay_policy) do
+    {error_type, error_message, reason} =
+      replay_execution_context_error_details(state.replay_execution_context_error, replay_policy)
+
+    state =
+      emit_event(state, "op_failed", %{
+        "node_id" => node_id,
+        "error_type" => error_type,
+        "error_message" => error_message,
+        "duration_ms" => 0
+      })
+
+    {:error, state, node_id, reason}
+  end
+
   defp handle_replay_skip(state, node_id) do
     # Side-effecting op in replay: skip, use empty outputs
     state =
-      emit_event(state, "op_completed", %{
-        "node_id" => node_id,
-        "output_hashes" => [],
-        "cache_hit" => true,
-        "duration_ms" => 0
-      })
+      emit_event(
+        state,
+        "op_completed",
+        %{
+          "node_id" => node_id,
+          "cache_hit" => true,
+          "duration_ms" => 0
+        }
+        |> Map.merge(output_hash_payload(%{}))
+      )
 
     state = %{
       state
@@ -248,7 +336,10 @@ defmodule Liminara.Run do
 
   defp handle_replay_inject(state, node_id) do
     with {:ok, decisions} <- Decision.Store.get(state.runs_root, state.replay, node_id),
-         {:ok, output_hashes} <- Decision.Store.get_outputs(state.runs_root, state.replay, node_id) do
+         {:ok, output_hashes} <-
+           Decision.Store.get_outputs(state.runs_root, state.replay, node_id) do
+      warnings = replay_warnings(state, node_id)
+
       # Emit decision_recorded events to match discovery provenance
       state =
         Enum.reduce(decisions, state, fn decision, state ->
@@ -260,12 +351,17 @@ defmodule Liminara.Run do
         end)
 
       state =
-        emit_event(state, "op_completed", %{
-          "node_id" => node_id,
-          "output_hashes" => Map.values(output_hashes),
-          "cache_hit" => false,
-          "duration_ms" => 0
-        })
+        emit_event(
+          state,
+          "op_completed",
+          %{
+            "node_id" => node_id,
+            "cache_hit" => false,
+            "duration_ms" => 0,
+            "warnings" => warnings
+          }
+          |> Map.merge(output_hash_payload(output_hashes))
+        )
 
       state = %{
         state
@@ -276,21 +372,34 @@ defmodule Liminara.Run do
       {:ok, state}
     else
       {:error, :not_found} ->
-        # No stored decision — fall back to normal execution
-        node = Plan.get_node(state.plan, node_id)
-        input_hashes = compute_input_hashes(state, node.inputs)
-        dispatch_execute(state, node_id, node, input_hashes)
+        handle_missing_replay_recording(state, node_id)
     end
+  end
+
+  defp handle_missing_replay_recording(state, node_id) do
+    state =
+      emit_event(state, "op_failed", %{
+        "node_id" => node_id,
+        "error_type" => "missing_replay_recording",
+        "error_message" => "replay source run is missing stored decision or output data",
+        "duration_ms" => 0
+      })
+
+    {:error, state, node_id, :missing_replay_recording}
   end
 
   defp handle_cache_hit(state, node_id, output_hashes) do
     state =
-      emit_event(state, "op_completed", %{
-        "node_id" => node_id,
-        "output_hashes" => Map.values(output_hashes),
-        "cache_hit" => true,
-        "duration_ms" => 0
-      })
+      emit_event(
+        state,
+        "op_completed",
+        %{
+          "node_id" => node_id,
+          "cache_hit" => true,
+          "duration_ms" => 0
+        }
+        |> Map.merge(output_hash_payload(output_hashes))
+      )
 
     state = %{
       state
@@ -301,25 +410,31 @@ defmodule Liminara.Run do
     {:ok, state}
   end
 
-  defp handle_success(state, node_id, outputs, duration_ms, decisions, input_hashes) do
+  defp handle_success(state, node_id, %OpResult{} = result, duration_ms, input_hashes) do
     # Store output artifacts
-    {output_hashes, state} = store_outputs(state, outputs)
+    {output_hashes, state} = store_outputs(state, result.outputs)
 
     # Record decisions and output_hashes for replay
-    state = record_decisions(state, node_id, decisions)
+    state = record_decisions(state, node_id, result.decisions)
     store_output_hashes(state, node_id, output_hashes)
+    store_warnings(state, node_id, result.warnings)
 
     # Store in cache if cacheable
     store_in_cache(state, node_id, input_hashes, output_hashes)
 
     # Emit op_completed
     state =
-      emit_event(state, "op_completed", %{
-        "node_id" => node_id,
-        "output_hashes" => Map.values(output_hashes),
-        "cache_hit" => false,
-        "duration_ms" => duration_ms
-      })
+      emit_event(
+        state,
+        "op_completed",
+        %{
+          "node_id" => node_id,
+          "cache_hit" => false,
+          "duration_ms" => duration_ms,
+          "warnings" => Enum.map(result.warnings, &warning_payload/1)
+        }
+        |> Map.merge(output_hash_payload(output_hashes))
+      )
 
     state = %{
       state
@@ -390,15 +505,33 @@ defmodule Liminara.Run do
     Decision.Store.put_outputs(state.runs_root, state.run_id, node_id, output_hashes)
   end
 
+  defp store_warnings(_state, _node_id, []), do: :ok
+
+  defp store_warnings(state, node_id, warnings) do
+    warnings = Enum.map(warnings, &warning_payload/1)
+    Decision.Store.put_warnings(state.runs_root, state.run_id, node_id, warnings)
+  end
+
+  defp replay_warnings(state, node_id) do
+    case Decision.Store.get_warnings(state.runs_root, state.replay, node_id) do
+      {:ok, warnings} -> warnings
+      {:error, :not_found} -> []
+    end
+  end
+
   defp record_decisions(state, _node_id, []), do: state
 
   defp record_decisions(state, node_id, decisions) do
+    node = Plan.get_node(state.plan, node_id)
+    op_module = node.op_module
+    spec = Op.execution_spec(op_module)
+
     Enum.reduce(decisions, state, fn decision, state ->
       record =
         Map.merge(decision, %{
           "node_id" => node_id,
-          "op_id" => Plan.get_node(state.plan, node_id).op_module.name(),
-          "op_version" => Plan.get_node(state.plan, node_id).op_module.version(),
+          "op_id" => spec.identity.name || op_module.name(),
+          "op_version" => spec.identity.version || op_module.version(),
           "recorded_at" => DateTime.utc_now() |> DateTime.to_iso8601()
         })
 
@@ -458,5 +591,115 @@ defmodule Liminara.Run do
     ts = Calendar.strftime(now, "%Y%m%dT%H%M%S")
     rand = :crypto.strong_rand_bytes(4) |> Base.encode16(case: :lower)
     "#{pack_id}-#{ts}-#{rand}"
+  end
+
+  defp build_execution_context(run_id, pack_id, pack_version, replay_run_id) do
+    %ExecutionContext{
+      run_id: run_id,
+      started_at: DateTime.utc_now() |> DateTime.to_iso8601(),
+      pack_id: pack_id,
+      pack_version: pack_version,
+      replay_of_run_id: replay_run_id
+    }
+  end
+
+  defp resolve_execution_context(runs_root, run_id, pack_id, pack_version, replay_run_id) do
+    fallback_context = build_execution_context(run_id, pack_id, pack_version, replay_run_id)
+
+    case replay_run_id do
+      nil ->
+        {fallback_context, nil}
+
+      replay_run_id ->
+        case Event.Store.read_execution_context(runs_root, replay_run_id) do
+          {:ok, execution_context} ->
+            {
+              %ExecutionContext{execution_context | replay_of_run_id: replay_run_id},
+              nil
+            }
+
+          {:error, reason} when reason in [:not_found, :invalid] ->
+            {fallback_context, reason}
+        end
+    end
+  end
+
+  defp execution_context_payload(%ExecutionContext{} = execution_context),
+    do: Map.from_struct(execution_context)
+
+  defp warning_payload(%_{} = warning), do: Map.from_struct(warning)
+  defp warning_payload(warning) when is_map(warning), do: warning
+
+  defp output_hash_payload(output_hashes) do
+    %{
+      "output_hashes" => Map.values(output_hashes),
+      "output_hashes_by_key" => output_hashes
+    }
+  end
+
+  defp maybe_execution_context(_op_module, spec, execution_context) do
+    if spec.execution.requires_execution_context do
+      execution_context
+    else
+      nil
+    end
+  end
+
+  defp plan_replay_requires_source_execution_context?(_plan, replay_run_id, _runs_root)
+       when is_nil(replay_run_id),
+       do: false
+
+  defp plan_replay_requires_source_execution_context?(plan, replay_run_id, runs_root) do
+    Enum.any?(plan.nodes, fn {node_id, node} ->
+      spec = Op.execution_spec(node.op_module)
+
+      replay_requires_source_execution_context?(
+        spec,
+        Op.replay_policy(spec),
+        fn -> replay_recorded_data_available?(runs_root, replay_run_id, node_id) end
+      )
+    end)
+  end
+
+  defp replay_requires_source_execution_context?(spec, :replay_recorded, replay_data_available?) do
+    spec.execution.requires_execution_context and not replay_data_available?.()
+  end
+
+  defp replay_requires_source_execution_context?(spec, replay_policy, _replay_data_available?) do
+    spec.execution.requires_execution_context and replay_policy_requires_execution?(replay_policy)
+  end
+
+  defp replay_requires_source_execution_context?(state, node_id, spec, :replay_recorded) do
+    spec.execution.requires_execution_context and
+      not replay_recorded_data_available?(state.runs_root, state.replay, node_id)
+  end
+
+  defp replay_requires_source_execution_context?(_state, _node_id, spec, replay_policy) do
+    spec.execution.requires_execution_context and replay_policy_requires_execution?(replay_policy)
+  end
+
+  defp replay_policy_requires_execution?(:skip), do: false
+
+  defp replay_policy_requires_execution?(_policy), do: true
+
+  defp replay_recorded_data_available?(runs_root, replay_run_id, node_id) do
+    match?({:ok, _}, Decision.Store.get(runs_root, replay_run_id, node_id)) and
+      match?({:ok, _}, Decision.Store.get_outputs(runs_root, replay_run_id, node_id))
+  end
+
+  defp replay_execution_context_error_details(:not_found, _replay_policy) do
+    {
+      "missing_replay_execution_context",
+      "replay source run is missing execution_context.json",
+      :missing_replay_execution_context
+    }
+  end
+
+  defp replay_execution_context_error_details(:invalid, _replay_policy) do
+    {
+      "invalid_replay_execution_context",
+      "replay source run has invalid execution_context.json",
+      :invalid_replay_execution_context
+    }
   end
 end

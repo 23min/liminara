@@ -58,6 +58,34 @@ defmodule Liminara.Run.GenServerTest do
 
       assert_receive {:DOWN, ^ref, :process, ^pid, :normal}, 1000
     end
+
+    test "await fallback preserves named output keys after the server exits" do
+      run_id = "lifecycle-fallback-outputs-#{:erlang.unique_integer([:positive])}"
+
+      plan =
+        Plan.new()
+        |> Plan.add_node("a", Liminara.TestOps.Identity, %{
+          "alpha" => {:literal, "one"},
+          "beta" => {:literal, "two"}
+        })
+
+      {:ok, _pid} = start_run_server(run_id, plan)
+      {:ok, result} = Run.Server.await(run_id)
+
+      assert result.status == :success
+      Process.sleep(50)
+
+      assert {:ok, rebuilt_result} = Run.Server.await(run_id)
+
+      assert Map.has_key?(rebuilt_result.outputs["a"], "alpha")
+      assert Map.has_key?(rebuilt_result.outputs["a"], "beta")
+
+      {:ok, alpha} = Artifact.Store.get(rebuilt_result.outputs["a"]["alpha"])
+      {:ok, beta} = Artifact.Store.get(rebuilt_result.outputs["a"]["beta"])
+
+      assert alpha == "one"
+      assert beta == "two"
+    end
   end
 
   # ── Execution flow ───────────────────────────────────────────────
@@ -73,6 +101,24 @@ defmodule Liminara.Run.GenServerTest do
       assert Map.has_key?(result.outputs, "a")
 
       {:ok, content} = Artifact.Store.get(result.outputs["a"]["result"])
+      assert content == "HELLO"
+    end
+
+    test "task-backed canonical execution specs run successfully in Run.Server" do
+      run_id = "flow-task-spec-#{:erlang.unique_integer([:positive])}"
+
+      plan =
+        Plan.new()
+        |> Plan.add_node("task", Liminara.TestOps.WithTaskExecutionSpec, %{
+          "text" => {:literal, "hello"}
+        })
+
+      start_run_server(run_id, plan)
+
+      {:ok, result} = Run.Server.await(run_id)
+      assert result.status == :success
+
+      {:ok, content} = Artifact.Store.get(result.outputs["task"]["result"])
       assert content == "HELLO"
     end
 
@@ -330,6 +376,312 @@ defmodule Liminara.Run.GenServerTest do
       assert save_completed["payload"]["cache_hit"] == true
     end
 
+    test "explicit replay_policy can reexecute even when determinism class is side_effecting" do
+      plan =
+        Plan.new()
+        |> Plan.add_node("replay", Liminara.TestOps.WithReplayReexecuteExecutionSpec, %{
+          "text" => {:literal, "hello"}
+        })
+
+      run_id1 = "replay-policy-discovery-#{:erlang.unique_integer([:positive])}"
+      start_run_server(run_id1, plan)
+      {:ok, discovery} = Run.Server.await(run_id1)
+
+      run_id2 = "replay-policy-replay-#{:erlang.unique_integer([:positive])}"
+      start_run_server(run_id2, plan, replay: run_id1)
+      {:ok, replay} = Run.Server.await(run_id2)
+
+      refute replay.outputs["replay"] == %{}
+      {:ok, content} = Artifact.Store.get(replay.outputs["replay"]["result"])
+      assert content == "HELLO"
+
+      {:ok, events} = Event.Store.read_all(run_id2)
+
+      completed =
+        Enum.find(events, fn e ->
+          e["event_type"] == "op_completed" and e["payload"]["node_id"] == "replay"
+        end)
+
+      assert completed["payload"]["cache_hit"] == false
+      assert discovery.status == :success
+      assert replay.status == :success
+    end
+
+    test "replay reuses stored execution context for context-aware ops" do
+      plan =
+        Plan.new()
+        |> Plan.add_node("ctx", Liminara.TestOps.WithRuntimeContext, %{
+          "text" => {:literal, "hello"}
+        })
+
+      run_id1 = "replay-context-discovery-#{:erlang.unique_integer([:positive])}"
+      start_run_server(run_id1, plan)
+      {:ok, discovery} = Run.Server.await(run_id1)
+
+      run_id2 = "replay-context-replay-#{:erlang.unique_integer([:positive])}"
+      start_run_server(run_id2, plan, replay: run_id1)
+      {:ok, replay} = Run.Server.await(run_id2)
+
+      {:ok, discovery_run_id} = Artifact.Store.get(discovery.outputs["ctx"]["run_id"])
+
+      {:ok, discovery_started_at} =
+        Artifact.Store.get(discovery.outputs["ctx"]["started_at"])
+
+      {:ok, replay_run_id} = Artifact.Store.get(replay.outputs["ctx"]["run_id"])
+      {:ok, replay_started_at} = Artifact.Store.get(replay.outputs["ctx"]["started_at"])
+
+      assert replay_run_id == discovery_run_id
+      assert replay_started_at == discovery_started_at
+    end
+
+    test "replay fails explicitly when a context-aware source run is missing execution_context.json" do
+      plan =
+        Plan.new()
+        |> Plan.add_node("ctx", Liminara.TestOps.WithRuntimeContext, %{
+          "text" => {:literal, "hello"}
+        })
+
+      run_id1 = "replay-context-missing-discovery-#{:erlang.unique_integer([:positive])}"
+      start_run_server(run_id1, plan)
+      {:ok, discovery} = Run.Server.await(run_id1)
+      assert discovery.status == :success
+
+      runs_root = :sys.get_state(Liminara.Event.Store).runs_root
+      File.rm!(Path.join([runs_root, run_id1, "execution_context.json"]))
+
+      run_id2 = "replay-context-missing-replay-#{:erlang.unique_integer([:positive])}"
+      start_run_server(run_id2, plan, replay: run_id1)
+      {:ok, replay} = Run.Server.await(run_id2)
+
+      assert replay.status == :failed
+      assert replay.failed_nodes == ["ctx"]
+
+      {:ok, events} = Event.Store.read_all(run_id2)
+      run_started = Enum.find(events, &(&1["event_type"] == "run_started"))
+      op_failed = Enum.find(events, &(&1["event_type"] == "op_failed"))
+
+      assert run_started["payload"]["execution_context"] == nil
+      assert op_failed["payload"]["error_type"] == "missing_replay_execution_context"
+      refute File.exists?(Path.join([runs_root, run_id2, "execution_context.json"]))
+    end
+
+    test "replay with multiple context-aware roots emits one terminal failure event" do
+      plan =
+        Plan.new()
+        |> Plan.add_node("a", Liminara.TestOps.WithRuntimeContext, %{
+          "text" => {:literal, "alpha"}
+        })
+        |> Plan.add_node("b", Liminara.TestOps.WithRuntimeContext, %{
+          "text" => {:literal, "beta"}
+        })
+
+      run_id1 = "replay-context-multi-discovery-#{:erlang.unique_integer([:positive])}"
+      start_run_server(run_id1, plan)
+      {:ok, discovery} = Run.Server.await(run_id1)
+      assert discovery.status == :success
+
+      runs_root = :sys.get_state(Liminara.Event.Store).runs_root
+      File.rm!(Path.join([runs_root, run_id1, "execution_context.json"]))
+
+      run_id2 = "replay-context-multi-replay-#{:erlang.unique_integer([:positive])}"
+      start_run_server(run_id2, plan, replay: run_id1)
+      {:ok, replay} = Run.Server.await(run_id2)
+
+      assert replay.status == :failed
+      assert Enum.sort(replay.failed_nodes) == ["a", "b"]
+
+      {:ok, events} = Event.Store.read_all(run_id2)
+
+      assert events |> Enum.filter(&(&1["event_type"] == "run_failed")) |> length() == 1
+
+      assert events
+             |> Enum.filter(&(&1["event_type"] == "op_failed"))
+             |> Enum.map(& &1["payload"]["node_id"])
+             |> Enum.sort() == ["a", "b"]
+
+      assert List.last(events)["event_type"] == "run_failed"
+    end
+
+    test "replay_recorded context-aware ops still replay when the source execution context is missing" do
+      plan =
+        Plan.new()
+        |> Plan.add_node("ctx", Liminara.TestOps.RecordableWithRuntimeContextExecutionSpec, %{
+          "text" => {:literal, "hello"}
+        })
+
+      run_id1 = "replay-recordable-context-discovery-#{:erlang.unique_integer([:positive])}"
+      start_run_server(run_id1, plan)
+      {:ok, discovery} = Run.Server.await(run_id1)
+      assert discovery.status == :success
+
+      runs_root = :sys.get_state(Liminara.Event.Store).runs_root
+      File.rm!(Path.join([runs_root, run_id1, "execution_context.json"]))
+
+      run_id2 = "replay-recordable-context-replay-#{:erlang.unique_integer([:positive])}"
+      start_run_server(run_id2, plan, replay: run_id1)
+      {:ok, replay} = Run.Server.await(run_id2)
+
+      assert replay.status == :success
+      assert {:ok, replay_context} = Event.Store.read_execution_context(run_id2)
+      assert replay_context.run_id == run_id2
+      assert replay_context.replay_of_run_id == run_id1
+
+      {:ok, replay_output_run_id} = Artifact.Store.get(replay.outputs["ctx"]["run_id"])
+      assert replay_output_run_id == run_id1
+
+      {:ok, events} = Event.Store.read_all(run_id2)
+      run_started = Enum.find(events, &(&1["event_type"] == "run_started"))
+
+      assert run_started["payload"]["execution_context"]["run_id"] == run_id2
+    end
+
+    test "replay_recorded context-aware ops fail explicitly when replay data is missing and the source context is missing" do
+      plan =
+        Plan.new()
+        |> Plan.add_node("ctx", Liminara.TestOps.RecordableWithRuntimeContextExecutionSpec, %{
+          "text" => {:literal, "hello"}
+        })
+
+      run_id1 =
+        "replay-recordable-context-missing-discovery-#{:erlang.unique_integer([:positive])}"
+
+      start_run_server(run_id1, plan)
+      {:ok, discovery} = Run.Server.await(run_id1)
+      assert discovery.status == :success
+
+      runs_root = :sys.get_state(Liminara.Event.Store).runs_root
+      File.rm!(Path.join([runs_root, run_id1, "execution_context.json"]))
+      File.rm!(Path.join([runs_root, run_id1, "decisions", "ctx.json"]))
+
+      run_id2 = "replay-recordable-context-missing-replay-#{:erlang.unique_integer([:positive])}"
+      start_run_server(run_id2, plan, replay: run_id1)
+      {:ok, replay} = Run.Server.await(run_id2)
+
+      assert replay.status == :failed
+      assert replay.failed_nodes == ["ctx"]
+
+      {:ok, events} = Event.Store.read_all(run_id2)
+      run_started = Enum.find(events, &(&1["event_type"] == "run_started"))
+      op_failed = Enum.find(events, &(&1["event_type"] == "op_failed"))
+
+      assert run_started["payload"]["execution_context"] == nil
+      assert op_failed["payload"]["error_type"] == "missing_replay_execution_context"
+      refute File.exists?(Path.join([runs_root, run_id2, "execution_context.json"]))
+    end
+
+    test "replay_recorded context-aware ops fail explicitly when replay data is missing even if the source context exists" do
+      plan =
+        Plan.new()
+        |> Plan.add_node("ctx", Liminara.TestOps.RecordableWithRuntimeContextExecutionSpec, %{
+          "text" => {:literal, "hello"}
+        })
+
+      run_id1 = "replay-recordable-missing-data-discovery-#{:erlang.unique_integer([:positive])}"
+      start_run_server(run_id1, plan)
+      {:ok, discovery} = Run.Server.await(run_id1)
+      assert discovery.status == :success
+
+      runs_root = :sys.get_state(Liminara.Event.Store).runs_root
+      File.rm!(Path.join([runs_root, run_id1, "decisions", "ctx.json"]))
+
+      run_id2 = "replay-recordable-missing-data-replay-#{:erlang.unique_integer([:positive])}"
+      start_run_server(run_id2, plan, replay: run_id1)
+      {:ok, replay} = Run.Server.await(run_id2)
+
+      assert replay.status == :failed
+      assert replay.failed_nodes == ["ctx"]
+
+      {:ok, events} = Event.Store.read_all(run_id2)
+      op_failed = Enum.find(events, &(&1["event_type"] == "op_failed"))
+
+      assert op_failed["payload"]["error_type"] == "missing_replay_recording"
+    end
+
+    test "replay fails explicitly when a context-aware source run has invalid execution_context.json" do
+      plan =
+        Plan.new()
+        |> Plan.add_node("ctx", Liminara.TestOps.WithRuntimeContext, %{
+          "text" => {:literal, "hello"}
+        })
+
+      run_id1 = "replay-context-invalid-discovery-#{:erlang.unique_integer([:positive])}"
+      start_run_server(run_id1, plan)
+      {:ok, discovery} = Run.Server.await(run_id1)
+      assert discovery.status == :success
+
+      runs_root = :sys.get_state(Liminara.Event.Store).runs_root
+      File.write!(Path.join([runs_root, run_id1, "execution_context.json"]), "{bad json")
+
+      run_id2 = "replay-context-invalid-replay-#{:erlang.unique_integer([:positive])}"
+      start_run_server(run_id2, plan, replay: run_id1)
+      {:ok, replay} = Run.Server.await(run_id2)
+
+      assert replay.status == :failed
+      assert replay.failed_nodes == ["ctx"]
+
+      {:ok, events} = Event.Store.read_all(run_id2)
+      run_started = Enum.find(events, &(&1["event_type"] == "run_started"))
+      op_failed = Enum.find(events, &(&1["event_type"] == "op_failed"))
+
+      assert run_started["payload"]["execution_context"] == nil
+      assert op_failed["payload"]["error_type"] == "invalid_replay_execution_context"
+      refute File.exists?(Path.join([runs_root, run_id2, "execution_context.json"]))
+    end
+
+    test "replay without context-aware ops still records replay-owned execution context" do
+      plan = single_op_plan()
+
+      run_id1 = "replay-no-context-discovery-#{:erlang.unique_integer([:positive])}"
+      start_run_server(run_id1, plan)
+      {:ok, discovery} = Run.Server.await(run_id1)
+      assert discovery.status == :success
+
+      runs_root = :sys.get_state(Liminara.Event.Store).runs_root
+      File.rm!(Path.join([runs_root, run_id1, "execution_context.json"]))
+
+      run_id2 = "replay-no-context-replay-#{:erlang.unique_integer([:positive])}"
+      start_run_server(run_id2, plan, replay: run_id1)
+      {:ok, replay} = Run.Server.await(run_id2)
+
+      assert replay.status == :success
+      assert {:ok, replay_context} = Event.Store.read_execution_context(run_id2)
+      assert replay_context.run_id == run_id2
+      assert replay_context.replay_of_run_id == run_id1
+
+      {:ok, events} = Event.Store.read_all(run_id2)
+      run_started = Enum.find(events, &(&1["event_type"] == "run_started"))
+
+      assert run_started["payload"]["execution_context"]["run_id"] == run_id2
+    end
+
+    test "recordable replay preserves warnings alongside stored decisions in Run.Server" do
+      plan =
+        Plan.new()
+        |> Plan.add_node("warn", Liminara.TestOps.RecordableWithWarningExecutionSpec, %{
+          "prompt" => {:literal, "hello"}
+        })
+
+      run_id1 = "replay-warning-discovery-#{:erlang.unique_integer([:positive])}"
+      start_run_server(run_id1, plan)
+      {:ok, discovery} = Run.Server.await(run_id1)
+      assert discovery.status == :success
+
+      run_id2 = "replay-warning-replay-#{:erlang.unique_integer([:positive])}"
+      start_run_server(run_id2, plan, replay: run_id1)
+      {:ok, replay} = Run.Server.await(run_id2)
+      assert replay.status == :success
+
+      {:ok, events} = Event.Store.read_all(run_id2)
+
+      completed =
+        Enum.find(events, fn e ->
+          e["event_type"] == "op_completed" and e["payload"]["node_id"] == "warn"
+        end)
+
+      assert [%{"code" => "recordable_warning", "severity" => "low"}] =
+               completed["payload"]["warnings"]
+    end
+
     test "replay produces matching output for pure ops" do
       plan = discovery_plan()
 
@@ -381,6 +733,36 @@ defmodule Liminara.Run.GenServerTest do
       start_run_server(run_id, plan)
 
       assert {:error, :timeout} = Run.Server.await(run_id, 50)
+    end
+
+    test "await falls back to the event log when a registered process exits normally without replying" do
+      run_id = "await-fallback-race-#{:erlang.unique_integer([:positive])}"
+
+      start_run_server(run_id, single_op_plan())
+      {:ok, completed} = Run.Server.await(run_id)
+      assert completed.status == :success
+
+      Process.sleep(50)
+
+      parent = self()
+
+      pid =
+        spawn_link(fn ->
+          Registry.register(Liminara.Run.Registry, run_id, nil)
+          send(parent, {:registered, self()})
+
+          receive do
+            {:await, _caller} -> :ok
+          end
+
+          :ok
+        end)
+
+      assert_receive {:registered, ^pid}, 1000
+
+      assert {:ok, rebuilt} = Run.Server.await(run_id)
+      assert rebuilt.status == :success
+      assert rebuilt.outputs == completed.outputs
     end
   end
 

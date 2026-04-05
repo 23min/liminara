@@ -1,7 +1,7 @@
 ---
 id: M-TRUTH-02-core-runtime-contract-migration
 epic: E-20-execution-truth
-status: draft
+status: in-progress
 depends_on: M-TRUTH-01-execution-spec-outcome-design
 ---
 

@@ -44,7 +44,9 @@ defmodule Liminara.OpTest do
       {:ok, result, duration_ms} =
         Executor.run(Liminara.TestOps.Upcase, %{"text" => "hello"}, executor: :inline)
 
-      assert result == %{"result" => "HELLO"}
+      assert result.outputs == %{"result" => "HELLO"}
+      assert result.decisions == []
+      assert result.warnings == []
       assert is_integer(duration_ms) and duration_ms >= 0
     end
 
@@ -60,7 +62,7 @@ defmodule Liminara.OpTest do
       {:ok, result, _duration} =
         Executor.run(Liminara.TestOps.Upcase, %{"text" => "default"})
 
-      assert result == %{"result" => "DEFAULT"}
+      assert result.outputs == %{"result" => "DEFAULT"}
     end
   end
 
@@ -74,7 +76,7 @@ defmodule Liminara.OpTest do
           task_supervisor: sup
         )
 
-      assert result == %{"result" => "ASYNC"}
+      assert result.outputs == %{"result" => "ASYNC"}
       assert is_integer(duration_ms) and duration_ms >= 0
     end
 
@@ -91,11 +93,11 @@ defmodule Liminara.OpTest do
 
   describe "Executor with recordable op" do
     test "recordable op returns decisions through executor" do
-      {:ok, result, _duration, decisions} =
+      {:ok, result, _duration} =
         Executor.run(Liminara.TestOps.Recordable, %{"prompt" => "test"}, executor: :inline)
 
-      assert result == %{"result" => "Generated response for: test"}
-      assert length(decisions) == 1
+      assert result.outputs == %{"result" => "Generated response for: test"}
+      assert length(result.decisions) == 1
     end
 
     test "pure op returns no decisions" do

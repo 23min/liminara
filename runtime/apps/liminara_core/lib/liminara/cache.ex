@@ -2,9 +2,9 @@ defmodule Liminara.Cache do
   @moduledoc """
   ETS-based memoization cache for op outputs.
 
-  Cache key is computed from op name, version, and sorted input hashes.
-  Only `:pure` and `:pinned_env` ops are cached; `:recordable` and
-  `:side_effecting` ops are never cached.
+  Cache key is computed from canonical op identity and sorted input hashes.
+  Canonically `:pure` ops are cached. `:pinned_env` caching stays disabled
+  until the runtime includes an environment hash in the cache key.
 
   Can be used in two modes:
   - **Supervised** (without table arg): uses the named ETS table owned by this GenServer.
@@ -13,7 +13,7 @@ defmodule Liminara.Cache do
 
   use GenServer
 
-  alias Liminara.{Canonical, Hash}
+  alias Liminara.{Canonical, Hash, Op}
 
   # ── Supervised API (process-backed) ─────────────────────────────
 
@@ -78,10 +78,27 @@ defmodule Liminara.Cache do
 
   @doc """
   Returns true if the op's determinism class allows caching.
+
+  Ops that require execution context stay uncached until the runtime includes
+  execution context in the cache key.
   """
   @spec cacheable?(module()) :: boolean()
   def cacheable?(op_module) do
-    op_module.determinism() in [:pure, :pinned_env]
+    spec = Op.execution_spec(op_module)
+
+    cond do
+      spec.execution.requires_execution_context ->
+        false
+
+      true ->
+        case spec.determinism.cache_policy do
+          :content_addressed -> true
+          :content_addressed_with_environment -> false
+          :none -> false
+          nil -> spec.determinism.class == :pure
+          _ -> false
+        end
+    end
   end
 
   # ── GenServer callbacks ─────────────────────────────────────────
@@ -95,12 +112,13 @@ defmodule Liminara.Cache do
   # ── Private ─────────────────────────────────────────────────────
 
   defp cache_key(op_module, input_hashes) do
+    spec = Op.execution_spec(op_module)
     sorted_hashes = Enum.sort(input_hashes)
 
     %{
       "input_hashes" => sorted_hashes,
-      "op_name" => op_module.name(),
-      "op_version" => op_module.version()
+      "op_name" => spec.identity.name || op_module.name(),
+      "op_version" => spec.identity.version || op_module.version()
     }
     |> Canonical.encode_to_iodata()
     |> Hash.hash_bytes()

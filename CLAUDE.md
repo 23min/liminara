@@ -253,16 +253,16 @@ One paragraph: overall assessment (approve / request changes).
 
 ### Active milestone
 
-**M-TRUTH-01: Execution Spec + Outcome Design** — complete
-- First blocking slice of Phase 5c (Radar Hardening), merged from `milestone/M-TRUTH-01` into `epic/E-20-execution-truth`
-- Next up in E-20: `M-TRUTH-02` (Core runtime contract migration), spec drafted
+**M-TRUTH-02: Core Runtime Contract Migration** — in progress
+- Current blocking slice of Phase 5c (Radar Hardening), on `milestone/M-TRUTH-02` from `epic/E-20-execution-truth`
+- Focus: migrate runtime execution, replay, and executor boundaries onto the canonical execution-truth contract with explicit temporary shims only where bootability requires them
 
 ### Where things stand
 
 - **Phase 4** (Observation Layer): **complete** — E-09 done, in `work/done/`
 - **Phase 5a** (Radar Correctness): **complete** — M-RAD-06 merged into `epic/E-11-radar`
 - **Phase 5b** (Radar Complete): **complete** — M-RAD-04 merged into `epic/E-11-radar`
-- **Phase 5c** (Radar Hardening): **in progress** — E-20 Execution Truth (`M-TRUTH-01` complete; `M-TRUTH-02` upcoming), then E-19 Warnings & Degraded Outcomes, then E-12 Op Sandbox
+- **Phase 5c** (Radar Hardening): **in progress** — E-20 Execution Truth (`M-TRUTH-01` complete; `M-TRUTH-02` in progress), then E-19 Warnings & Degraded Outcomes, then E-12 Op Sandbox
 - **Validation note:** M-TRUTH-01 scoped contract validation is green; full umbrella validation on this branch is still blocked by unrelated formatting drift and `liminara_web` / `Run.Server` failures
 - **Sequencing (D-013):** `Radar correctness -> Radar hardening -> VSME -> platform generalization`
 
@@ -275,7 +275,7 @@ One paragraph: overall assessment (approve / request changes).
 - **Phase 5c epic specs in worktree:** `work/epics/E-20-execution-truth/epic.md`, `work/epics/E-19-warnings-degraded-outcomes/epic.md`, `work/epics/E-12-op-sandbox/epic.md`
 - **Known gaps:** `work/gaps.md` (sandbox spec, dag-map interactivity)
 - **Epic branch:** `epic/E-20-execution-truth` (from `main`)
-- **Milestone branch:** `milestone/M-TRUTH-01` (merged into `epic/E-20-execution-truth`)
-- **Milestone spec:** `work/epics/E-20-execution-truth/M-TRUTH-01-execution-spec-outcome-design.md`
-- **Next milestone spec:** `work/epics/E-20-execution-truth/M-TRUTH-02-core-runtime-contract-migration.md` (draft)
-- **Tracking:** `work/milestones/tracking/M-TRUTH-01-tracking.md`
+- **Milestone branch:** `milestone/M-TRUTH-02` (from `epic/E-20-execution-truth`)
+- **Previous milestone:** `M-TRUTH-01` complete — `work/epics/E-20-execution-truth/M-TRUTH-01-execution-spec-outcome-design.md`
+- **Milestone spec:** `work/epics/E-20-execution-truth/M-TRUTH-02-core-runtime-contract-migration.md`
+- **Tracking:** `work/milestones/tracking/M-TRUTH-02-tracking.md`

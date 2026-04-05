@@ -142,6 +142,56 @@ defmodule Liminara.Run.ServerTest do
       {:ok, content} = Artifact.Store.get(ctx.store_root, output_hash)
       assert content == "STORED"
     end
+
+    test "task-backed canonical execution specs run successfully in synchronous mode", ctx do
+      plan =
+        Plan.new()
+        |> Plan.add_node("task", Liminara.TestOps.WithTaskExecutionSpec, %{
+          "text" => {:literal, "hello"}
+        })
+
+      {:ok, result} =
+        Run.execute(plan,
+          pack_id: "test_pack",
+          pack_version: "0.1.0",
+          store_root: ctx.store_root,
+          runs_root: ctx.runs_root
+        )
+
+      assert result.status == :success
+      {:ok, content} = Artifact.Store.get(ctx.store_root, result.outputs["task"]["result"])
+      assert content == "HELLO"
+    end
+
+    test "gate ops fail explicitly instead of crashing the synchronous runner", ctx do
+      plan =
+        Plan.new()
+        |> Plan.add_node("gate", Liminara.DemoOps.Approve, %{
+          "text" => {:literal, "approve me"}
+        })
+
+      {:ok, result} =
+        Run.execute(plan,
+          pack_id: "test_pack",
+          pack_version: "0.1.0",
+          store_root: ctx.store_root,
+          runs_root: ctx.runs_root
+        )
+
+      assert result.status == :failed
+      assert result.failed_nodes == ["gate"]
+
+      {:ok, events} = Event.Store.read_all(ctx.runs_root, result.run_id)
+
+      assert ["run_started", "op_started", "gate_requested", "op_failed", "run_failed"] ==
+               Enum.map(events, & &1["event_type"])
+
+      gate_requested = Enum.find(events, &(&1["event_type"] == "gate_requested"))
+      op_failed = Enum.find(events, &(&1["event_type"] == "op_failed"))
+
+      assert gate_requested["payload"]["prompt"] == "Please approve: approve me"
+      assert op_failed["payload"]["error_type"] == "gate_requires_run_server"
+    end
   end
 
   describe "fan-out" do

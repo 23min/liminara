@@ -42,18 +42,21 @@ defmodule Liminara.Executor.DispatchTest do
           runner: @runner_path
         )
 
-      assert {:ok, %{"message" => "hello"}, _duration} = result
+      assert {:ok, op_result, _duration} = result
+      assert op_result.outputs == %{"message" => "hello"}
     end
 
     test "dispatches to :inline by default (no executor/0 callback)" do
       result = Executor.run(InlineOp, %{"value" => 5})
-      assert {:ok, %{"result" => 10}, _duration} = result
+      assert {:ok, op_result, _duration} = result
+      assert op_result.outputs == %{"result" => 10}
     end
 
     test "explicit executor: :inline overrides op's executor/0" do
       # InlineOp has no executor/0 — explicit :inline should work fine
       result = Executor.run(InlineOp, %{"value" => 3}, executor: :inline)
-      assert {:ok, %{"result" => 6}, _duration} = result
+      assert {:ok, op_result, _duration} = result
+      assert op_result.outputs == %{"result" => 6}
     end
   end
 end

@@ -10,6 +10,8 @@ defmodule Liminara.Executor.Port do
     Error:    {"id": "...", "status": "error", "error": "message"}
   """
 
+  alias Liminara.{OpResult, Warning}
+
   @default_timeout 30_000
 
   # Only these host env vars are passed to Python ops.
@@ -22,20 +24,20 @@ defmodule Liminara.Executor.Port do
   Options:
     - `:python_root` — path to the Python project root (contains src/)
     - `:runner` — path to liminara_op_runner.py
-    - `:timeout` — max milliseconds to wait (default #{@default_timeout})
+    - `:timeout` — max milliseconds to wait (default canonical spec timeout or #{@default_timeout})
 
   Returns:
-    - `{:ok, outputs, duration_ms}`
-    - `{:ok, outputs, duration_ms, decisions}`
+    - `{:ok, %Liminara.OpResult{}, duration_ms}`
     - `{:error, reason, duration_ms}`
   """
   def run(op_name, inputs, opts \\ []) do
     python_root = Keyword.get(opts, :python_root, default_python_root())
     runner = Keyword.get(opts, :runner, default_runner(python_root))
-    timeout = Keyword.get(opts, :timeout, @default_timeout)
+    timeout = resolve_timeout(opts, @default_timeout)
     extra_env = Keyword.get(opts, :extra_env, [])
 
-    {id, frame} = encode_request(op_name, inputs)
+    execution_context = Keyword.get(opts, :execution_context)
+    {id, frame} = encode_request(op_name, inputs, execution_context)
 
     {duration_us, result} =
       :timer.tc(fn ->
@@ -45,11 +47,8 @@ defmodule Liminara.Executor.Port do
     duration_ms = div(duration_us, 1000)
 
     case result do
-      {:ok, %{"status" => "ok", "outputs" => outputs, "decisions" => decisions}} ->
-        {:ok, outputs, duration_ms, decisions}
-
-      {:ok, %{"status" => "ok", "outputs" => outputs}} ->
-        {:ok, outputs, duration_ms}
+      {:ok, %{"status" => "ok"} = response} ->
+        {:ok, normalize_success(response), duration_ms}
 
       {:ok, %{"status" => "error", "error" => error}} ->
         {:error, error, duration_ms}
@@ -63,15 +62,23 @@ defmodule Liminara.Executor.Port do
   Encode a request into a {packet,4} framed binary.
   Returns `{correlation_id, frame}`.
   """
-  def encode_request(op_name, inputs) do
+  def encode_request(op_name, inputs, execution_context \\ nil) do
     id = generate_id()
 
-    json =
-      Jason.encode!(%{
-        "id" => id,
-        "op" => op_name,
-        "inputs" => inputs
-      })
+    request = %{
+      "id" => id,
+      "op" => op_name,
+      "inputs" => inputs
+    }
+
+    request =
+      if execution_context == nil do
+        request
+      else
+        Map.put(request, "context", Map.from_struct(execution_context))
+      end
+
+    json = Jason.encode!(request)
 
     frame = <<byte_size(json)::unsigned-big-integer-size(32)>> <> json
     {id, frame}
@@ -219,4 +226,62 @@ defmodule Liminara.Executor.Port do
     Application.get_env(:liminara_core, :python_runner) ||
       Path.join(python_root, "src/liminara_op_runner.py")
   end
+
+  defp resolve_timeout(opts, default) do
+    case Keyword.fetch(opts, :timeout) do
+      {:ok, timeout} when is_integer(timeout) ->
+        timeout
+
+      _ ->
+        case Keyword.get(opts, :execution_spec) do
+          %{execution: %{timeout_ms: timeout_ms}} when is_integer(timeout_ms) -> timeout_ms
+          _ -> default
+        end
+    end
+  end
+
+  defp normalize_success(%{"outputs" => outputs} = response) do
+    # Temporary legacy/canonical protocol bridge. Remove in M-TRUTH-03 after Python ops emit only the canonical success shape.
+    %OpResult{
+      outputs: outputs,
+      decisions: Map.get(response, "decisions", []),
+      warnings: response |> Map.get("warnings", []) |> Enum.map(&normalize_warning/1)
+    }
+  end
+
+  defp normalize_warning(%Warning{} = warning), do: warning
+
+  defp normalize_warning(warning) when is_map(warning) do
+    warning =
+      Enum.reduce(warning, %{}, fn {key, value}, acc ->
+        case normalize_warning_key(key) do
+          nil -> acc
+          normalized_key -> Map.put(acc, normalized_key, value)
+        end
+      end)
+
+    warning = Map.update(warning, :severity, nil, &normalize_severity/1)
+
+    struct(Warning, warning)
+  end
+
+  defp normalize_warning_key(key)
+       when is_atom(key) and
+              key in [:affected_outputs, :cause, :code, :remediation, :severity, :summary],
+       do: key
+
+  defp normalize_warning_key("affected_outputs"), do: :affected_outputs
+  defp normalize_warning_key("cause"), do: :cause
+  defp normalize_warning_key("code"), do: :code
+  defp normalize_warning_key("remediation"), do: :remediation
+  defp normalize_warning_key("severity"), do: :severity
+  defp normalize_warning_key("summary"), do: :summary
+  defp normalize_warning_key(_key), do: nil
+
+  defp normalize_severity(severity) when is_atom(severity), do: severity
+  defp normalize_severity("low"), do: :low
+  defp normalize_severity("medium"), do: :medium
+  defp normalize_severity("high"), do: :high
+  defp normalize_severity("degraded"), do: :degraded
+  defp normalize_severity(severity), do: severity
 end

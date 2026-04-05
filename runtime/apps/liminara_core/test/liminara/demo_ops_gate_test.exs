@@ -44,8 +44,8 @@ defmodule Liminara.DemoOps.GateTest do
     test "implements determinism/0 callback" do
       det = Liminara.DemoOps.Approve.determinism()
 
-      assert det in [:pure, :pinned_env, :recordable, :side_effecting],
-             "Expected determinism to be a valid determinism atom, got: #{inspect(det)}"
+      assert is_atom(det),
+             "Expected determinism to be an atom, got: #{inspect(det)}"
     end
 
     test "determinism/0 returns :side_effecting — gates require human interaction" do
@@ -55,6 +55,8 @@ defmodule Liminara.DemoOps.GateTest do
 
     test "implements execute/1 callback" do
       # execute/1 must be callable — behaviour requires it
+      Code.ensure_loaded(Liminara.DemoOps.Approve)
+
       assert function_exported?(Liminara.DemoOps.Approve, :execute, 1),
              "Expected DemoOps.Approve to export execute/1"
     end

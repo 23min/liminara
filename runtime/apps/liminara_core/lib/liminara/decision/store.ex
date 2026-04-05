@@ -5,8 +5,8 @@ defmodule Liminara.Decision.Store do
   Stores a list of decision records per node as canonical JSON at
   `{runs_root}/{run_id}/decisions/{node_id}.json`.
 
-  File format:
-      {"decisions": [...], "output_hashes": {...} | null}
+    File format:
+      {"decisions": [...], "output_hashes": {...} | null, "warnings": [...] | null}
 
   Each `put/3` call appends one decision to the list. `get/3` always
   returns a list (single-decision nodes return a one-element list).
@@ -56,6 +56,19 @@ defmodule Liminara.Decision.Store do
   @spec get_outputs(String.t(), String.t()) :: {:ok, map()} | {:error, :not_found}
   def get_outputs(run_id, node_id) when is_binary(run_id) and is_binary(node_id) do
     GenServer.call(__MODULE__, {:get_outputs, run_id, node_id})
+  end
+
+  @doc "Store warnings for a node via the supervised process."
+  @spec put_warnings(String.t(), String.t(), [map()]) :: :ok
+  def put_warnings(run_id, node_id, warnings)
+      when is_binary(run_id) and is_binary(node_id) and is_list(warnings) do
+    GenServer.call(__MODULE__, {:put_warnings, run_id, node_id, warnings})
+  end
+
+  @doc "Read warnings for a node via the supervised process."
+  @spec get_warnings(String.t(), String.t()) :: {:ok, [map()]} | {:error, :not_found}
+  def get_warnings(run_id, node_id) when is_binary(run_id) and is_binary(node_id) do
+    GenServer.call(__MODULE__, {:get_warnings, run_id, node_id})
   end
 
   # ── Direct API (stateless, explicit runs_root) ──────────────────
@@ -163,6 +176,36 @@ defmodule Liminara.Decision.Store do
     end
   end
 
+  @doc "Store warnings for a node so replay can preserve discovery warnings."
+  @spec put_warnings(Path.t(), String.t(), String.t(), [map()]) :: :ok
+  def put_warnings(runs_root, run_id, node_id, warnings) do
+    path = node_path(runs_root, run_id, node_id)
+    File.mkdir_p!(Path.dirname(path))
+
+    wrapper = read_wrapper(path)
+    updated = Map.put(wrapper, "warnings", warnings)
+    File.write!(path, Canonical.encode(updated))
+
+    :ok
+  end
+
+  @doc "Read stored warnings for a node."
+  @spec get_warnings(Path.t(), String.t(), String.t()) :: {:ok, [map()]} | {:error, :not_found}
+  def get_warnings(runs_root, run_id, node_id) do
+    path = node_path(runs_root, run_id, node_id)
+
+    if File.exists?(path) do
+      content = path |> File.read!() |> Jason.decode!()
+
+      case content do
+        %{"warnings" => warnings} when is_list(warnings) -> {:ok, warnings}
+        _ -> {:error, :not_found}
+      end
+    else
+      {:error, :not_found}
+    end
+  end
+
   # ── GenServer callbacks ─────────────────────────────────────────
 
   @impl true
@@ -184,12 +227,24 @@ defmodule Liminara.Decision.Store do
     {:reply, verify(root, run_id, node_id), state}
   end
 
-  def handle_call({:put_outputs, run_id, node_id, output_hashes}, _from, %{runs_root: root} = state) do
+  def handle_call(
+        {:put_outputs, run_id, node_id, output_hashes},
+        _from,
+        %{runs_root: root} = state
+      ) do
     {:reply, put_outputs(root, run_id, node_id, output_hashes), state}
   end
 
   def handle_call({:get_outputs, run_id, node_id}, _from, %{runs_root: root} = state) do
     {:reply, get_outputs(root, run_id, node_id), state}
+  end
+
+  def handle_call({:put_warnings, run_id, node_id, warnings}, _from, %{runs_root: root} = state) do
+    {:reply, put_warnings(root, run_id, node_id, warnings), state}
+  end
+
+  def handle_call({:get_warnings, run_id, node_id}, _from, %{runs_root: root} = state) do
+    {:reply, get_warnings(root, run_id, node_id), state}
   end
 
   # ── Private ─────────────────────────────────────────────────────
@@ -203,11 +258,16 @@ defmodule Liminara.Decision.Store do
       content = path |> File.read!() |> Jason.decode!()
 
       case content do
-        %{"decisions" => _} -> content
-        %{} -> %{"decisions" => [content], "output_hashes" => nil}
+        %{"decisions" => _} = wrapper ->
+          wrapper
+          |> Map.put_new("output_hashes", nil)
+          |> Map.put_new("warnings", nil)
+
+        %{} ->
+          %{"decisions" => [content], "output_hashes" => nil, "warnings" => nil}
       end
     else
-      %{"decisions" => [], "output_hashes" => nil}
+      %{"decisions" => [], "output_hashes" => nil, "warnings" => nil}
     end
   end
 end

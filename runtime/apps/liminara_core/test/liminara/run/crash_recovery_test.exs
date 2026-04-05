@@ -154,6 +154,139 @@ defmodule Liminara.Run.CrashRecoveryTest do
       # Hash chain must be valid end-to-end
       assert {:ok, _count} = Event.Store.verify(run_id)
     end
+
+    test "restart resumes context-aware nodes successfully" do
+      plan =
+        Plan.new()
+        |> Plan.add_node("a", Liminara.TestOps.Slow, %{"text" => {:literal, "resume"}})
+        |> Plan.add_node("b", Liminara.TestOps.WithRuntimeContext, %{
+          "text" => {:ref, "a", "result"}
+        })
+
+      run_id = "rebuild-context-#{:erlang.unique_integer([:positive])}"
+
+      {:ok, pid} = Run.Server.start(run_id, plan)
+      Process.sleep(100)
+      Process.exit(pid, :shutdown)
+      Process.sleep(50)
+
+      {:ok, _pid2} = Run.Server.start(run_id, plan)
+      {:ok, result} = Run.Server.await(run_id, 10_000)
+
+      assert result.status == :success
+      assert result.node_states["a"] == :completed
+      assert result.node_states["b"] == :completed
+
+      {:ok, started_at_content} =
+        Liminara.Artifact.Store.get(result.outputs["b"]["started_at"])
+
+      assert is_binary(started_at_content)
+      assert started_at_content != ""
+    end
+
+    test "restart succeeds for context-aware nodes even if the execution context file is missing" do
+      plan =
+        Plan.new()
+        |> Plan.add_node("a", Liminara.TestOps.Slow, %{"text" => {:literal, "resume"}})
+        |> Plan.add_node("b", Liminara.TestOps.WithRuntimeContext, %{
+          "text" => {:ref, "a", "result"}
+        })
+
+      run_id = "rebuild-context-from-events-#{:erlang.unique_integer([:positive])}"
+
+      {:ok, pid} = Run.Server.start(run_id, plan)
+      Process.sleep(100)
+
+      Process.exit(pid, :shutdown)
+      Process.sleep(50)
+
+      File.rm!(
+        Path.join([
+          :sys.get_state(Liminara.Event.Store).runs_root,
+          run_id,
+          "execution_context.json"
+        ])
+      )
+
+      {:ok, _pid2} = Run.Server.start(run_id, plan)
+      {:ok, result} = Run.Server.await(run_id, 10_000)
+
+      assert result.status == :success
+      assert result.node_states["a"] == :completed
+      assert result.node_states["b"] == :completed
+
+      {:ok, started_at_content} =
+        Liminara.Artifact.Store.get(result.outputs["b"]["started_at"])
+
+      assert is_binary(started_at_content)
+      assert started_at_content != ""
+    end
+
+    test "replay restart keeps using the replay run's recorded context after source context loss" do
+      plan =
+        Plan.new()
+        |> Plan.add_node("a", Liminara.TestOps.Slow, %{"text" => {:literal, "resume"}})
+        |> Plan.add_node("b", Liminara.TestOps.WithRuntimeContext, %{
+          "text" => {:ref, "a", "result"}
+        })
+
+      {:ok, discovery} =
+        Run.execute(plan,
+          pack_id: "test_pack",
+          pack_version: "0.1.0",
+          store_root: :sys.get_state(Liminara.Artifact.Store).store_root,
+          runs_root: :sys.get_state(Liminara.Event.Store).runs_root
+        )
+
+      run_id = "rebuild-replay-context-#{:erlang.unique_integer([:positive])}"
+
+      {:ok, pid} = Run.Server.start(run_id, plan, replay: discovery.run_id)
+      Process.sleep(100)
+      Process.exit(pid, :shutdown)
+      Process.sleep(50)
+
+      File.rm!(
+        Path.join([
+          :sys.get_state(Liminara.Event.Store).runs_root,
+          discovery.run_id,
+          "execution_context.json"
+        ])
+      )
+
+      {:ok, _pid2} = Run.Server.start(run_id, plan, replay: discovery.run_id)
+      {:ok, result} = Run.Server.await(run_id, 10_000)
+
+      assert result.status == :success
+
+      {:ok, run_id_content} = Liminara.Artifact.Store.get(result.outputs["b"]["run_id"])
+
+      {:ok, replay_of_run_id} =
+        Liminara.Artifact.Store.get(result.outputs["b"]["replay_of_run_id"])
+
+      assert run_id_content == discovery.run_id
+      assert replay_of_run_id == discovery.run_id
+    end
+
+    test "await fallback preserves partial status after the server exits" do
+      plan =
+        Plan.new()
+        |> Plan.add_node("a", Liminara.TestOps.Upcase, %{"text" => {:literal, "fan"}})
+        |> Plan.add_node("b", Liminara.TestOps.Raise, %{"text" => {:ref, "a", "result"}})
+        |> Plan.add_node("c", Liminara.TestOps.Reverse, %{"text" => {:ref, "a", "result"}})
+
+      run_id = "rebuild-partial-status-#{:erlang.unique_integer([:positive])}"
+
+      Run.Server.start(run_id, plan)
+      {:ok, result} = Run.Server.await(run_id)
+      assert result.status == :partial
+
+      Process.sleep(50)
+
+      assert {:ok, rebuilt_result} = Run.Server.await(run_id)
+      assert rebuilt_result.status == :partial
+      assert rebuilt_result.node_states["b"] == :failed
+      assert rebuilt_result.node_states["c"] == :completed
+    end
   end
 
   # ── Concurrent runs ──────────────────────────────────────────────

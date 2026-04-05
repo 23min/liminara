@@ -4,10 +4,11 @@ Generic dispatcher: reads {packet,4} length-framed JSON from stdin,
 routes to op modules, writes length-framed JSON responses to stdout.
 
 Protocol:
-  Request:  {"id": "...", "op": "module_name", "inputs": {...}}
-  Success:  {"id": "...", "status": "ok", "outputs": {...}}
-  With decisions: {"id": "...", "status": "ok", "outputs": {...}, "decisions": [...]}
-  Error:    {"id": "...", "status": "error", "error": "message"}
+    Request:  {"id": "...", "op": "module_name", "inputs": {...}}
+    Success:  {"id": "...", "status": "ok", "outputs": {...}}
+    With decisions: {"id": "...", "status": "ok", "outputs": {...}, "decisions": [...]}
+    With warnings: {"id": "...", "status": "ok", "outputs": {...}, "warnings": [...]}
+    Error:    {"id": "...", "status": "error", "error": "message"}
 """
 
 import importlib
@@ -37,10 +38,16 @@ def write_message(obj):
     sys.stdout.buffer.flush()
 
 
-def dispatch(op_name, inputs):
+def dispatch(op_name, inputs, context=None):
     """Import and execute an op module by name."""
     module = importlib.import_module(f"ops.{op_name}")
-    return module.execute(inputs)
+    execute = getattr(module, "execute")
+
+    if context is not None and getattr(execute, "__code__", None) is not None:
+        if execute.__code__.co_argcount >= 2:
+            return execute(inputs, context)
+
+    return execute(inputs)
 
 
 def handle_request(msg):
@@ -48,12 +55,13 @@ def handle_request(msg):
     req_id = msg.get("id", "unknown")
     op_name = msg.get("op")
     inputs = msg.get("inputs", {})
+    context = msg.get("context")
 
     if not op_name:
         return {"id": req_id, "status": "error", "error": "missing 'op' field"}
 
     try:
-        result = dispatch(op_name, inputs)
+        result = dispatch(op_name, inputs, context)
     except SystemExit as e:
         return {"id": req_id, "status": "error", "error": f"SystemExit: {e.code}"}
     except Exception:
@@ -64,6 +72,8 @@ def handle_request(msg):
         response["outputs"] = result.get("outputs", result)
         if "decisions" in result:
             response["decisions"] = result["decisions"]
+        if "warnings" in result:
+            response["warnings"] = result["warnings"]
     else:
         response["outputs"] = result
 
