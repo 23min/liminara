@@ -47,6 +47,16 @@ Discovered work items deferred for later.
 - Mental map preservation — don't reposition existing nodes on incremental re-render (complex, needed for smooth live updates)
 - Node state animations — breathing effect for running nodes (nice-to-have, on dag-map roadmap as "someday")
 
+## Borrowable patterns from Camunda
+**Discovered:** 2026-04-06 (Camunda platform analysis)
+**Relates to:** ADJACENT_TECHNOLOGIES.md §11
+**Severity:** Future inspiration — not blocking any current work
+**Items:**
+- **Connector protocol for side_effecting ops** — standardized interface for ops that wrap external systems (email, Slack, webhooks, APIs). Not Camunda's specific connectors, but the pattern of a common protocol for integration ops. Maps to `side_effecting` determinism class.
+- **Run inspection tooling** — Camunda's Operate shows where a process instance is, what's blocked, and why. Liminara's observation layer (A2UI) already has the data; surfacing "where is this run stuck and why?" as a first-class view would be high value. No instance mutation (that conflicts with immutability).
+- **Process mining over historical runs** — Camunda's Optimize analyzes completed process instances for bottlenecks and deviations. Liminara's JSONL event logs are already pm4py-compatible (see ADJACENT_TECHNOLOGIES.md §2). A tool or future pack that runs statistical analysis over historical runs to find slow ops, common failure patterns, and plan deviations.
+- **Agentic subprocess pattern** — Camunda models LLM agents as ad-hoc subprocesses where the LLM dynamically picks which tasks to run. In Liminara terms: a `recordable` op whose decision is "which sub-DAG to execute." The decision gets recorded, so replay works. Worth considering for packs where the plan itself is nondeterministic (e.g., serendipity exploration in Radar).
+
 ## Remaining execution-spec compatibility bridge outside Radar
 **Discovered:** 2026-04-05 (M-TRUTH-03 wrap)
 **Relates to:** E-20 Execution Truth, M-TRUTH-03

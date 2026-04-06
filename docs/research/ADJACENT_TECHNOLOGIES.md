@@ -300,7 +300,41 @@ Sources:
 
 ---
 
-## 11. Technology Synthesis — The Pattern
+## 11. Camunda — BPMN Process Orchestration
+
+[Camunda](https://camunda.com/) is a BPMN-based process orchestration platform built on **Zeebe**, a distributed, event-driven workflow engine. It executes BPMN/DMN models natively, uses event sourcing with append-only logs, and provides operational tooling (Operate for instance inspection, Optimize for process mining, Tasklist for human task management). Deployed as SaaS or self-managed clusters.
+
+Camunda 8 introduced "agentic orchestration" — LLM agents modeled as BPMN ad-hoc subprocesses that dynamically select which tools (BPMN tasks) to invoke. Supports Anthropic, Amazon Bedrock, and OpenAI-compatible APIs.
+
+**Connection to Liminara:** Camunda and Liminara share vocabulary (orchestration, AI, audit trails) but solve fundamentally different problems with incompatible architectures.
+
+| Dimension | Camunda | Liminara |
+|-----------|---------|----------|
+| **Core abstraction** | BPMN state machine (graph with loops, branches, human gates) | DAG of ops producing content-addressed artifacts |
+| **Execution model** | Job workers consume tasks from Zeebe broker | Elixir/OTP supervisors execute ops, Python via ports |
+| **Nondeterminism** | Acknowledged but uncontrolled — LLM picks paths, results not recorded for replay | First-class concept — every choice captured as a Decision record |
+| **Artifacts** | No content-addressing; data flows through process variables | Immutable, SHA-256 addressed blobs |
+| **Replay** | Re-run a process (new execution, potentially different result) | Replay with recorded decisions = identical output, guaranteed |
+| **Loops** | Native BPMN support for cycles, retries, waiting states | DAG is acyclic by definition |
+| **Deployment** | Zeebe cluster + Elasticsearch + Operate + Tasklist + Optimize | Single Elixir app, zero external dependencies |
+
+**Where Camunda is stronger:** Human workflow routing (approvals, escalations, timeouts, compensation). Visual process design for non-technical users. Enterprise connector ecosystem (100+ integrations). Operational tooling for running instances — inspect, repair, modify. Process mining over historical executions.
+
+**Where Liminara is stronger:** Reproducibility (replay with identical output). Content-addressed caching (same inputs + same decisions = skip computation). Determinism classification as a type system for side effects. Compliance provenance for EU AI Act Article 12. Operational simplicity (no cluster, no external DB).
+
+**They are not competitors.** Camunda answers "how do I get work done across people and systems?" Liminara answers "how do I prove this computation produced this result, and reproduce it?" They could coexist — Camunda orchestrating a business process that calls Liminara for computation steps requiring provenance.
+
+**Borrowable ideas:** See `work/gaps.md` for specific patterns worth adopting (connectors, run inspection, process mining, agentic subprocesses).
+
+Sources:
+- [Camunda Platform](https://camunda.com/platform/)
+- [Zeebe Architecture](https://docs.camunda.io/docs/components/zeebe/zeebe-overview/)
+- [Camunda Agentic Orchestration](https://camunda.com/solutions/agentic-orchestration/)
+- [AI Agents Documentation](https://docs.camunda.io/docs/components/agentic-orchestration/ai-agents/)
+
+---
+
+## 12. Technology Synthesis — The Pattern
 
 The best systems come from someone who recognized that a *combination* of existing ideas was new even if the pieces weren't:
 
@@ -311,6 +345,7 @@ The best systems come from someone who recognized that a *combination* of existi
 | MapReduce | Functional programming + distributed systems | Scalable batch processing |
 | BEAM/OTP | Actors + supervision trees + hot code loading | Fault-tolerant telecom at scale |
 | Nix | Content addressing + functional builds | Reproducible system configuration |
+| Camunda | BPMN + event sourcing + Zeebe + agentic subprocesses | Enterprise process orchestration with AI agents |
 | Liminara | Content-addressed artifacts + decision recording + event sourcing + OTP + determinism classes | Reproducible nondeterministic computation |
 
 The collection approach: gather interesting technologies, let them sit together, notice which combinations are novel and useful.
