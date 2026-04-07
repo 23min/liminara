@@ -69,16 +69,22 @@ Read the agent file. Adopt its role and constraints. Follow its skill workflow.
 | **Required** | decisions.md, gaps.md | Knowledge is lost between sessions |
 | **Required** | agent-history append | Same mistakes repeated |
 
-## Framework Reference
+## Framework Sources
 
-| Path | Purpose |
+Agents read the **generated adapters** for their host tool, not the source files below:
+- Claude Code reads `.claude/agents/`, `.claude/skills/<name>/SKILL.md`, `.claude/rules/`
+- Copilot reads `.github/chatmodes/`, `.github/skills/<name>/SKILL.md`, `.github/copilot-instructions.md`
+
+To change agent behavior, edit the source below and re-run `.ai/sync.sh` to regenerate adapters.
+
+| Source path | Purpose |
 |------|---------|
-| `.ai/rules.md` | Full rules (this is a summary) |
+| `.ai/rules.md` | Full rules (this CLAUDE.md summarizes them) |
 | `.ai/paths.md` | Where artifacts live |
-| `.ai/agents/` | Agent definitions |
-| `.ai/skills/` | Skill workflows |
+| `.ai/agents/` | Agent definition sources |
+| `.ai/skills/` | Skill workflow sources |
 | `.ai/templates/` | Document templates |
-| `.ai-repo/` | Project-specific extensions |
+| `.ai-repo/` | Project-specific extensions and overrides |
 
 ## Resolved Artifact Layout
 
