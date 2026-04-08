@@ -113,6 +113,9 @@ defmodule Liminara.Radar.PackTest do
       plan = Radar.plan([@rss_source])
       dedup = Plan.get_node(plan, "dedup")
       assert dedup.inputs["items"] == {:ref, "embed", "items"}
+
+      {:literal, lancedb_path} = dedup.inputs["lancedb_path"]
+      assert lancedb_path == Application.fetch_env!(:liminara_radar, :lancedb_path)
     end
 
     test "merge_results combines dedup new + llm kept" do

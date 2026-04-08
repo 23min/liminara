@@ -5,6 +5,9 @@ config :liminara_core,
   store_root: Path.expand("../data/store", __DIR__),
   runs_root: Path.expand("../data/runs", __DIR__)
 
+config :liminara_radar,
+  lancedb_path: Path.expand("../data/radar/lancedb", __DIR__)
+
 # A2UI WebSocket endpoint
 config :liminara_observation, a2ui_port: 4006
 

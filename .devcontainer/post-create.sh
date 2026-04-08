@@ -13,11 +13,19 @@ if [ -d runtime ]; then
   cd ..
 fi
 
-# Python dependencies (integrations/python/ uses uv)
+# Runtime Python ops environment (runtime/python/ uses uv)
+if [ -d runtime/python ]; then
+  echo "==> Installing runtime Python op environment..."
+  cd runtime/python
+  uv sync --extra test
+  cd ../..
+fi
+
+# Python SDK/integration environment (integrations/python/ uses uv)
 if [ -d integrations/python ]; then
-  echo "==> Installing Python dependencies..."
+  echo "==> Installing Python SDK/integration environment..."
   cd integrations/python
-  uv sync
+  uv sync --extra dev
   cd ../..
 fi
 

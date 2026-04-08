@@ -5,6 +5,7 @@ import sys
 from pathlib import Path
 
 import lancedb
+import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
@@ -80,6 +81,10 @@ class TestDedup:
         )
 
         assert set(result.keys()) == {"outputs"}
+
+    def test_lancedb_path_is_required(self):
+        with pytest.raises(ValueError, match="lancedb_path is required"):
+            dedup_execute({"items": json.dumps([]), "dims": "32"})
 
     def test_novel_items_against_empty_history(self, tmp_path):
         items = [

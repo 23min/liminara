@@ -1,0 +1,26 @@
+# VCS and local editor state
+.git
+.vscode
+.claude/worktrees
+.claude-sessions-backup
+
+# Build outputs
+**/_build
+**/deps
+**/node_modules
+**/cover
+
+# Python caches and environments
+**/__pycache__
+**/*.pyc
+**/.pytest_cache
+**/.ruff_cache
+**/.mypy_cache
+**/.venv
+
+# Local runtime data and scratch output
+runtime/data
+.scratch
+
+# Crash dumps
+**/erl_crash.dump

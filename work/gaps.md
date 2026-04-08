@@ -15,6 +15,22 @@ Discovered work items deferred for later.
 - Documentation of isolation model in docs/architecture/
 - Evaluate: simple Python ops (normalize, rank, summarize) as Elixir :inline candidates
 
+## Radar LanceDB path drifts into `_build` — RESOLVED in explicit Radar path config
+**Discovered:** 2026-04-08 (container persistence review)
+**Resolved:** 2026-04-08 (explicit `:liminara_radar, :lancedb_path` in dev/test/prod plus required config lookup)
+**Relates to:** D-2026-04-01-009, D-2026-04-08-024, M-RAD-01 persistent storage paths
+**Fix:** Radar no longer falls back to a build-output-derived LanceDB path. The pack now requires an explicit configured `lancedb_path`, with dev defaulting to `runtime/data/radar/lancedb`, test using an explicit tmp path, and prod defaulting to `/var/lib/liminara/radar/lancedb`.
+
+## Pack-owned durable path contract needs implementation follow-through
+**Discovered:** 2026-04-08 (follow-up from LanceDB path review)
+**Relates to:** D-2026-04-08-024, deployment planning
+**Severity:** Implementation gap — the contract is now defined, but existing runtime and pack paths still need alignment
+**Items:**
+- Audit existing pack and UI/runtime fallbacks that still derive durable locations from `System.tmp_dir!/0`, `Application.app_dir/2`, or `_build`
+- Migrate Radar LanceDB to the decided durable path contract and decide whether to preserve or discard existing local drift data
+- Ensure recorded plans and runtime metadata surface resolved durable pack paths consistently when those paths materially affect execution
+- Make any future pack-specific durable directory explicit in both dev and deployment config from day one
+
 ## Multi-decision replay is broken — RESOLVED in M-RAD-06
 **Discovered:** 2026-04-02 (OpenAI review of M-RAD-03 implementation)
 **Resolved:** 2026-04-03 (M-RAD-06 commit e9fe49a)

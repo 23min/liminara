@@ -135,6 +135,8 @@ Radar is the current proving ground for replay integrity, warning/degraded-outco
 If you are new to the repository, start here:
 
 - [docs/liminara.md](docs/liminara.md): comprehensive project reference
+- [docs/guides/pack_design_and_development.md](docs/guides/pack_design_and_development.md): pack authoring rules, ownership boundaries, and persistent-data guidance
+- [docs/guides/devcontainer_operations.md](docs/guides/devcontainer_operations.md): local devcontainer lifecycle, persistence, cleanup, and rebuild guidance
 - [work/roadmap.md](work/roadmap.md): current sequencing and status
 - [work/decisions.md](work/decisions.md): active architectural decisions
 - [docs/architecture/contracts/00_TRUTH_MODEL.md](docs/architecture/contracts/00_TRUTH_MODEL.md): execution-truth foundation

@@ -172,7 +172,6 @@ defmodule Liminara.Radar do
   defp op_for_type("api"), do: FetchRss
 
   defp lancedb_path do
-    Application.get_env(:liminara_radar, :lancedb_path) ||
-      Path.expand("../../data/radar/lancedb", Application.app_dir(:liminara_core, "priv"))
+    Application.fetch_env!(:liminara_radar, :lancedb_path)
   end
 end

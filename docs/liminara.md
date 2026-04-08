@@ -26,6 +26,13 @@
 18. [Recognized Architectural Patterns](#18-recognized-architectural-patterns)
 19. [Open Questions](#19-open-questions)
 
+## Companion Guides
+
+For practical repo-level operating guidance that is more specific than this reference, see:
+
+- [docs/guides/pack_design_and_development.md](guides/pack_design_and_development.md) — pack authoring, ownership boundaries, config rules, and persistent data expectations
+- [docs/guides/devcontainer_operations.md](guides/devcontainer_operations.md) — local devcontainer lifecycle, persistence, rebuilds, and cleanup
+
 ---
 
 ## 1. What Liminara Is

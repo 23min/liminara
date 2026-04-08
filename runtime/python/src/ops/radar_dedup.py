@@ -40,7 +40,10 @@ def _get_or_create_table(db, dims):
 
 def execute(inputs, context=None):
     items = json.loads(inputs.get("items", "[]"))
-    db_path = inputs.get("lancedb_path", "/tmp/radar_lancedb")
+    db_path = inputs.get("lancedb_path")
+    if not db_path:
+        raise ValueError("lancedb_path is required")
+
     run_id = (context or {}).get("run_id") or inputs.get("run_id", "unknown")
     created_at = (context or {}).get("started_at")
     dims = int(inputs.get("dims", "256"))
