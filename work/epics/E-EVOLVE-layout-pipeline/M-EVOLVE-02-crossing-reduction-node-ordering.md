@@ -1,7 +1,7 @@
 ---
 id: M-EVOLVE-02-crossing-reduction-node-ordering
 epic: E-EVOLVE-layout-pipeline
-status: not started
+status: in-progress
 depends_on: [M-EVOLVE-01]
 ---
 
