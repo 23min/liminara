@@ -1,7 +1,7 @@
 ---
 id: M-DAGBENCH-04-external-corpora-benchmark-report
 epic: E-DAGBENCH-layout-evolution
-status: not started (stretch)
+status: in-progress
 depends_on: M-DAGBENCH-03-tinder-ui-bradley-terry-live-steering
 ---
 

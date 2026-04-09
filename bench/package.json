@@ -5,6 +5,10 @@
   "type": "module",
   "description": "Layout evolution harness for dag-map. Gitignored, never published.",
   "scripts": {
-    "test": "node --test 'energy/__tests__/*.test.mjs' 'invariants/__tests__/*.test.mjs' 'corpus/__tests__/*.test.mjs' 'evaluator/__tests__/*.test.mjs' 'scripts/__tests__/*.test.mjs' 'diagnostics/__tests__/*.test.mjs' 'ga/__tests__/*.test.mjs' 'genome/__tests__/*.test.mjs' 'regression/__tests__/*.test.mjs' 'web/__tests__/*.test.mjs'"
+    "test": "node --test 'energy/__tests__/*.test.mjs' 'invariants/__tests__/*.test.mjs' 'corpus/__tests__/*.test.mjs' 'evaluator/__tests__/*.test.mjs' 'scripts/__tests__/*.test.mjs' 'diagnostics/__tests__/*.test.mjs' 'ga/__tests__/*.test.mjs' 'genome/__tests__/*.test.mjs' 'regression/__tests__/*.test.mjs' 'web/__tests__/*.test.mjs' 'loaders/__tests__/*.test.mjs' 'adapters/__tests__/*.test.mjs'"
+  },
+  "dependencies": {
+    "@dagrejs/dagre": "^3.0.0",
+    "elkjs": "^0.11.1"
   }
 }

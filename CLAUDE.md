@@ -250,9 +250,12 @@ One paragraph: overall assessment (approve / request changes).
 
 ### Active milestone
 
-**No milestone currently in progress**
-- `M-TRUTH-03: Radar Semantic Cleanup` is complete and merged into `epic/E-20-execution-truth`
-- Next up in Phase 5c is `E-19: Warnings & Degraded Outcomes`, starting with `M-WARN-01`
+**M-DAGBENCH-04: External Corpora + Benchmark Report** (stretch)
+- Epic: `E-DAGBENCH-layout-evolution`
+- Spec: `work/epics/E-DAGBENCH-layout-evolution/M-DAGBENCH-04-external-corpora-benchmark-report.md`
+- Tracking: `work/milestones/tracking/E-DAGBENCH-layout-evolution/M-DAGBENCH-04-tracking.md`
+- Branch: `milestone/M-DAGBENCH-04` (from `epic/dagbench-layout-evolution`)
+- Worktree: `/workspaces/worktrees/dagbench`
 
 ### Where things stand
 

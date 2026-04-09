@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns">
+  <graph id="rdag1" edgedefault="directed">
+    <node id="a"/>
+    <node id="b"/>
+    <node id="c"/>
+    <edge source="a" target="b"/>
+    <edge source="a" target="c"/>
+    <edge source="b" target="c"/>
+  </graph>
+</graphml>
