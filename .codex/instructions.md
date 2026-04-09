@@ -5,9 +5,9 @@ Read and follow:
 1. `.ai/rules.md` — Non-negotiable guardrails
 2. `.ai/paths.md` — Where artifacts live
 
-Agents: `.ai/agents/` (planner, builder, reviewer, deployer)
-Skills: `.ai/skills/` (plan-epic, plan-milestones, draft-spec, start-milestone, tdd-cycle, review-code, wrap-milestone, release)
-Templates: `.ai/templates/` (epic-spec, milestone-spec, tracking-doc)
+Agents: `.ai/agents/` (builder, deployer, planner, reviewer)
+Skills: `.ai/skills/` (architect, devcontainer, draft-spec, patch, plan-epic, plan-milestones, release, review-code, start-milestone, tdd-cycle, wrap-milestone)
+Templates: `.ai/templates/` (epic-spec, milestone-spec, session-log, tracking-doc)
 
 Key rules:
 - Never commit without explicit human approval

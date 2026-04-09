@@ -3,10 +3,13 @@
   "build": {
     "dockerfile": "Dockerfile"
   },
+  "workspaceFolder": "/workspaces/liminara",
+  "workspaceMount": "source=${localWorkspaceFolder}/..,target=/workspaces,type=bind,consistency=cached",
+  "initializeCommand": "ln -sfn \"$HOME/.claude\" /tmp/.claude-mount",
   "postCreateCommand": "bash .devcontainer/post-create.sh",
   "remoteUser": "vscode",
   "mounts": [
-    "source=${localEnv:CLAUDE_CONFIG_DIR},target=/home/vscode/.claude,type=bind,consistency=cached"
+    "source=/tmp/.claude-mount,target=/home/vscode/.claude,type=bind,consistency=cached"
   ],
   "customizations": {
     "vscode": {
@@ -16,7 +19,8 @@
         "charliermarsh.ruff",
         "phoenixframework.phoenix",
         "anthropics.claude-code",
-        "openai.chatgpt"
+        "openai.chatgpt",
+        "mhutchie.git-graph"
       ],
       "settings": {
         "[elixir]": {
