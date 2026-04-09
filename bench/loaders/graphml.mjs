@@ -14,10 +14,12 @@ import { join } from 'node:path';
  * @returns {{ id, dag: {nodes, edges}, theme, opts } | null}
  */
 export function parseGraphML(xml, id) {
-  // Check edge direction from graph element
+  // Check edge direction from graph element. The graphdrawing.org corpora
+  // (North DAGs, Random DAGs) omit edgedefault entirely — treat missing as
+  // directed since the cycle check below catches non-DAGs anyway.
   const graphMatch = xml.match(/<graph[^>]*edgedefault\s*=\s*"([^"]+)"/);
-  if (!graphMatch || graphMatch[1] !== 'directed') {
-    return null; // undirected or missing — not a DAG
+  if (graphMatch && graphMatch[1] === 'undirected') {
+    return null; // explicitly undirected — not a DAG
   }
 
   // Extract nodes

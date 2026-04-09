@@ -54,6 +54,23 @@ test('parseGraphML returns null for cyclic graphs with a reason', () => {
   assert.equal(result, null);
 });
 
+test('parseGraphML accepts missing edgedefault as directed', () => {
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<graphml>
+<graph id="G">
+  <node id="n0"/>
+  <node id="n1"/>
+  <edge source="n0" target="n1"/>
+</graph>
+</graphml>`;
+
+  const result = parseGraphML(xml, 'no-attr');
+  assert.notEqual(result, null);
+  assert.equal(result.id, 'no-attr');
+  assert.equal(result.dag.nodes.length, 2);
+  assert.equal(result.dag.edges.length, 1);
+});
+
 test('parseGraphML handles undirected graphs as non-DAGs', () => {
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <graphml xmlns="http://graphml.graphdrawing.org/xmlns">
