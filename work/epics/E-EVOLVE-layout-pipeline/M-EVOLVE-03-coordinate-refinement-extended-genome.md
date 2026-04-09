@@ -1,7 +1,7 @@
 ---
 id: M-EVOLVE-03-coordinate-refinement-extended-genome
 epic: E-EVOLVE-layout-pipeline
-status: not started
+status: in-progress
 depends_on: [M-EVOLVE-02]
 ---
 

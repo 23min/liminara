@@ -10,6 +10,12 @@ import {
   clampTier1,
 } from '../genome/tier1.mjs';
 
+import {
+  crossoverStrategyGenes,
+  mutateStrategyGenes,
+  defaultStrategyGenes,
+} from '../genome/strategy-genes.mjs';
+
 // ── tournamentSelect ─────────────────────────────────────────────────────
 
 export function tournamentSelect(population, prng, { size = 3 } = {}) {

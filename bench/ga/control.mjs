@@ -29,7 +29,9 @@ export function requestAbort(state) {
 }
 
 function deepCloneGenome(genome) {
-  return { tier1: { ...genome.tier1 } };
+  const clone = { tier1: { ...genome.tier1 } };
+  if (genome.strategy) clone.strategy = { ...genome.strategy };
+  return clone;
 }
 
 export function protect(state, id, genome) {

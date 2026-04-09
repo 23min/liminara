@@ -24,6 +24,10 @@ import {
   mutateTier1,
   tournamentSelect,
 } from './operators.mjs';
+import {
+  crossoverStrategyGenes,
+  mutateStrategyGenes,
+} from '../genome/strategy-genes.mjs';
 import { createIslands, islandKeys, placeIndividual } from './islands.mjs';
 import { regressionGuard } from '../regression/guard.mjs';
 
@@ -85,7 +89,16 @@ export async function advanceGeneration(islands, ctx) {
       const mutatedTier1 = mutateTier1(childTier1Raw, prng, {
         strength: config.tier1MutationStrength,
       });
-      const childGenome = makeGenome({ tier1: mutatedTier1 });
+      const childStrategyRaw = crossoverStrategyGenes(
+        p1.genome.strategy || {},
+        p2.genome.strategy || {},
+        prng,
+      );
+      const mutatedStrategy = mutateStrategyGenes(childStrategyRaw, prng, {
+        categoricalRate: config.strategyCategoricalRate ?? 0.1,
+        continuousStrength: config.tier1MutationStrength,
+      });
+      const childGenome = makeGenome({ tier1: mutatedTier1, strategy: mutatedStrategy });
       const id = `g${generationIndex}-${islandKey}-${childCounter++}`;
       const scored = await scoreChild({ id, genome: childGenome, island: islandKey });
       // scoreChild may or may not set `island` on the returned object;

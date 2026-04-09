@@ -73,6 +73,13 @@ function buildRenderOpts(genome, fixture) {
   if (Array.isArray(fixture.routes) && fixture.routes.length > 0) {
     render.routes = fixture.routes;
   }
+  // Pass strategy selections to layoutMetro
+  if (genome.strategies) {
+    render.strategies = genome.strategies;
+  }
+  if (genome.strategyConfig) {
+    render.strategyConfig = genome.strategyConfig;
+  }
   return render;
 }
 
