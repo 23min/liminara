@@ -45,8 +45,16 @@ runtime/data/
 # Node
 node_modules/
 
+# Downloaded external corpora (fetch on demand, not redistributed)
+bench/corpora/tier-c/north/
+bench/corpora/tier-c/random-dag/
+bench/corpora/tier-c/*.tgz
+
 # Persistent runtime data (D-009: artifacts, runs, LanceDB)
 runtime/data/
+
+# Bench run output (GA snapshots, reports, galleries)
+bench/run/
 
 # Test/scratch output
 .scratch/

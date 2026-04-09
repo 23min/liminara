@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns">
+  <graph id="cyc" edgedefault="directed">
+    <node id="x"/>
+    <node id="y"/>
+    <node id="z"/>
+    <edge source="x" target="y"/>
+    <edge source="y" target="z"/>
+    <edge source="z" target="x"/>
+  </graph>
+</graphml>
