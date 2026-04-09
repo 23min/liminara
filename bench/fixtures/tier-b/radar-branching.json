@@ -1,0 +1,30 @@
+{
+  "id": "radar-branching",
+  "name": "Radar branching — 9-node fetch/extract/classify fan-out",
+  "dag": {
+    "nodes": [
+      { "id": "fetch_a", "label": "Fetch A" },
+      { "id": "fetch_b", "label": "Fetch B" },
+      { "id": "fetch_c", "label": "Fetch C" },
+      { "id": "extract", "label": "Extract" },
+      { "id": "classify_en", "label": "Classify EN" },
+      { "id": "classify_sv", "label": "Classify SV" },
+      { "id": "embed", "label": "Embed" },
+      { "id": "cluster", "label": "Cluster" },
+      { "id": "render", "label": "Render" }
+    ],
+    "edges": [
+      ["fetch_a", "extract"],
+      ["fetch_b", "extract"],
+      ["fetch_c", "extract"],
+      ["extract", "classify_en"],
+      ["extract", "classify_sv"],
+      ["classify_en", "embed"],
+      ["classify_sv", "embed"],
+      ["embed", "cluster"],
+      ["cluster", "render"]
+    ]
+  },
+  "theme": "cream",
+  "opts": { "layerSpacing": 50 }
+}

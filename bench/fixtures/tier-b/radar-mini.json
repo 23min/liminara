@@ -1,0 +1,23 @@
+{
+  "id": "radar-mini",
+  "name": "Radar mini — 6-node daily briefing sketch",
+  "dag": {
+    "nodes": [
+      { "id": "fetch_tc", "label": "Fetch TC" },
+      { "id": "fetch_hn", "label": "Fetch HN" },
+      { "id": "extract", "label": "Extract" },
+      { "id": "embed", "label": "Embed" },
+      { "id": "cluster", "label": "Cluster" },
+      { "id": "render", "label": "Render" }
+    ],
+    "edges": [
+      ["fetch_tc", "extract"],
+      ["fetch_hn", "extract"],
+      ["extract", "embed"],
+      ["embed", "cluster"],
+      ["cluster", "render"]
+    ]
+  },
+  "theme": "cream",
+  "opts": { "layerSpacing": 50 }
+}

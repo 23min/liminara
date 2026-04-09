@@ -65,3 +65,18 @@ Discovered work items deferred for later.
 - Remove `Liminara.Op.derive_execution_spec/1` after non-Radar test/support modules stop exporting legacy callback-derived specs
 - Current known users: `runtime/apps/liminara_core/test/support/test_port_ops.ex` and `runtime/apps/liminara_core/test/liminara/executor/dispatch_test.exs`
 
+## DAG bench: weight calibration — RESOLVED in calibration patch
+**Discovered:** 2026-04-07 (M-DAGBENCH-02 end-to-end smoke)
+**Resolved:** 2026-04-07 (calibration chore commit, same day)
+**Relates to:** E-DAGBENCH-layout-evolution, M-DAGBENCH-02 AC6
+**Root cause (in retrospect):** Two independent cliffs in the energy terms, plus the resulting weight vector:
+- `E_envelope` returned a hard `1e6` DEGENERATE_PENALTY on zero-width or zero-height layouts.
+- `E_repel_nn` and `E_repel_ne` used `(threshold/d - 1)^2`, a `1/d` singularity that the epsilon floor turned into ~1e15 spikes whenever dag-map placed two nodes at the same coordinate (which it does on several Tier A fixtures).
+- These two cliffs made the scalar fitness dominated by one or the other, and the regression guard caught any individual whose coincidences or degenerate geometry differed from best-ever.
+**Fix:**
+- `E_envelope` now floors width and height at 1 px before computing the log-ratio. Zero-dimension layouts get a bounded ~10-40 range penalty instead of a 1e6 spike.
+- `E_repel_nn` and `E_repel_ne` now use `((threshold - d) / threshold)^2`, bounded at 1 per pair. Total per-term is bounded by `n*(n-1)/2` or `n*segments`.
+- `bench/config/default-weights.json` re-baselined so every active term contributes ~10 units at defaults (stretch 0.05, bend 40, envelope 1.3, channel 0.006, repel_nn 100, repel_ne 40; crossings 20 and monotone 20 stay inactive on the baseline corpus but are ready to fire).
+- M-DAGBENCH-02 integration test tightened from `≤` to strict `<` baseline. Passes on first try.
+**Smoke result:** 5-generation seeded run on the full corpus: mean fitness drops from 11419 to 1787 (84% improvement) and best from 1002 to 787.
+

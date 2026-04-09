@@ -174,4 +174,58 @@ Sandbox config recorded in run events for provenance.
 **Decision:** Runtime `ExecutionContext` is the sole source of Radar run identity. `ComposeBriefing` is migrated to an explicit context-aware execution spec and reads `run_id` from the runtime context, not plan inputs. While Radar dedup still remains one op that both classifies items and mutates LanceDB history, it is now classified truthfully as `:side_effecting` with `cache_policy: :none` and `replay_policy: :replay_recorded`, and it consumes runtime context for persisted `run_id` and `started_at` instead of plan-synthesized values.
 **Consequences:** Radar plans no longer fabricate a value named `run_id`. Replay keeps rendered briefings identical because context-aware composition reuses the stored source execution context rather than inventing a replay-time replacement. Dedup no longer claims pure/cacheable semantics, and replay avoids re-running LanceDB writes while still supplying recorded outputs downstream.
 
+## D-2026-04-08-024: DAG bench relaxes the hard-determinism contract
+**Status:** active
+**Context:** M-DAGBENCH-02 inherited Liminara's hard reproducibility contract verbatim: "two runs with the same seed + config produce byte-identical snapshots." Liminara proper is a runtime for reproducible nondeterministic computation — every recorded decision must replay exactly. The dag-map bench is a different kind of thing: a developer-iteration tool that searches for good layout parameters via GA + human pairwise votes. Strict byte-identical reproducibility is nice to have but not load-bearing. What matters for the bench is *convergence*: if you rerun with a different seed, you should land in a similar-quality region of the elite set, even if the specific genomes differ.
+**Decision:** The bench GA relaxes the "byte-identical across runs" contract to a "convergence within tolerance" contract. Specifically:
+- Existing byte-identical tests are rewritten as "two runs with the same seed reach comparable final fitness within a documented tolerance" tests.
+- Seeded PRNG stays in place for debugging, but is not load-bearing for test assertions.
+- The `Math.random()`-free hygiene checks stay as unit tests (they're cheap and catch a real class of bug) but their purpose is "no implicit randomness" not "strict reproducibility."
+- M-03 features (vote-count temporal decay in the BT refit, fork-per-generation PRNG in the runner) can use either vote-count OR wall-clock decay — the previous determinism-driven preference for vote-count is lifted, though vote-count remains the recommendation for *interpretability*.
+- End-to-end determinism ACs in the M-03 spec become "end-to-end convergence" ACs.
+**Consequences:** The bench is free to use wall-clock reads, nondeterministic operators (e.g., timing-sensitive work queues), and future LLM voter integrations without breaking test contracts. The test suite still catches regressions by asserting final-fitness convergence, not exact byte equality. This decision does NOT relax Liminara's runtime determinism contract — Liminara runtime code continues to record every nondeterministic decision for exact replay. The relaxation applies only to `dag-map/bench/`, which is a gitignored developer tool.
+
+## D-2026-04-08-025: DAG bench energy function scope is metro-map DAGs only
+**Status:** active
+**Context:** dag-map exports three layout engines: `layoutMetro` (transit-map aesthetic, small circle stations, grid placement), `layoutFlow` (process-mining style, dot + info card, obstacle-aware routing), and `layoutHasse` (lattice diagrams). The bench's 8 energy terms (stretch, bend, crossings, monotone, envelope, channel, repel_nn, repel_ne) were designed around metro semantics: stations are points, polylines are straight lines between route waypoints, edges don't route around obstacles. When we considered rewriting `bend` / `repel_ne` for "card-avoidance" routing (Celonis-style), we realized that aesthetic belongs to `layoutFlow`, not `layoutMetro` — and the bench currently only evaluates `layoutMetro` output.
+**Decision:** The bench's scope is **metro-map DAG layouts only**. Specifically:
+- The evaluator calls `layoutMetro(dag, opts)` and scores its output. `layoutFlow` and `layoutHasse` are out of scope.
+- `routing_primitive` is hardcoded to `'bezier'` in the evaluator's DEFAULT_RENDER (see also D-2026-04-08-026).
+- `bend` is kept in the energy function because it legitimately measures smooth passage of routes through stations — the concept is correct for metro-map aesthetic.
+- Card-aware evaluation (label boxes as obstacles, `edge_through_card` term) is explicitly deferred to a future milestone that targets `layoutFlow`, if we ever scope it.
+- Flow-layout GA evaluation becomes M-DAGBENCH-05 (tentative) or later, after M-03 and M-04.
+**Consequences:** The M-03 Tinder UI is optimizing for metro-map taste, not process-map taste. This is a narrower target but matches dag-map's primary aesthetic and the fixtures we actually have. The bench's ceiling for improvement is bounded by what `layoutMetro` can produce — escaping the station-on-grid constraint would be a change to `layoutMetro` in the dag-map codebase (same owner's repo), not a bench change.
+
+## D-2026-04-08-026: DAG bench genome is 8 Tier 1 fields, Tier 2 removed
+**Status:** active
+**Context:** Empirical sensitivity analysis on 2026-04-08 (`bench/scripts/sensitivity.js`) measured the scalar fitness delta of mutating each Tier 1 field by ±1σ across the full 34-fixture corpus. 7 of the 15 original Tier 1 fields produced zero delta: `render.trunkY` (the surprise — translation-invariant in every energy term), `render.progressivePower`, `render.cornerRadius` (both SVG-curve-only, don't affect polyline geometry), and the 4 `lane.weight_*` fields (wired into `toEvaluatorGenome` output but never consumed by the evaluator). Tier 2 was also effectively dead: `routing_primitive` was the only field the evaluator read, and with the bench scope locked to bezier (D-2026-04-08-025) it became a constant; `route_extraction` and `convergence_style` were never consumed.
+**Decision:**
+- Tier 1 shrinks to 8 live fields: `render.layerSpacing`, `render.mainSpacing`, `render.subSpacing`, `render.scale`, `energy.stretch_ideal_factor`, `energy.repel_threshold_px`, `energy.channel_min_separation_px`, `energy.envelope_target_ratio`.
+- Tier 2 is removed entirely. The genome is `{tier1}` only.
+- `routing_primitive` is locked to bezier via the evaluator's DEFAULT_RENDER.
+- The "island per routing primitive" semantics are renamed to "random subpopulations with ring-topology introgression migration" (D-2026-04-08-027). The plumbing stays the same; the partitioning criterion changes.
+**Consequences:** Mutation budget is no longer wasted on dials that cannot move the fitness. The GA's effective search space is the 8 live fields. The default weights vector still calibrates cleanly against the 8-field genome (re-verified via `scripts/sensitivity.js` after the cleanup). If a future milestone reintroduces multiple routing primitives, Tier 2 comes back together with the island-per-primitive semantics. The dead `trunkY` option in dag-map's own `layoutMetro` is a quiet API wart worth cleaning up in the dag-map codebase as a follow-on chore.
+
+## D-2026-04-08-027: DAG bench islands use ring-topology introgression migration
+**Status:** active
+**Context:** M-DAGBENCH-02 built an island model with "one population per routing primitive" semantics — a Tier 2 mutation that flipped `routing_primitive` migrated the individual to the matching island. When Tier 2 was removed (D-2026-04-08-026), that mechanism lost its partitioning criterion and the island infrastructure became a single-population wrapper. The user asked whether there was a way to preserve long-lived lineages with occasional cross-pollination, like Neanderthal × Sapiens interbreeding.
+**Decision:** The bench uses a standard **island model GA with low migration rate, ring topology**, biologically equivalent to *allopatric speciation with introgression*:
+- **Islands are random subpopulations** (default 3), assigned at initialisation. Islands are no longer defined by any genome content.
+- **Ring topology**: island i sends migrants to island (i+1) mod N. Each event moves gene material one hop around the ring.
+- **Migration every `migrationInterval` generations** (default 10), chosen to give each island several generations of isolated evolution between contact events.
+- **Migration rate** is a fraction of the population per event (default 0.05 = 1 individual per 20-sized population). Migrants are picked via tournament selection (best individuals migrate) and placed in the target island with their `island` field rewritten.
+- **No replacement policy** — migrants are appended; population counts stay constant across islands because every island loses one migrant out and gains one migrant in per event.
+- **Single-generation migration only**: migrants that land on a new island don't migrate again in the same event. A migrant in island j+1 has to wait for the next migration event before potentially moving on.
+- **Config is optional**: if `migrationInterval` is 0, null, or missing, migration never fires. This preserves backward compatibility with existing test configurations.
+**Consequences:** The bench now supports long-lived lineage structure (each island evolves mostly on its own) with rare cross-pollination (introgression every N generations). This is standard EA literature territory — "coarse-grained parallel GA with sparse migration" — and preserves diversity better than a single flat population would. The migration code is ~80 lines in `bench/ga/migration.mjs`. If a future milestone wants different topologies (full mesh, star, random), the primitive is in place.
+
+## D-2026-04-08-028: LLM voter deferred to a future bench milestone
+**Status:** active
+**Context:** During M-03 spec drafting, we considered adding LLM-based pairwise voting as either (a) a replacement for the human voter, (b) a synthetic voter that pre-warms the BT refit before the human session starts, or (c) a curator that ranks elites and emits derived pairwise votes.
+**Decision:** LLM voting is deferred to a future milestone (tentative M-DAGBENCH-05 or later), after M-03 (human voting + BT refit) and M-04 (external corpora) have landed. Reasons:
+- Adding LLM voting during M-03 would blur the debuggability of the refit loop.
+- Cost and latency are non-trivial (~500-2000 ms per LLM call, ~$20-100 per long run).
+- The LLM's aesthetic priors are themselves suspect and would need calibration against the project owner's taste — which is exactly what the Tinder UI already does for the human voter. Stacking two BT refits compounds that calibration problem.
+- Liminara's decision-recording infrastructure (where recorded nondeterministic decisions replay for free) would be the right home for LLM verdicts, but the bench doesn't use that infrastructure and wiring it in is a scope expansion.
+**Consequences:** M-03 is human-only. Adding LLM votes later is architecturally cheap — the BT refit doesn't care where votes come from, it just consumes pairwise preferences. An LLM voter process would POST to the same `/vote` endpoint the UI uses, with `voter: "llm-<model>"` in the vote record.
 

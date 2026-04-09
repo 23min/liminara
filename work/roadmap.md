@@ -83,6 +83,16 @@ Tightly scoped to capabilities Radar has already proven it needs for production 
 
 *Scope rule (D-012): only items Radar has already proven it needs. No broad platform abstractions.*
 
+### Parallel track: Tooling
+
+Runs alongside Phase 5c on a separate worktree. Does not block or interact with execution-truth work.
+
+- [ ] E-DAGBENCH Layout Evolution — reproducible GA harness for `dag-map` layouts; energy functional + island-model GA + Tinder-style human steering via Bradley-Terry weight refit. Bench code lives gitignored in `dag-map/bench/`; tracking lives in Liminara `work/`.
+  - [ ] M-DAGBENCH-01 Energy function + corpus + evaluator
+  - [ ] M-DAGBENCH-02 GA loop + islands + regression guard
+  - [ ] M-DAGBENCH-03 Tinder UI + Bradley-Terry refit + live steering
+  - [ ] M-DAGBENCH-04 External corpora + benchmark report (stretch)
+
 ## Phase 6: VSME — Not started [decided next]
 
 First compliance pack. Validates that the hardened runtime works for a second pack with different domain pressures.

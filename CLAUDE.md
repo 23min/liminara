@@ -90,7 +90,7 @@ These values are resolved from framework defaults in .ai/paths.md and repo overr
 | `epicRootPath` | `work/epics/` | Root directory containing epic folders |
 | `epicSpecFileName` | `epic.md` | Default epic spec filename inside each epic folder |
 | `milestoneSpecPathTemplate` | `work/epics/<epic>/<milestone-id>-<slug>.md` | Milestone spec location template |
-| `trackingDocPathTemplate` | `work/milestones/tracking/<epic>/../<milestone-id>-tracking.md` | Milestone tracking doc location template |
+| `trackingDocPathTemplate` | `work/epics/<epic>/<milestone-id>-tracking.md` | Milestone tracking doc location template |
 | `completedEpicPathTemplate` | `work/done/<epic>/` | Completed epic archive template |
 | `epicIdPattern` | `E-{NN}[optional-letter]` | Epic ID naming pattern |
 | `milestoneIdPattern` | `M-<TRACK>-<NN>` | Milestone ID naming pattern |

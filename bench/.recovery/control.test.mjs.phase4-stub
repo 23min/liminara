@@ -1,0 +1,234 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { mkdtemp, rm, readFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
+
+import {
+  createControlState,
+  pause,
+  resume,
+  requestAbort,
+  protect,
+  unprotect,
+  kill,
+  isKilled,
+  listProtectedGenomes,
+  injectProtectedInto,
+  appendControlEvent,
+  readControlEvents,
+} from '../control.mjs';
+import { createIslands, placeIndividual } from '../islands.mjs';
+import { defaultGenome } from '../../genome/genome.mjs';
+
+async function withTmp(fn) {
+  const dir = await mkdtemp(join(tmpdir(), 'dag-map-bench-control-'));
+  try {
+    return await fn(dir);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+}
+
+function mkInd(id, island, fitness = 0) {
+  return { id, island, genome: defaultGenome(), fitness, perFixture: {} };
+}
+
+// ── createControlState ──────────────────────────────────────────────────
+
+test('createControlState returns the initial shape', () => {
+  const s = createControlState();
+  assert.equal(s.paused, false);
+  assert.equal(s.abortRequested, false);
+  assert.ok(s.protectedGenomes instanceof Map);
+  assert.equal(s.protectedGenomes.size, 0);
+  assert.ok(s.killedIds instanceof Set);
+  assert.equal(s.killedIds.size, 0);
+});
+
+// ── pause / resume / abort ──────────────────────────────────────────────
+
+test('pause and resume flip the paused flag', () => {
+  const s = createControlState();
+  pause(s);
+  assert.equal(s.paused, true);
+  resume(s);
+  assert.equal(s.paused, false);
+});
+
+test('requestAbort sets abortRequested and is one-way', () => {
+  const s = createControlState();
+  requestAbort(s);
+  assert.equal(s.abortRequested, true);
+});
+
+// ── protect / unprotect ─────────────────────────────────────────────────
+
+test('protect stores a deep clone of the genome, not a reference', () => {
+  const s = createControlState();
+  const ind = mkInd('a', 'pop-0');
+  protect(s, 'my-champion', ind);
+  assert.equal(s.protectedGenomes.size, 1);
+  // Mutate the original — stored copy must not change.
+  const firstField = Object.keys(ind.genome.tier1)[0];
+  const originalValue = ind.genome.tier1[firstField];
+  ind.genome.tier1[firstField] = originalValue + 100;
+  const stored = s.protectedGenomes.get('my-champion');
+  assert.equal(stored.genome.tier1[firstField], originalValue);
+});
+
+test('protect records the individual island so injection knows where to place the clone', () => {
+  const s = createControlState();
+  protect(s, 'champ', mkInd('a', 'pop-1'));
+  const stored = s.protectedGenomes.get('champ');
+  assert.equal(stored.island, 'pop-1');
+});
+
+test('unprotect removes a protected entry', () => {
+  const s = createControlState();
+  protect(s, 'first', mkInd('a', 'pop-0'));
+  protect(s, 'second', mkInd('b', 'pop-1'));
+  assert.equal(s.protectedGenomes.size, 2);
+  unprotect(s, 'first');
+  assert.equal(s.protectedGenomes.size, 1);
+  assert.equal(s.protectedGenomes.has('first'), false);
+  assert.equal(s.protectedGenomes.has('second'), true);
+});
+
+test('unprotect is idempotent when the label is not present', () => {
+  const s = createControlState();
+  unprotect(s, 'nothing-here');
+  assert.equal(s.protectedGenomes.size, 0);
+});
+
+test('protect throws on a duplicate label (explicit unprotect first)', () => {
+  const s = createControlState();
+  protect(s, 'one', mkInd('a', 'pop-0'));
+  assert.throws(() => protect(s, 'one', mkInd('b', 'pop-0')), /already protected/);
+});
+
+// ── kill ────────────────────────────────────────────────────────────────
+
+test('kill adds the id to killedIds and isKilled reports true', () => {
+  const s = createControlState();
+  assert.equal(isKilled(s, 'a'), false);
+  kill(s, 'a');
+  assert.equal(isKilled(s, 'a'), true);
+  assert.equal(isKilled(s, 'b'), false);
+});
+
+test('kill is idempotent', () => {
+  const s = createControlState();
+  kill(s, 'a');
+  kill(s, 'a');
+  assert.equal(s.killedIds.size, 1);
+});
+
+// ── listProtectedGenomes ────────────────────────────────────────────────
+
+test('listProtectedGenomes returns label/genome/island triples in insertion order', () => {
+  const s = createControlState();
+  protect(s, 'alpha', mkInd('a', 'pop-0'));
+  protect(s, 'beta', mkInd('b', 'pop-1'));
+  protect(s, 'gamma', mkInd('c', 'pop-2'));
+  const list = listProtectedGenomes(s);
+  assert.deepEqual(list.map((e) => e.label), ['alpha', 'beta', 'gamma']);
+  assert.deepEqual(list.map((e) => e.island), ['pop-0', 'pop-1', 'pop-2']);
+});
+
+// ── injectProtectedInto ─────────────────────────────────────────────────
+
+test('injectProtectedInto injects one cloned individual per protected label into the matching island', async () => {
+  const s = createControlState();
+  protect(s, 'alpha', mkInd('a', 'pop-0'));
+  protect(s, 'beta', mkInd('b', 'pop-1'));
+
+  const islands = createIslands(['pop-0', 'pop-1', 'pop-2']);
+  for (const k of ['pop-0', 'pop-1', 'pop-2']) {
+    for (let i = 0; i < 4; i++) placeIndividual(islands, mkInd(`${k}-${i}`, k, i));
+  }
+
+  let scoreCalls = 0;
+  async function stubScore({ id, genome, island }) {
+    scoreCalls++;
+    return { id, genome, island, fitness: 0.001, perFixture: {}, termTotals: {} };
+  }
+
+  await injectProtectedInto({
+    islands,
+    state: s,
+    scoreChild: stubScore,
+    generationIndex: 3,
+  });
+
+  // 2 injections expected: one for alpha → pop-0, one for beta → pop-1.
+  assert.equal(scoreCalls, 2);
+  // Island size should be preserved: replaced the last slot of each target island.
+  for (const k of ['pop-0', 'pop-1', 'pop-2']) {
+    assert.equal(islands.populations.get(k).length, 4);
+  }
+  // Injected individuals should be discoverable by the generated id prefix.
+  const pop0 = islands.populations.get('pop-0');
+  assert.ok(pop0.some((i) => i.id.includes('protected') || i.id.includes('alpha')));
+});
+
+test('injectProtectedInto is a no-op when nothing is protected', async () => {
+  const s = createControlState();
+  const islands = createIslands(['pop-0']);
+  for (let i = 0; i < 4; i++) placeIndividual(islands, mkInd(`x-${i}`, 'pop-0'));
+  let scoreCalls = 0;
+  async function stubScore() {
+    scoreCalls++;
+    return { genome: defaultGenome(), island: 'pop-0', fitness: 0, perFixture: {}, termTotals: {} };
+  }
+  await injectProtectedInto({ islands, state: s, scoreChild: stubScore, generationIndex: 1 });
+  assert.equal(scoreCalls, 0);
+  assert.equal(islands.populations.get('pop-0').length, 4);
+});
+
+test('injectProtectedInto skips protected entries whose island does not exist in this container', async () => {
+  const s = createControlState();
+  protect(s, 'orphan', mkInd('a', 'pop-99'));
+  protect(s, 'good', mkInd('b', 'pop-0'));
+  const islands = createIslands(['pop-0']);
+  for (let i = 0; i < 4; i++) placeIndividual(islands, mkInd(`x-${i}`, 'pop-0'));
+  let scoreCalls = 0;
+  async function stubScore({ id, genome, island }) {
+    scoreCalls++;
+    return { id, genome, island, fitness: 0, perFixture: {}, termTotals: {} };
+  }
+  const result = await injectProtectedInto({ islands, state: s, scoreChild: stubScore, generationIndex: 1 });
+  assert.equal(scoreCalls, 1); // only 'good' got injected
+  assert.equal(result.skipped.length, 1);
+  assert.equal(result.skipped[0].label, 'orphan');
+});
+
+// ── appendControlEvent / readControlEvents ─────────────────────────────
+
+test('appendControlEvent writes a JSONL event and readControlEvents reads it back', async () => {
+  await withTmp(async (dir) => {
+    const path = join(dir, 'control.jsonl');
+    await appendControlEvent(path, {
+      ts: '2026-04-08T12:00:00.000Z',
+      action: 'pause',
+    });
+    await appendControlEvent(path, {
+      ts: '2026-04-08T12:01:00.000Z',
+      action: 'protect',
+      label: 'champ',
+      target: 'ind-7',
+    });
+    const events = await readControlEvents(path);
+    assert.equal(events.length, 2);
+    assert.equal(events[0].action, 'pause');
+    assert.equal(events[1].action, 'protect');
+    assert.equal(events[1].label, 'champ');
+  });
+});
+
+test('readControlEvents returns [] when the file does not exist', async () => {
+  await withTmp(async (dir) => {
+    const events = await readControlEvents(join(dir, 'missing.jsonl'));
+    assert.deepEqual(events, []);
+  });
+});
