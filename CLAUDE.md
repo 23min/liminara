@@ -250,11 +250,11 @@ One paragraph: overall assessment (approve / request changes).
 
 ### Active milestone
 
-**M-DAGBENCH-04: External Corpora + Benchmark Report** (stretch)
-- Epic: `E-DAGBENCH-layout-evolution`
-- Spec: `work/epics/E-DAGBENCH-layout-evolution/M-DAGBENCH-04-external-corpora-benchmark-report.md`
-- Tracking: `work/milestones/tracking/E-DAGBENCH-layout-evolution/M-DAGBENCH-04-tracking.md`
-- Branch: `milestone/M-DAGBENCH-04` (from `epic/dagbench-layout-evolution`)
+**M-EVOLVE-01: Pipeline Refactoring**
+- Epic: `E-EVOLVE-layout-pipeline`
+- Spec: `work/epics/E-EVOLVE-layout-pipeline/M-EVOLVE-01-pipeline-refactoring.md`
+- Tracking: `work/milestones/tracking/E-EVOLVE-layout-pipeline/M-EVOLVE-01-tracking.md`
+- Branch: `milestone/M-EVOLVE-01` (from `epic/dagbench-layout-evolution`)
 - Worktree: `/workspaces/worktrees/dagbench`
 
 ### Where things stand

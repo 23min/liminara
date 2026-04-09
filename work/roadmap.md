@@ -87,11 +87,16 @@ Tightly scoped to capabilities Radar has already proven it needs for production 
 
 Runs alongside Phase 5c on a separate worktree. Does not block or interact with execution-truth work.
 
-- [ ] E-DAGBENCH Layout Evolution — reproducible GA harness for `dag-map` layouts; energy functional + island-model GA + Tinder-style human steering via Bradley-Terry weight refit. Bench code lives gitignored in `dag-map/bench/`; tracking lives in Liminara `work/`.
-  - [ ] M-DAGBENCH-01 Energy function + corpus + evaluator
-  - [ ] M-DAGBENCH-02 GA loop + islands + regression guard
-  - [ ] M-DAGBENCH-03 Tinder UI + Bradley-Terry refit + live steering
-  - [ ] M-DAGBENCH-04 External corpora + benchmark report (stretch)
+- [x] E-DAGBENCH Layout Evolution — reproducible GA harness for `dag-map` layouts; energy functional + island-model GA + Tinder-style human steering via Bradley-Terry weight refit. Bench code lives gitignored in `dag-map/bench/`; tracking lives in Liminara `work/`.
+  - [x] M-DAGBENCH-01 Energy function + corpus + evaluator
+  - [x] M-DAGBENCH-02 GA loop + islands + regression guard
+  - [x] M-DAGBENCH-03 Tinder UI + Bradley-Terry refit + live steering
+  - [x] M-DAGBENCH-04 External corpora + benchmark report (stretch)
+- [ ] E-EVOLVE Evolvable Layout Pipeline — refactor layoutMetro into swappable strategy pipeline; implement crossing reduction, node ordering, coordinate refinement; evolve best strategy combination via GA. `planning`
+  - [ ] M-EVOLVE-01 Pipeline refactoring
+  - [ ] M-EVOLVE-02 Crossing reduction + node ordering strategies
+  - [ ] M-EVOLVE-03 Coordinate refinement + extended genome
+  - [ ] M-EVOLVE-04 Evolution run + benchmark comparison
 
 ## Phase 6: VSME — Not started [decided next]
 
