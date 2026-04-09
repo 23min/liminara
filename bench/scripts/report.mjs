@@ -119,6 +119,31 @@ function renderMarkdown(data) {
   lines.push(`**Fixtures:** ${data.fixtures.length}`);
   lines.push('');
 
+  // Elite info (honesty)
+  if (data.meta.elite) {
+    lines.push('## Evolved Elite');
+    lines.push('');
+    lines.push(`- **Individual:** ${data.meta.elite.individualId}`);
+    lines.push(`- **Generation:** ${data.meta.elite.generation}`);
+    lines.push(`- **Fitness:** ${data.meta.elite.fitness.toFixed(4)}`);
+    lines.push('');
+    lines.push('**Genome:**');
+    lines.push('');
+    lines.push('| Parameter | Value |');
+    lines.push('|-----------|-------|');
+    if (data.meta.elite.genome?.tier1) {
+      for (const [k, v] of Object.entries(data.meta.elite.genome.tier1)) {
+        lines.push(`| ${k} | ${typeof v === 'number' ? v.toFixed(4) : v} |`);
+      }
+    }
+    lines.push('');
+  } else {
+    lines.push('## dag-map Parameters');
+    lines.push('');
+    lines.push('Using **default** parameters (no evolved elite specified).');
+    lines.push('');
+  }
+
   // Weight Vector (honesty)
   lines.push('## Weight Vector');
   lines.push('');
@@ -190,7 +215,7 @@ function renderMarkdown(data) {
  * @param {Object} [opts.genome] - dag-map genome overrides
  * @param {boolean} [opts.skipGallery] - skip SVG gallery generation
  */
-export async function generateReport({ fixtures, weights, outDir, runId, genome, skipGallery }) {
+export async function generateReport({ fixtures, weights, outDir, runId, genome, eliteInfo, skipGallery }) {
   await mkdir(outDir, { recursive: true });
 
   const fixtureResults = [];
@@ -208,6 +233,12 @@ export async function generateReport({ fixtures, weights, outDir, runId, genome,
       date: new Date().toISOString().slice(0, 10),
       weights,
       fixtureCount: fixtures.length,
+      elite: eliteInfo ? {
+        individualId: eliteInfo.individualId,
+        generation: eliteInfo.genIndex,
+        fitness: eliteInfo.fitness,
+        genome: eliteInfo.genome,
+      } : null,
     },
     summary,
     losses,

@@ -1,11 +1,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, readFile, readdir } from 'node:fs/promises';
+import { mkdtemp, readFile, readdir, mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { existsSync } from 'node:fs';
 
 import { generateReport } from '../report.mjs';
+import { loadEliteFromRun } from '../report-cli.mjs';
 
 // Minimal fixtures for testing
 const FIXTURES = [
@@ -201,4 +202,89 @@ test('no per-engine special-casing — all scored with same weights and terms', 
       assert.ok(new Set(validSets).size === 1, 'all engines scored with same terms');
     }
   }
+});
+
+// --- loadEliteFromRun tests ---
+
+test('loadEliteFromRun reads best genome from latest generation', async () => {
+  const runDir = await mkdtemp(join(tmpdir(), 'elite-'));
+  const genDir = join(runDir, 'gen-0005');
+  await mkdir(genDir, { recursive: true });
+
+  const genomes = [
+    { id: 'ind-a', island: 'pop-0', genome: { tier1: { 'render.layerSpacing': 60, 'render.scale': 1.2 } } },
+    { id: 'ind-b', island: 'pop-0', genome: { tier1: { 'render.layerSpacing': 80, 'render.scale': 1.8 } } },
+  ];
+  const scores = {
+    individuals: [
+      { id: 'ind-a', fitness: 42.5, perFixture: {} },
+      { id: 'ind-b', fitness: 10.2, perFixture: {} },
+    ],
+  };
+
+  await writeFile(join(genDir, 'genomes.json'), JSON.stringify(genomes));
+  await writeFile(join(genDir, 'scores.json'), JSON.stringify(scores));
+
+  const result = await loadEliteFromRun(runDir);
+
+  assert.equal(result.individualId, 'ind-b');
+  assert.equal(result.fitness, 10.2);
+  assert.equal(result.genIndex, 5);
+  assert.equal(result.genome.tier1['render.layerSpacing'], 80);
+});
+
+test('loadEliteFromRun picks latest generation when multiple exist', async () => {
+  const runDir = await mkdtemp(join(tmpdir(), 'elite-'));
+
+  for (const gen of ['gen-0001', 'gen-0010']) {
+    const genDir = join(runDir, gen);
+    await mkdir(genDir, { recursive: true });
+    await writeFile(join(genDir, 'genomes.json'), JSON.stringify([
+      { id: `best-${gen}`, island: 'pop-0', genome: { tier1: { x: 1 } } },
+    ]));
+    await writeFile(join(genDir, 'scores.json'), JSON.stringify({
+      individuals: [{ id: `best-${gen}`, fitness: 5.0 }],
+    }));
+  }
+
+  const result = await loadEliteFromRun(runDir);
+  assert.equal(result.genIndex, 10);
+  assert.equal(result.individualId, 'best-gen-0010');
+});
+
+test('loadEliteFromRun returns null when no generations exist', async () => {
+  const runDir = await mkdtemp(join(tmpdir(), 'elite-'));
+  const result = await loadEliteFromRun(runDir);
+  assert.equal(result, null);
+});
+
+test('report.json includes elite metadata when eliteInfo is provided', async () => {
+  const outDir = await mkdtemp(join(tmpdir(), 'report-'));
+  const eliteInfo = {
+    individualId: 'test-elite',
+    genIndex: 42,
+    fitness: 7.5,
+    genome: { tier1: { 'render.layerSpacing': 75 } },
+  };
+
+  await generateReport({
+    fixtures: FIXTURES,
+    weights: WEIGHTS,
+    outDir,
+    runId: 'elite-report',
+    eliteInfo,
+    skipGallery: true,
+  });
+
+  const data = JSON.parse(await readFile(join(outDir, 'report.json'), 'utf8'));
+
+  assert.ok(data.meta.elite);
+  assert.equal(data.meta.elite.individualId, 'test-elite');
+  assert.equal(data.meta.elite.generation, 42);
+  assert.equal(data.meta.elite.fitness, 7.5);
+  assert.deepStrictEqual(data.meta.elite.genome, eliteInfo.genome);
+
+  const md = await readFile(join(outDir, 'report.md'), 'utf8');
+  assert.ok(md.includes('Evolved Elite'));
+  assert.ok(md.includes('test-elite'));
 });
