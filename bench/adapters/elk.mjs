@@ -1,19 +1,13 @@
 // elk.mjs — adapter that runs ELK (Eclipse Layout Kernel) on a bench
 // fixture and returns the canonical layout shape {nodes, edges, routes, meta}.
 //
-// ELK is async. The JS port (elkjs) runs the layout in a worker-like
-// environment. We use the synchronous/bundled variant for determinism.
+// Uses ELK's actual edge routing (sections with bend points) for a fair
+// comparison against dag-map's routed polylines.
 
 import ELK from 'elkjs/lib/elk.bundled.js';
 
 const elk = new ELK();
 
-/**
- * Layout a fixture using ELK and return the canonical bench layout shape.
- * Returns an error object instead of throwing on failure.
- * @param {Object} fixture - {id, dag: {nodes, edges}, theme, opts}
- * @returns {Promise<{ nodes, edges, routes, meta } | { error: string }>}
- */
 export async function layoutWithELK(fixture) {
   try {
     return await _layout(fixture);
@@ -47,24 +41,47 @@ async function _layout(fixture) {
 
   const result = await elk.layout(graph);
 
-  // Compute layers via topological rank (Kahn's algorithm)
   const layerMap = computeLayers(dag.nodes, dag.edges);
 
   const nodes = result.children.map((c) => ({
     id: c.id,
-    x: c.x + c.width / 2,   // ELK gives top-left; center for consistency
+    x: c.x + c.width / 2,
     y: c.y + c.height / 2,
     layer: layerMap.get(c.id) ?? 0,
   }));
 
   const edges = dag.edges.map(([s, t]) => [s, t]);
 
+  // Build node position map for fallback
   const posMap = new Map(nodes.map((n) => [n.id, { x: n.x, y: n.y }]));
-  const routes = edges.map(([s, t], i) => ({
-    id: `e${i}`,
-    nodes: [s, t],
-    points: [posMap.get(s), posMap.get(t)],
-  }));
+
+  // Build routes using ELK's actual edge sections with bend points
+  const routes = result.edges.map((e, i) => {
+    const [s, t] = dag.edges[i];
+    const points = [];
+
+    if (e.sections && e.sections.length > 0) {
+      for (const section of e.sections) {
+        points.push({ x: section.startPoint.x, y: section.startPoint.y });
+        if (section.bendPoints) {
+          for (const bp of section.bendPoints) {
+            points.push({ x: bp.x, y: bp.y });
+          }
+        }
+        points.push({ x: section.endPoint.x, y: section.endPoint.y });
+      }
+    } else {
+      // Fallback to straight line
+      points.push(posMap.get(s));
+      points.push(posMap.get(t));
+    }
+
+    return {
+      id: `e${i}`,
+      nodes: [s, t],
+      points,
+    };
+  });
 
   return { nodes, edges, routes, meta: { engine: 'elk' } };
 }
