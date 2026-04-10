@@ -460,26 +460,24 @@ if (isDirectRun) {
 
     // Strategy-pinned islands: each island explores a different orderNodes strategy.
     // Cross-island comparison happens in the Tinder UI.
-    // Each island pins a DIFFERENT node ordering method.
-    // All use 'direct' lane assignment so the ordering IS the layout.
-    // The node ordering determines which node is above which — that's
-    // the visual difference the user sees.
+    // Each island is a genuinely different layout philosophy.
     const pinnedStrategies = {
-      'island-spectral': {
-        'strategy.orderNodes': 'spectral',
-        'strategy.reduceCrossings': 'barycenter',
-        'strategy.assignLanes': 'direct',
-      },
-      'island-barycenter': {
+      // Optimized: barycenter ordering + crossing reduction → direct Y
+      // The "smart" approach — minimize crossings algorithmically
+      'island-optimized': {
         'strategy.orderNodes': 'barycenter',
         'strategy.reduceCrossings': 'barycenter',
         'strategy.assignLanes': 'direct',
       },
+      // Shuffle: trunk stays straight, branches randomized → direct Y
+      // Explores layouts the optimizer would never try
       'island-shuffle': {
         'strategy.orderNodes': 'shuffle',
         'strategy.reduceCrossings': 'none',
         'strategy.assignLanes': 'direct',
       },
+      // Classic: BFS route-based lanes, no ordering
+      // The original dag-map behavior
       'island-classic': {
         'strategy.orderNodes': 'none',
         'strategy.reduceCrossings': 'none',

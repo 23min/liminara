@@ -260,8 +260,7 @@ function setupListeners() {
 // Convergence chart
 
 const ISLAND_COLORS = {
-  'island-spectral': '#e94560',
-  'island-barycenter': '#4ea8de',
+  'island-optimized': '#4ea8de',
   'island-shuffle': '#16c79a',
   'island-classic': '#f5a623',
 };

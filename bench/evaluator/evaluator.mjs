@@ -26,6 +26,7 @@ import { E_repel_nn } from '../energy/repel_nn.mjs';
 import { E_repel_ne } from '../energy/repel_ne.mjs';
 import { E_overlap } from '../energy/overlap.mjs';
 import { E_direction_changes } from '../energy/direction_changes.mjs';
+import { E_polyline_crossings } from '../energy/polyline_crossings.mjs';
 
 import { checkInvariants } from '../invariants/checker.mjs';
 import { projectLayout } from './adapter.mjs';
@@ -51,6 +52,7 @@ export const TERM_NAMES = [
   'repel_nn',
   'overlap',
   'direction_changes',
+  'polyline_crossings',
   'repel_ne',
 ];
 
@@ -130,6 +132,7 @@ export async function evaluate(genome, fixture, { weights } = {}) {
     repel_ne: E_repel_ne(layout, cfg),
     overlap: E_overlap(layout, cfg),
     direction_changes: E_direction_changes(layout, cfg),
+    polyline_crossings: E_polyline_crossings(layout, cfg),
   };
 
   let score = 0;

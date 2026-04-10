@@ -8,5 +8,6 @@
   "repel_nn": 100,
   "repel_ne": 40,
   "overlap": 50,
-  "direction_changes": 30
+  "direction_changes": 30,
+  "polyline_crossings": 40
 }
