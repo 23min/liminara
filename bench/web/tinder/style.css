@@ -18,6 +18,11 @@ header {
 }
 header h1 { font-size: 1.1rem; font-weight: 600; }
 #status { font-size: 0.85rem; color: #888; }
+#fixture-bar { margin-left: auto; display: flex; align-items: center; gap: 0.5rem; }
+#fixture-bar label { font-size: 0.8rem; color: #aaa; }
+#fixture-select { padding: 0.25rem 0.5rem; background: #1a1a2e; color: #e0e0e0; border: 1px solid #444; border-radius: 4px; font-size: 0.8rem; }
+
+.strategy-info { font-size: 0.7rem; color: #6a9fb5; padding-bottom: 0.3rem; font-family: monospace; }
 
 main {
   flex: 1;

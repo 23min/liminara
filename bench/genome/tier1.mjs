@@ -1,45 +1,15 @@
 // tier1.mjs — Tier 1 continuous genome schema.
 //
-// These are the real-valued knobs the GA is allowed to mutate and crossover.
-// Field names use a `namespace.field` convention so the genome can be
-// projected cleanly into the evaluator shape (`render.*`, `energy.*`)
-// without reshuffling logic at operator time.
-//
-// Every field declares its {min, max, default}. Validation is strict:
-// out-of-range, non-numeric, and missing values all surface as structured
-// errors the GA can log.
-//
-// The schema was cut from 15 to 8 fields after an empirical sensitivity
-// analysis on 2026-04-08 found 7 fields that produced zero scalar fitness
-// delta when mutated by ±1σ (see work/gaps.md and the sensitivity report
-// at bench/run/sensitivity/). The removed fields were:
-//
-//   render.trunkY              - translation-invariant in the energy
-//                                 function (every term measures relative
-//                                 distances, so a uniform y shift is a
-//                                 no-op). Also a quietly dead option in
-//                                 dag-map's layoutMetro.
-//   render.progressivePower    - affects SVG curve shape only; the
-//                                 adapter uses straight-line polylines
-//                                 between route waypoints.
-//   render.cornerRadius        - same reason as progressivePower.
-//   lane.weight_pure/recordable/pinned_env/side_effecting
-//                              - wired into toEvaluatorGenome's output
-//                                 but never consumed by dag-map or the
-//                                 energy terms. Pure dead weight.
+// ONLY layout-affecting parameters belong here. Scale, spacing, and
+// energy-tuning parameters are consumer constraints, not evolvable.
+// Cleaned up in E-MATRIX epic: removed render.* and energy.* params
+// that just zoom the layout or tune the scorer without changing
+// node placement.
 
 export const TIER1_SCHEMA = {
-  // --- dag-map render knobs ---
-  'render.layerSpacing': { min: 20, max: 120, default: 50 },
-  'render.mainSpacing': { min: 15, max: 60, default: 34 },
-  'render.subSpacing': { min: 8, max: 40, default: 16 },
-  'render.scale': { min: 0.8, max: 2.5, default: 1.5 },
-
-  // --- energy-term tuning ---
-  'energy.stretch_ideal_factor': { min: 0.5, max: 2.0, default: 1.0 },
-  'energy.repel_threshold_px': { min: 10, max: 100, default: 40 },
-  'energy.channel_min_separation_px': { min: 5, max: 60, default: 20 },
-  'energy.envelope_target_ratio': { min: 0.8, max: 3.0, default: 2.0 },
+  // Vertical spacing between routes (affects node separation)
+  'render.mainSpacing': { min: 20, max: 80, default: 40 },
+  'render.subSpacing': { min: 10, max: 50, default: 25 },
 };
 
 export const TIER1_FIELDS = Object.keys(TIER1_SCHEMA);

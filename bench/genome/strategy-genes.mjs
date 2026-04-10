@@ -1,12 +1,12 @@
 // strategy-genes.mjs — categorical strategy genes for the extended genome.
-// Each gene selects a strategy for a pipeline slot. Integer parameters
-// (crossingPasses, refinementIterations) are treated as continuous genes
-// that get rounded at evaluation time.
+//
+// ONLY layout-affecting genes. Scale, energy tuning, force/stress Y
+// params removed — they didn't produce visible layout differences.
 
 export const STRATEGY_SCHEMA = {
   'strategy.orderNodes': {
     type: 'categorical',
-    values: ['none', 'barycenter', 'median', 'spectral', 'hybrid'],
+    values: ['none', 'barycenter', 'median', 'spectral', 'hybrid', 'shuffle'],
     default: 'none',
   },
   'strategy.reduceCrossings': {
@@ -16,17 +16,15 @@ export const STRATEGY_SCHEMA = {
   },
   'strategy.assignLanes': {
     type: 'categorical',
-    values: ['default', 'ordered'],
+    values: ['default', 'ordered', 'direct'],
     default: 'default',
   },
-  // positionX is NOT a gene — it's a consumer constraint (like routing or direction).
-  // The consumer chooses fixed/compact/custom/proportional; the GA optimizes within that.
   'strategy.refineCoordinates': {
     type: 'categorical',
     values: ['none', 'barycenter'],
     default: 'none',
   },
-  // Continuous parameters for strategies
+  // Continuous parameters that affect layout
   'strategy.spectralBlend': {
     type: 'continuous',
     min: 0.0,
@@ -38,12 +36,6 @@ export const STRATEGY_SCHEMA = {
     min: 1,
     max: 50,
     default: 24,
-  },
-  'strategy.refinementIterations': {
-    type: 'continuous',
-    min: 1,
-    max: 20,
-    default: 12,
   },
 };
 
@@ -82,12 +74,10 @@ export function crossoverStrategyGenes(p1, p2, prng) {
   for (const name of STRATEGY_FIELDS) {
     const spec = STRATEGY_SCHEMA[name];
     if (spec.type === 'categorical') {
-      // Pick from one parent randomly
       out[name] = prng.nextFloat() < 0.5 ? p1[name] : p2[name];
     } else {
-      // Arithmetic blend (same as tier1)
       const alpha = prng.nextFloat();
-      out[name] = alpha * p1[name] + (1 - alpha) * p2[name];
+      out[name] = alpha * (p1[name] ?? spec.default) + (1 - alpha) * (p2[name] ?? spec.default);
     }
   }
   return out;
@@ -99,7 +89,6 @@ export function mutateStrategyGenes(genes, prng, { categoricalRate = 0.1, contin
     const spec = STRATEGY_SCHEMA[name];
     if (spec.type === 'categorical') {
       if (prng.nextFloat() < categoricalRate) {
-        // Pick a different value
         const others = spec.values.filter((v) => v !== out[name]);
         if (others.length > 0) {
           const idx = Math.floor(prng.nextFloat() * others.length);
@@ -108,7 +97,7 @@ export function mutateStrategyGenes(genes, prng, { categoricalRate = 0.1, contin
       }
     } else {
       const sigma = continuousStrength * (spec.max - spec.min);
-      let v = out[name] + prng.nextGaussian(0, sigma);
+      let v = (out[name] ?? spec.default) + prng.nextGaussian(0, sigma);
       if (v < spec.min) v = spec.min;
       if (v > spec.max) v = spec.max;
       out[name] = v;
@@ -118,7 +107,7 @@ export function mutateStrategyGenes(genes, prng, { categoricalRate = 0.1, contin
 }
 
 export function validateStrategyGenes(genes) {
-  if (!genes || typeof genes !== 'object') return; // absent = defaults, ok
+  if (!genes || typeof genes !== 'object') return;
   for (const name of STRATEGY_FIELDS) {
     if (!(name in genes)) continue;
     const spec = STRATEGY_SCHEMA[name];

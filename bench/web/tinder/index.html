@@ -10,21 +10,30 @@
   <header id="header">
     <h1>dag-map Tinder</h1>
     <div id="status">Loading...</div>
+    <div id="fixture-bar">
+      <span id="current-fixture"></span>
+      <select id="fixture-select"></select>
+      <button id="btn-shuffle">🔀 Shuffle ON</button>
+    </div>
   </header>
+
+  <div id="convergence-chart" style="text-align:center;padding:8px 16px"></div>
 
   <main id="arena">
     <div id="no-pair" class="hidden">
-      No pair available — waiting for next generation.
+      Waiting for next generation...
     </div>
 
     <div id="pair" class="hidden">
       <div class="candidate" id="left-candidate">
         <div class="label" id="left-label"></div>
+        <div class="strategy-info" id="left-strategy"></div>
         <div class="svg-container" id="left-svg"></div>
       </div>
       <div class="vs">vs</div>
       <div class="candidate" id="right-candidate">
         <div class="label" id="right-label"></div>
+        <div class="strategy-info" id="right-strategy"></div>
         <div class="svg-container" id="right-svg"></div>
       </div>
     </div>
@@ -33,16 +42,16 @@
   <nav id="controls">
     <div id="vote-buttons">
       <button id="btn-left" title="Left wins (←)">← Left</button>
-      <button id="btn-tie" title="Tie (↓)">↓ Tie</button>
-      <button id="btn-skip" title="Skip (Space)">⎵ Skip</button>
+      <button id="btn-tie" title="Tie (↓)">= Tie</button>
+      <button id="btn-skip" title="Skip (Space)">⏭ Skip</button>
       <button id="btn-right" title="Right wins (→)">Right →</button>
     </div>
     <div id="control-buttons">
-      <button id="btn-pause">Pause</button>
-      <button id="btn-protect-left" title="Protect left individual">Protect L</button>
-      <button id="btn-protect-right" title="Protect right individual">Protect R</button>
-      <button id="btn-kill-left" title="Kill left individual">Kill L</button>
-      <button id="btn-kill-right" title="Kill right individual">Kill R</button>
+      <button id="btn-pause">⏸ Pause</button>
+      <button id="btn-protect-left" title="Protect left individual">🛡 L</button>
+      <button id="btn-protect-right" title="Protect right individual">🛡 R</button>
+      <button id="btn-kill-left" title="Kill left individual">☠ L</button>
+      <button id="btn-kill-right" title="Kill right individual">☠ R</button>
     </div>
   </nav>
 

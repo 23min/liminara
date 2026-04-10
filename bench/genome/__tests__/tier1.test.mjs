@@ -12,11 +12,10 @@ import {
 
 import { createPrng } from '../../ga/prng.mjs';
 
-test('TIER1_SCHEMA defines the 8 live continuous parameters after the sensitivity cleanup', () => {
-  assert.equal(TIER1_FIELDS.length, 8, `expected exactly 8 live Tier 1 fields, got ${TIER1_FIELDS.length}`);
-  // Sanity check: every field is in a known namespace.
+test('TIER1_SCHEMA defines only layout-affecting parameters', () => {
+  assert.equal(TIER1_FIELDS.length, 2, `expected exactly 2 Tier 1 fields, got ${TIER1_FIELDS.length}`);
   for (const name of TIER1_FIELDS) {
-    assert.match(name, /^(render|energy)\./, `field ${name} is not under a known namespace`);
+    assert.match(name, /^render\./, `field ${name} should be under render namespace`);
   }
 });
 

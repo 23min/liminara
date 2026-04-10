@@ -145,6 +145,13 @@ async function initializePopulation({ seed, config, scoreChild }) {
   for (const islandKey of populationKeys) {
     for (let i = 0; i < config.populationSize; i++) {
       const g = randomGenome(initPrng);
+      // Apply pinned strategies for this island
+      if (config.pinnedStrategies && config.pinnedStrategies[islandKey]) {
+        const pins = config.pinnedStrategies[islandKey];
+        for (const [gene, value] of Object.entries(pins)) {
+          g.strategy[gene] = value;
+        }
+      }
       const id = `g0-${islandKey}-${counter++}`;
       const scored = await scoreChild({ id, genome: g, island: islandKey });
       if (scored.island === undefined) scored.island = islandKey;

@@ -1,9 +1,8 @@
 // genome.mjs — Tier 1 genome + strategy genes with round-trip serialization
 // and a projection helper for the evaluator.
 //
-// The schema is Tier 1 (8 continuous render/energy fields) plus strategy
-// genes (3 categorical + 2 continuous). Strategy genes were added in
-// M-EVOLVE-03 to enable evolutionary algorithm configuration.
+// Stripped to layout-affecting parameters only. Scale, layerSpacing, and
+// energy-tuning params are fixed consumer constraints, not evolvable.
 
 import {
   defaultTier1,
@@ -16,7 +15,6 @@ import {
   defaultStrategyGenes,
   randomStrategyGenes,
   validateStrategyGenes,
-  STRATEGY_FIELDS,
 } from './strategy-genes.mjs';
 
 export function defaultGenome() {
@@ -48,12 +46,21 @@ export function parse(str) {
 }
 
 export function toEvaluatorGenome(genome) {
-  const out = { render: {}, energy: {} };
-  for (const name of TIER1_FIELDS) {
-    const [ns, field] = name.split('.');
-    if (!out[ns]) out[ns] = {};
-    out[ns][field] = genome.tier1[name];
-  }
+  // Fixed consumer constraints (not evolvable)
+  const out = {
+    render: {
+      scale: 1.5,
+      layerSpacing: 50,
+      mainSpacing: genome.tier1['render.mainSpacing'] ?? 40,
+      subSpacing: genome.tier1['render.subSpacing'] ?? 25,
+    },
+    energy: {
+      stretch_ideal_factor: 1.0,
+      repel_threshold_px: 40,
+      channel_min_separation_px: 20,
+      envelope_target_ratio: 2.0,
+    },
+  };
 
   // Project strategy genes into layoutMetro options
   const strat = genome.strategy || {};
@@ -61,13 +68,11 @@ export function toEvaluatorGenome(genome) {
     orderNodes: strat['strategy.orderNodes'] || 'none',
     reduceCrossings: strat['strategy.reduceCrossings'] || 'none',
     assignLanes: strat['strategy.assignLanes'] || 'default',
-    positionX: strat['strategy.positionX'] || 'fixed',
     refineCoordinates: strat['strategy.refineCoordinates'] || 'none',
   };
   out.strategyConfig = {
     crossingPasses: Math.round(strat['strategy.crossingPasses'] ?? 24),
     refinementIterations: Math.round(strat['strategy.refinementIterations'] ?? 12),
-    compactionIterations: Math.round(strat['strategy.refinementIterations'] ?? 12),
     spectralBlend: strat['strategy.spectralBlend'] ?? 0.5,
   };
 

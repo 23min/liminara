@@ -98,6 +98,14 @@ export async function advanceGeneration(islands, ctx) {
         categoricalRate: config.strategyCategoricalRate ?? 0.1,
         continuousStrength: config.tier1MutationStrength,
       });
+      // If this island has a pinned strategy, enforce it after mutation.
+      // This keeps each island exploring a different strategic approach.
+      if (config.pinnedStrategies && config.pinnedStrategies[islandKey]) {
+        const pins = config.pinnedStrategies[islandKey];
+        for (const [gene, value] of Object.entries(pins)) {
+          mutatedStrategy[gene] = value;
+        }
+      }
       const childGenome = makeGenome({ tier1: mutatedTier1, strategy: mutatedStrategy });
       const id = `g${generationIndex}-${islandKey}-${childCounter++}`;
       const scored = await scoreChild({ id, genome: childGenome, island: islandKey });

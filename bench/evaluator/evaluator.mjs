@@ -24,6 +24,8 @@ import { E_envelope } from '../energy/envelope.mjs';
 import { E_channel } from '../energy/channel.mjs';
 import { E_repel_nn } from '../energy/repel_nn.mjs';
 import { E_repel_ne } from '../energy/repel_ne.mjs';
+import { E_overlap } from '../energy/overlap.mjs';
+import { E_direction_changes } from '../energy/direction_changes.mjs';
 
 import { checkInvariants } from '../invariants/checker.mjs';
 import { projectLayout } from './adapter.mjs';
@@ -47,6 +49,8 @@ export const TERM_NAMES = [
   'envelope',
   'channel',
   'repel_nn',
+  'overlap',
+  'direction_changes',
   'repel_ne',
 ];
 
@@ -124,6 +128,8 @@ export async function evaluate(genome, fixture, { weights } = {}) {
     channel: E_channel(layout, cfg),
     repel_nn: E_repel_nn(layout, cfg),
     repel_ne: E_repel_ne(layout, cfg),
+    overlap: E_overlap(layout, cfg),
+    direction_changes: E_direction_changes(layout, cfg),
   };
 
   let score = 0;

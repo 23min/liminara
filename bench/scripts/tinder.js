@@ -20,6 +20,8 @@ import { scoreIndividual } from '../ga/individual.mjs';
 import { loadTierA } from '../corpus/tier-a.mjs';
 import { loadTierB } from '../corpus/tier-b.mjs';
 import { createPrng } from '../ga/prng.mjs';
+import { dagMap } from '../../dag-map/src/index.js';
+import { toEvaluatorGenome } from '../genome/genome.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const BENCH_ROOT = join(__dirname, '..');
@@ -78,16 +80,20 @@ export function parseTinderArgs(argv) {
 
 // ── Pair selection ──────────────────────────────────────────────────────
 
+function strategyKey(ind) {
+  const s = ind.genome?.strategy;
+  if (!s) return 'default';
+  return [
+    s['strategy.orderNodes'] || 'none',
+    s['strategy.reduceCrossings'] || 'none',
+    s['strategy.assignLanes'] || 'default',
+    s['strategy.positionX'] || 'fixed',
+    s['strategy.refineCoordinates'] || 'none',
+  ].join('/');
+}
+
 export function selectPair(elite, seed, votedPairs) {
   if (!elite || elite.length < 2) return null;
-
-  // Build all possible pairs.
-  const pairs = [];
-  for (let i = 0; i < elite.length; i++) {
-    for (let j = i + 1; j < elite.length; j++) {
-      pairs.push([elite[i], elite[j]]);
-    }
-  }
 
   // Build a set of already-voted pair keys (order-independent).
   const votedSet = new Set();
@@ -99,18 +105,49 @@ export function selectPair(elite, seed, votedPairs) {
     }
   }
 
-  // Filter to unvoted pairs.
-  const available = pairs.filter(([a, b]) => {
-    const key = a.id < b.id ? `${a.id}:${b.id}` : `${b.id}:${a.id}`;
-    return !votedSet.has(key);
-  });
+  // Group elite by island — always pick from DIFFERENT islands
+  // so the user compares different strategic approaches.
+  const byIsland = new Map();
+  for (const ind of elite) {
+    const key = ind.island || 'default';
+    if (!byIsland.has(key)) byIsland.set(key, []);
+    byIsland.get(key).push(ind);
+  }
+  const islandKeys = [...byIsland.keys()];
 
-  if (available.length === 0) return null;
+  // Build cross-island pairs only
+  const pairs = [];
+  for (let i = 0; i < islandKeys.length; i++) {
+    for (let j = i + 1; j < islandKeys.length; j++) {
+      const leftPool = byIsland.get(islandKeys[i]);
+      const rightPool = byIsland.get(islandKeys[j]);
+      // Pick the best from each island
+      for (const l of leftPool.slice(0, 3)) {
+        for (const r of rightPool.slice(0, 3)) {
+          const key = l.id < r.id ? `${l.id}:${r.id}` : `${r.id}:${l.id}`;
+          if (!votedSet.has(key)) {
+            pairs.push([l, r]);
+          }
+        }
+      }
+    }
+  }
 
-  // Deterministic pick.
+  // Fallback: if no cross-island pairs available, use any pair
+  if (pairs.length === 0) {
+    for (let i = 0; i < elite.length; i++) {
+      for (let j = i + 1; j < elite.length; j++) {
+        const key = elite[i].id < elite[j].id ? `${elite[i].id}:${elite[j].id}` : `${elite[j].id}:${elite[i].id}`;
+        if (!votedSet.has(key)) pairs.push([elite[i], elite[j]]);
+      }
+    }
+  }
+
+  if (pairs.length === 0) return null;
+
   const prng = createPrng(seed + votedPairs.length);
-  const idx = prng.nextInt(0, available.length - 1);
-  const [left, right] = available[idx];
+  const idx = prng.nextInt(0, pairs.length - 1);
+  const [left, right] = pairs[idx];
   return { left, right };
 }
 
@@ -127,6 +164,7 @@ export async function createTinderServer({
   webRoot,
   resume: resumeRun = false,
   initialWeights = null,
+  galleryFixtures = [],
 }) {
   const controlState = createControlState();
   const runDir = join(outRoot, runId);
@@ -138,17 +176,44 @@ export async function createTinderServer({
   const shared = {
     generation: 0,
     elite: [],
+    fixtures: galleryFixtures || [],
     voteCount: 0,
     votesSinceLastRefit: 0,
     currentWeights: { ...weights },
+    convergence: {},  // { islandKey: [{ gen, bestFitness }] }
   };
 
   function updateElite(islands) {
-    const all = allIndividuals(islands);
-    shared.elite = all
+    const all = allIndividuals(islands)
       .filter((i) => !i.rejected && Number.isFinite(i.fitness))
-      .sort((a, b) => a.fitness - b.fitness)
-      .slice(0, Math.max(config.eliteCount * 3, 6));
+      .sort((a, b) => a.fitness - b.fitness);
+
+    // Keep the overall top-N, PLUS the best individual from each distinct
+    // strategy combination and each island.
+    const topN = all.slice(0, Math.max(config.eliteCount * 3, 6));
+    const seen = new Set(topN.map(i => i.id));
+    const seenStrategies = new Set(topN.map(i => strategyKey(i)));
+
+    for (const ind of all) {
+      const sk = strategyKey(ind);
+      if (!seenStrategies.has(sk)) {
+        topN.push(ind);
+        seen.add(ind.id);
+        seenStrategies.add(sk);
+      }
+      if (topN.length >= 30) break;
+    }
+
+    shared.elite = topN;
+
+    // Track convergence per island
+    for (const [key, pop] of islands.populations) {
+      const valid = pop.filter(i => !i.rejected && Number.isFinite(i.fitness));
+      if (valid.length === 0) continue;
+      const best = Math.min(...valid.map(i => i.fitness));
+      if (!shared.convergence[key]) shared.convergence[key] = [];
+      shared.convergence[key].push({ gen: shared.generation, fitness: best });
+    }
   }
 
   // ── HTTP handler ────────────────────────────────────────────────
@@ -204,6 +269,11 @@ export async function createTinderServer({
     // GET /state
     if (req.method === 'GET' && path === '/state') {
       const pair = await getCurrentPair();
+      // Cache pair individuals so SVG renders work even as generations advance
+      if (pair) {
+        shared.cachedPairLeft = pair.left;
+        shared.cachedPairRight = pair.right;
+      }
       return jsonResponse(res, 200, {
         runId,
         generation: shared.generation,
@@ -211,21 +281,54 @@ export async function createTinderServer({
         voteCount: shared.voteCount,
         votesSinceLastRefit: shared.votesSinceLastRefit,
         currentWeights: shared.currentWeights,
+        convergence: shared.convergence,
         pair,
       });
     }
 
-    // GET /svg/:individualId/:fixtureId
+    // GET /svg/:individualId/:fixtureId — on-the-fly SVG render
     if (req.method === 'GET' && path.startsWith('/svg/')) {
       const parts = path.slice('/svg/'.length).split('/');
       if (parts.length >= 2) {
         const [indId, fixId] = parts;
-        const genDir = `gen-${String(shared.generation).padStart(4, '0')}`;
-        const svgPath = join(runDir, 'gallery', genDir, indId, `${fixId}.svg`);
-        return serveStatic(res, svgPath);
+        // Search current elite AND cached pair (pair may be from a stale generation)
+        const ind = shared.elite?.find(e => e.id === indId)
+          || shared.cachedPairLeft?.id === indId && shared.cachedPairLeft
+          || shared.cachedPairRight?.id === indId && shared.cachedPairRight;
+        if (!ind) {
+          res.writeHead(404);
+          return res.end('individual not found');
+        }
+        // Find the fixture
+        const fixture = shared.fixtures?.find(f => f.id === fixId);
+        if (!fixture) {
+          res.writeHead(404);
+          return res.end('fixture not found');
+        }
+        // Render SVG on-the-fly using the individual's genome
+        try {
+          const ev = toEvaluatorGenome(ind.genome);
+          const opts = { ...(fixture.opts ?? {}), ...(ev.render ?? {}), theme: fixture.theme };
+          if (fixture.routes) opts.routes = fixture.routes;
+          if (ev.strategies) opts.strategies = ev.strategies;
+          if (ev.strategyConfig) opts.strategyConfig = ev.strategyConfig;
+          opts.lineGap = 5;
+          const { svg } = dagMap(fixture.dag, opts);
+          res.writeHead(200, { 'content-type': 'image/svg+xml' });
+          return res.end(svg);
+        } catch (err) {
+          res.writeHead(200, { 'content-type': 'image/svg+xml' });
+          return res.end(`<svg width="300" height="60"><text x="10" y="30" fill="red" font-size="12">${err.message}</text></svg>`);
+        }
       }
       res.writeHead(400);
       return res.end('bad svg path');
+    }
+
+    // GET /fixtures — list available fixture IDs
+    if (req.method === 'GET' && path === '/fixtures') {
+      const ids = (shared.fixtures || []).map(f => f.id);
+      return jsonResponse(res, 200, { fixtures: ids });
     }
 
     // POST /vote
@@ -329,12 +432,60 @@ const isDirectRun = import.meta.url === `file://${process.argv[1]}`;
 if (isDirectRun) {
   (async () => {
     const args = parseTinderArgs(process.argv.slice(2));
-    const fixtures = [...(await loadTierA()), ...(await loadTierB())];
     const tierA = await loadTierA();
+    const tierB = await loadTierB();
+
+    // Use external DAGs (15-50 nodes) where layout differences are visible
+    let externalDAGs = [];
+    try {
+      const { existsSync } = await import('node:fs');
+      const northDir = join(BENCH_ROOT, 'corpora', 'tier-c', 'north');
+      if (existsSync(northDir)) {
+        const { loadGraphMLDir } = await import('../loaders/graphml.mjs');
+        const north = await loadGraphMLDir(northDir);
+        externalDAGs = north
+          .filter(f => f.dag.nodes.length >= 15 && f.dag.nodes.length <= 50 && f.dag.edges.length >= 18)
+          .slice(0, 30);
+        console.log(`Loaded ${externalDAGs.length} external DAGs for Tinder`);
+      }
+    } catch (e) { /* no external corpora, fine */ }
+
+    // Mix: external DAGs (primary) + a few internal models
+    const internalPicks = tierA.filter(m => m.dag.nodes.length >= 8);
+    const fixtures = [...externalDAGs, ...internalPicks, ...tierB];
     const weights = await loadDefaultWeights();
 
     const scoreChild = async ({ id, genome, island, weights: w }) =>
       scoreIndividual({ id, genome, fixtures, weights: w ?? weights, island });
+
+    // Strategy-pinned islands: each island explores a different orderNodes strategy.
+    // Cross-island comparison happens in the Tinder UI.
+    // Each island pins a DIFFERENT node ordering method.
+    // All use 'direct' lane assignment so the ordering IS the layout.
+    // The node ordering determines which node is above which — that's
+    // the visual difference the user sees.
+    const pinnedStrategies = {
+      'island-spectral': {
+        'strategy.orderNodes': 'spectral',
+        'strategy.reduceCrossings': 'barycenter',
+        'strategy.assignLanes': 'direct',
+      },
+      'island-barycenter': {
+        'strategy.orderNodes': 'barycenter',
+        'strategy.reduceCrossings': 'barycenter',
+        'strategy.assignLanes': 'direct',
+      },
+      'island-shuffle': {
+        'strategy.orderNodes': 'shuffle',
+        'strategy.reduceCrossings': 'none',
+        'strategy.assignLanes': 'direct',
+      },
+      'island-classic': {
+        'strategy.orderNodes': 'none',
+        'strategy.reduceCrossings': 'none',
+        'strategy.assignLanes': 'default',
+      },
+    };
 
     const { server, gaPromise, controlState } = await createTinderServer({
       seed: args.seed,
@@ -349,13 +500,15 @@ if (isDirectRun) {
         migrationInterval: args.migrationInterval,
         migrationRate: args.migrationRate,
         refitEveryGenerations: args.refitEveryGenerations,
+        populationKeys: Object.keys(pinnedStrategies),
+        pinnedStrategies,
       },
       outRoot: DEFAULT_OUT_ROOT,
       runId: args.runId,
       scoreChild,
       webRoot: join(BENCH_ROOT, 'web', 'tinder'),
       initialWeights: weights,
-      galleryFixtures: tierA,
+      galleryFixtures: fixtures,  // all fixtures (A + B + external) for Tinder rendering
     });
 
     const addr = server.address();
