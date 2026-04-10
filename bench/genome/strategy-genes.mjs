@@ -19,11 +19,8 @@ export const STRATEGY_SCHEMA = {
     values: ['default', 'ordered'],
     default: 'default',
   },
-  'strategy.positionX': {
-    type: 'categorical',
-    values: ['fixed', 'compact'],
-    default: 'fixed',
-  },
+  // positionX is NOT a gene — it's a consumer constraint (like routing or direction).
+  // The consumer chooses fixed/compact/custom/proportional; the GA optimizes within that.
   'strategy.refineCoordinates': {
     type: 'categorical',
     values: ['none', 'barycenter'],

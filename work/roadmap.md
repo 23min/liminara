@@ -92,11 +92,15 @@ Runs alongside Phase 5c on a separate worktree. Does not block or interact with 
   - [x] M-DAGBENCH-02 GA loop + islands + regression guard
   - [x] M-DAGBENCH-03 Tinder UI + Bradley-Terry refit + live steering
   - [x] M-DAGBENCH-04 External corpora + benchmark report (stretch)
-- [ ] E-EVOLVE Evolvable Layout Pipeline — refactor layoutMetro into swappable strategy pipeline; implement crossing reduction, node ordering, coordinate refinement; evolve best strategy combination via GA. `planning`
-  - [ ] M-EVOLVE-01 Pipeline refactoring
-  - [ ] M-EVOLVE-02 Crossing reduction + node ordering strategies
-  - [ ] M-EVOLVE-03 Coordinate refinement + extended genome
+- [ ] E-EVOLVE Evolvable Layout Pipeline — refactor layoutMetro into swappable strategy pipeline; implement crossing reduction, node ordering, coordinate refinement; evolve best strategy combination via GA. `in-progress`
+  - [x] M-EVOLVE-01 Pipeline refactoring
+  - [x] M-EVOLVE-02 Crossing reduction + node ordering strategies
+  - [x] M-EVOLVE-03 Coordinate refinement + extended genome
   - [ ] M-EVOLVE-04 Evolution run + benchmark comparison
+- [ ] E-MATRIX Matrix-Based Layout Core — adjacency matrix, Laplacian, spectral ordering via Fiedler vector, hybrid spectral+barycenter with GA-evolvable blend parameters. `planning`
+  - [ ] M-MATRIX-01 Matrix infrastructure + efficient crossing count
+  - [ ] M-MATRIX-02 Spectral ordering (Fiedler vector)
+  - [ ] M-MATRIX-03 Hybrid ordering + GA integration
 
 ## Phase 6: VSME — Not started [decided next]
 
