@@ -6,7 +6,7 @@
 export const STRATEGY_SCHEMA = {
   'strategy.orderNodes': {
     type: 'categorical',
-    values: ['none', 'barycenter', 'median', 'spectral'],
+    values: ['none', 'barycenter', 'median', 'spectral', 'hybrid'],
     default: 'none',
   },
   'strategy.reduceCrossings': {
@@ -27,6 +27,12 @@ export const STRATEGY_SCHEMA = {
     default: 'none',
   },
   // Continuous parameters for strategies
+  'strategy.spectralBlend': {
+    type: 'continuous',
+    min: 0.0,
+    max: 1.0,
+    default: 0.5,
+  },
   'strategy.crossingPasses': {
     type: 'continuous',
     min: 1,
