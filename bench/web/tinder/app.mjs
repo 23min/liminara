@@ -82,16 +82,32 @@ function render() {
   // Convergence chart
   renderConvergenceChart(state.convergence);
 
+  // Stats panel (with null checks)
+  const setTextSafe = (sel, val) => { const el = $(sel); if (el) el.textContent = val; };
+  setTextSafe('#stat-gen', state.generation);
+  setTextSafe('#stat-votes', state.voteCount);
+  setTextSafe('#stat-refit', state.votesSinceLastRefit);
+
+  if (state.convergence) {
+    let best = Infinity;
+    for (const pts of Object.values(state.convergence)) {
+      if (pts.length > 0) {
+        const last = pts[pts.length - 1].fitness;
+        if (last < best) best = last;
+      }
+    }
+    setTextSafe('#stat-best', best < Infinity ? best.toFixed(0) : '—');
+  }
+
   // Footer
-  $('#run-info').textContent = `Run: ${state.runId} | Gen: ${state.generation}`;
-  $('#vote-info').textContent = `Votes: ${state.voteCount} (${state.votesSinceLastRefit} since refit)`;
+  setTextSafe('#run-info', `Run: ${state.runId} | Gen: ${state.generation}`);
   if (state.currentWeights) {
     const top3 = Object.entries(state.currentWeights)
       .sort((a, b) => b[1] - a[1])
       .slice(0, 4)
       .map(([k, v]) => `${k}:${typeof v === 'number' ? v.toFixed(1) : v}`)
       .join('  ');
-    $('#weights-info').textContent = `Top weights: ${top3}`;
+    setTextSafe('#weights-info', `Top weights: ${top3}`);
   }
 
   // Pause button
@@ -102,7 +118,7 @@ function render() {
   // Shuffle toggle
   const shuffleBtn = $('#btn-shuffle');
   if (shuffleBtn) {
-    shuffleBtn.textContent = autoShuffle ? '🔀 Shuffle ON' : '🔀 Shuffle OFF';
+    shuffleBtn.textContent = autoShuffle ? '🔀 ON' : '🔀 OFF';
     shuffleBtn.classList.toggle('active', autoShuffle);
   }
 
@@ -260,10 +276,23 @@ function setupListeners() {
 // Convergence chart
 
 const ISLAND_COLORS = {
-  'island-optimized': '#4ea8de',
-  'island-shuffle': '#16c79a',
-  'island-classic': '#f5a623',
+  'island-optimized': '#58a6ff',
+  'island-shuffle': '#3fb950',
+  'island-classic': '#d29922',
 };
+
+function downsample(pts, maxPoints) {
+  if (pts.length <= maxPoints) return pts;
+  const step = Math.ceil(pts.length / maxPoints);
+  const result = [];
+  for (let i = 0; i < pts.length; i += step) {
+    result.push(pts[i]);
+  }
+  if (result[result.length - 1] !== pts[pts.length - 1]) {
+    result.push(pts[pts.length - 1]);
+  }
+  return result;
+}
 
 function renderConvergenceChart(convergence) {
   const container = $('#convergence-chart');
@@ -272,7 +301,8 @@ function renderConvergenceChart(convergence) {
   const islands = Object.keys(convergence);
   if (islands.length === 0) { container.innerHTML = ''; return; }
 
-  let maxGen = 0, minFit = Infinity, maxFit = 0;
+  // Find data bounds (use actual min/max, not starting at 0)
+  let maxGen = 0, minFit = Infinity, maxFit = -Infinity;
   for (const key of islands) {
     for (const pt of convergence[key]) {
       if (pt.gen > maxGen) maxGen = pt.gen;
@@ -280,30 +310,59 @@ function renderConvergenceChart(convergence) {
       if (pt.fitness > maxFit) maxFit = pt.fitness;
     }
   }
-  if (maxGen === 0 || maxFit === minFit) return;
+  if (maxGen === 0) return;
 
-  const w = 700, h = 200, pad = 45;
-  const plotW = w - pad * 2, plotH = h - pad * 1.5;
-  const scaleX = (gen) => pad + (gen / maxGen) * plotW;
-  const scaleY = (fit) => pad / 2 + plotH - ((fit - minFit) / (maxFit - minFit)) * plotH;
+  // Add 5% padding to Y range
+  const fitRange = maxFit - minFit || 1;
+  minFit -= fitRange * 0.05;
+  maxFit += fitRange * 0.05;
+
+  const w = 520, h = 150, pad = 45, padRight = 130;
+  const plotW = w - pad - padRight, plotH = h - 50;
+  const plotTop = 25;
+
+  const scaleX = (gen) => pad + (gen / Math.max(maxGen, 1)) * plotW;
+  const scaleY = (fit) => plotTop + plotH - ((fit - minFit) / (maxFit - minFit)) * plotH;
 
   let svg = '<svg width="' + w + '" height="' + h + '" xmlns="http://www.w3.org/2000/svg">';
-  svg += '<rect width="' + w + '" height="' + h + '" fill="#111" rx="4"/>';
-  svg += '<line x1="' + pad + '" y1="' + (pad/2) + '" x2="' + pad + '" y2="' + (h-pad) + '" stroke="#444" stroke-width="0.5"/>';
-  svg += '<line x1="' + pad + '" y1="' + (h-pad) + '" x2="' + (w-pad) + '" y2="' + (h-pad) + '" stroke="#444" stroke-width="0.5"/>';
-  svg += '<text x="' + (w/2) + '" y="' + (h-4) + '" text-anchor="middle" fill="#666" font-size="9" font-family="sans-serif">generation</text>';
-  svg += '<text x="' + pad + '" y="14" fill="#888" font-size="11" font-family="sans-serif">energy (lower = better)</text>';
+  svg += '<rect width="' + w + '" height="' + h + '" fill="#0d1117" rx="6"/>';
 
+  // Grid lines
+  for (let i = 0; i <= 4; i++) {
+    const gy = plotTop + (i / 4) * plotH;
+    svg += '<line x1="' + pad + '" y1="' + gy + '" x2="' + (pad + plotW) + '" y2="' + gy + '" stroke="#21262d" stroke-width="0.5"/>';
+    const val = maxFit - (i / 4) * (maxFit - minFit);
+    svg += '<text x="' + (pad - 4) + '" y="' + (gy + 3) + '" text-anchor="end" fill="#484f58" font-size="8" font-family="sans-serif">' + (val >= 1000 ? (val/1000).toFixed(0) + 'k' : val.toFixed(0)) + '</text>';
+  }
+
+  // Axes
+  svg += '<line x1="' + pad + '" y1="' + plotTop + '" x2="' + pad + '" y2="' + (plotTop + plotH) + '" stroke="#30363d" stroke-width="1"/>';
+  svg += '<line x1="' + pad + '" y1="' + (plotTop + plotH) + '" x2="' + (pad + plotW) + '" y2="' + (plotTop + plotH) + '" stroke="#30363d" stroke-width="1"/>';
+
+  // Labels
+  svg += '<text x="' + (pad + plotW/2) + '" y="' + (h - 4) + '" text-anchor="middle" fill="#484f58" font-size="9" font-family="sans-serif">generation</text>';
+  svg += '<text x="' + pad + '" y="14" fill="#8b949e" font-size="10" font-family="sans-serif">Energy (lower = better)</text>';
+  svg += '<text x="' + (pad + plotW) + '" y="14" text-anchor="end" fill="#484f58" font-size="9" font-family="sans-serif">gen ' + maxGen + '</text>';
+
+  // Lines — downsample to 120 points max for smooth rendering
   for (const key of islands) {
-    const pts = convergence[key];
-    if (pts.length < 2) continue;
-    const color = ISLAND_COLORS[key] || '#888';
+    const raw = convergence[key];
+    if (raw.length < 2) continue;
+    const pts = downsample(raw, 120);
+    const color = ISLAND_COLORS[key] || '#8b949e';
     const d = pts.map((pt, i) => (i === 0 ? 'M' : 'L') + ' ' + scaleX(pt.gen).toFixed(1) + ' ' + scaleY(pt.fitness).toFixed(1)).join(' ');
-    svg += '<path d="' + d + '" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-opacity="0.8"/>';
-    // Legend entry on the right
-    const legendY = 25 + islands.indexOf(key) * 16;
-    svg += '<line x1="' + (w - 110) + '" y1="' + legendY + '" x2="' + (w - 90) + '" y2="' + legendY + '" stroke="' + color + '" stroke-width="2"/>';
-    svg += '<text x="' + (w - 86) + '" y="' + (legendY + 4) + '" fill="' + color + '" font-size="11" font-family="sans-serif">' + key.replace('island-', '') + '</text>';
+    svg += '<path d="' + d + '" fill="none" stroke="' + color + '" stroke-width="2" stroke-opacity="0.9" stroke-linejoin="round"/>';
+
+    // Current value dot at end
+    const last = pts[pts.length - 1];
+    svg += '<circle cx="' + scaleX(last.gen).toFixed(1) + '" cy="' + scaleY(last.fitness).toFixed(1) + '" r="3" fill="' + color + '"/>';
+
+    // Legend on the right
+    const legendY = plotTop + 8 + islands.indexOf(key) * 20;
+    svg += '<line x1="' + (w - padRight + 8) + '" y1="' + legendY + '" x2="' + (w - padRight + 28) + '" y2="' + legendY + '" stroke="' + color + '" stroke-width="2.5" stroke-linecap="round"/>';
+    svg += '<circle cx="' + (w - padRight + 18) + '" cy="' + legendY + '" r="3" fill="' + color + '"/>';
+    svg += '<text x="' + (w - padRight + 34) + '" y="' + (legendY + 4) + '" fill="' + color + '" font-size="11" font-weight="500" font-family="sans-serif">' + key.replace('island-', '') + '</text>';
+    svg += '<text x="' + (w - padRight + 34) + '" y="' + (legendY + 15) + '" fill="#484f58" font-size="9" font-family="sans-serif">' + last.fitness.toFixed(0) + '</text>';
   }
 
   svg += '</svg>';
@@ -312,4 +371,4 @@ function renderConvergenceChart(convergence) {
 
 setupListeners();
 loadFixtures().then(() => loadState());
-setInterval(loadState, 5000);
+setInterval(loadState, 1500);

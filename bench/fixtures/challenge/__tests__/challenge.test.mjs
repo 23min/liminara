@@ -43,17 +43,16 @@ describe('challenge benchmark suite', () => {
     assert.ok(anyNonzero, 'at least one crossing challenge should have nonzero polyline crossings');
   });
 
-  test('fan graphs have nonzero overlap with default layout', async () => {
+  test('fan graphs evaluate without error', async () => {
     const weights = await loadDefaultWeights();
     const fanGraphs = challengeGraphs.filter(g => g.challenge.startsWith('fan'));
-    let anyOverlap = false;
     for (const g of fanGraphs) {
       const result = await evaluate({}, g, { weights });
-      if (result.terms.overlap > 0) anyOverlap = true;
+      assert.ok(!result.rejected, `${g.id} rejected: ${result.detail}`);
+      assert.ok(Number.isFinite(result.score), `${g.id} score not finite`);
     }
-    // Fan graphs often have overlapping edges with default layout
-    // (multiple edges through the same Y at shared nodes)
-    assert.ok(anyOverlap, 'at least one fan graph should have nonzero overlap');
+    // With decoupled routes, fan nodes get distinct Y positions,
+    // so overlap may be zero — that's the improvement we wanted.
   });
 
   test('suite covers all challenge types', () => {

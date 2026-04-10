@@ -293,8 +293,8 @@ export async function createTinderServer({
         const [indId, fixId] = parts;
         // Search current elite AND cached pair (pair may be from a stale generation)
         const ind = shared.elite?.find(e => e.id === indId)
-          || shared.cachedPairLeft?.id === indId && shared.cachedPairLeft
-          || shared.cachedPairRight?.id === indId && shared.cachedPairRight;
+          || (shared.cachedPairLeft?.id === indId ? shared.cachedPairLeft : null)
+          || (shared.cachedPairRight?.id === indId ? shared.cachedPairRight : null);
         if (!ind) {
           res.writeHead(404);
           return res.end('individual not found');

@@ -3,27 +3,46 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Tinder UI — dag-map bench</title>
+  <title>dag-map Layout Evolution</title>
   <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
   <header id="header">
-    <h1>dag-map Tinder</h1>
+    <h1>DAG-MAP EVOLUTION</h1>
     <div id="status">Loading...</div>
     <div id="fixture-bar">
-      <span id="current-fixture"></span>
+      <label for="fixture-select">Fixture:</label>
       <select id="fixture-select"></select>
-      <button id="btn-shuffle">🔀 Shuffle ON</button>
+      <button id="btn-shuffle">🔀 ON</button>
     </div>
   </header>
 
-  <div id="convergence-chart" style="text-align:center;padding:8px 16px"></div>
+  <div id="dashboard">
+    <div id="convergence-chart"></div>
+    <div id="stats-panel">
+      <div class="stat-card">
+        <div class="label">Generation</div>
+        <div class="value neutral" id="stat-gen">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Votes</div>
+        <div class="value neutral" id="stat-votes">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Best Fitness</div>
+        <div class="value good" id="stat-best">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Since Refit</div>
+        <div class="value neutral" id="stat-refit">0</div>
+      </div>
+    </div>
+  </div>
 
   <main id="arena">
     <div id="no-pair" class="hidden">
       Waiting for next generation...
     </div>
-
     <div id="pair" class="hidden">
       <div class="candidate" id="left-candidate">
         <div class="label" id="left-label"></div>
@@ -48,16 +67,15 @@
     </div>
     <div id="control-buttons">
       <button id="btn-pause">⏸ Pause</button>
-      <button id="btn-protect-left" title="Protect left individual">🛡 L</button>
-      <button id="btn-protect-right" title="Protect right individual">🛡 R</button>
-      <button id="btn-kill-left" title="Kill left individual">☠ L</button>
-      <button id="btn-kill-right" title="Kill right individual">☠ R</button>
+      <button id="btn-protect-left" title="Protect left">🛡L</button>
+      <button id="btn-protect-right" title="Protect right">🛡R</button>
+      <button id="btn-kill-left" title="Kill left">☠L</button>
+      <button id="btn-kill-right" title="Kill right">☠R</button>
     </div>
   </nav>
 
   <footer id="footer">
     <span id="run-info"></span>
-    <span id="vote-info"></span>
     <span id="weights-info"></span>
   </footer>
 
