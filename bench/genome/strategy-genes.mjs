@@ -6,7 +6,7 @@
 export const STRATEGY_SCHEMA = {
   'strategy.orderNodes': {
     type: 'categorical',
-    values: ['none', 'barycenter', 'median'],
+    values: ['none', 'barycenter', 'median', 'spectral'],
     default: 'none',
   },
   'strategy.reduceCrossings': {
