@@ -41,8 +41,8 @@ test('stretch is positive when an edge exceeds its ideal length', () => {
     ],
     [['a', 'b']],
   );
-  // actual=150, ideal=100, over=50, penalty=2500
-  assert.equal(E_stretch(l, cfg), 2500);
+  // actual=150, ideal=100, ratio=(150-100)/100=0.5, penalty=0.25
+  assert.equal(E_stretch(l, cfg), 0.25);
 });
 
 test('stretch orders a tight layout strictly better than a stretched one', () => {

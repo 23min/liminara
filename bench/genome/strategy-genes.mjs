@@ -14,6 +14,16 @@ export const STRATEGY_SCHEMA = {
     values: ['none', 'barycenter', 'greedy'],
     default: 'none',
   },
+  'strategy.assignLanes': {
+    type: 'categorical',
+    values: ['default', 'ordered'],
+    default: 'default',
+  },
+  'strategy.positionX': {
+    type: 'categorical',
+    values: ['fixed', 'compact'],
+    default: 'fixed',
+  },
   'strategy.refineCoordinates': {
     type: 'categorical',
     values: ['none', 'barycenter'],

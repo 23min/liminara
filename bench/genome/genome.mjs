@@ -60,11 +60,14 @@ export function toEvaluatorGenome(genome) {
   out.strategies = {
     orderNodes: strat['strategy.orderNodes'] || 'none',
     reduceCrossings: strat['strategy.reduceCrossings'] || 'none',
+    assignLanes: strat['strategy.assignLanes'] || 'default',
+    positionX: strat['strategy.positionX'] || 'fixed',
     refineCoordinates: strat['strategy.refineCoordinates'] || 'none',
   };
   out.strategyConfig = {
     crossingPasses: Math.round(strat['strategy.crossingPasses'] ?? 24),
     refinementIterations: Math.round(strat['strategy.refinementIterations'] ?? 12),
+    compactionIterations: Math.round(strat['strategy.refinementIterations'] ?? 12),
   };
 
   return out;
