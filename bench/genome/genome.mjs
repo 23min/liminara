@@ -74,6 +74,7 @@ export function toEvaluatorGenome(genome) {
     crossingPasses: Math.round(strat['strategy.crossingPasses'] ?? 24),
     refinementIterations: Math.round(strat['strategy.refinementIterations'] ?? 12),
     spectralBlend: strat['strategy.spectralBlend'] ?? 0.5,
+    shuffleSeed: Math.round(strat['strategy.shuffleSeed'] ?? 42),
   };
 
   return out;

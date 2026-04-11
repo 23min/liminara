@@ -460,28 +460,27 @@ if (isDirectRun) {
 
     // Strategy-pinned islands: each island explores a different orderNodes strategy.
     // Cross-island comparison happens in the Tinder UI.
-    // Each island is a genuinely different layout philosophy.
+    // All islands use shuffle with evolvable seed — the seed IS the layout.
+    // Different seeds = different node orderings = visually different layouts.
+    // Island differences: crossing reduction method (refines the shuffle).
     const pinnedStrategies = {
-      // Optimized: barycenter ordering + crossing reduction → direct Y
-      // The "smart" approach — minimize crossings algorithmically
-      'island-optimized': {
-        'strategy.orderNodes': 'barycenter',
-        'strategy.reduceCrossings': 'barycenter',
-        'strategy.assignLanes': 'direct',
-      },
-      // Shuffle: trunk stays straight, branches randomized → direct Y
-      // Explores layouts the optimizer would never try
-      'island-shuffle': {
+      'island-raw': {
+        // Pure shuffle — no crossing reduction. Raw exploration.
         'strategy.orderNodes': 'shuffle',
         'strategy.reduceCrossings': 'none',
         'strategy.assignLanes': 'direct',
       },
-      // Classic: BFS route-based lanes, no ordering
-      // The original dag-map behavior
-      'island-classic': {
-        'strategy.orderNodes': 'none',
-        'strategy.reduceCrossings': 'none',
-        'strategy.assignLanes': 'default',
+      'island-refined': {
+        // Shuffle then barycenter crossing reduction — refined exploration.
+        'strategy.orderNodes': 'shuffle',
+        'strategy.reduceCrossings': 'barycenter',
+        'strategy.assignLanes': 'direct',
+      },
+      'island-spectral': {
+        // Spectral ordering — mathematically optimal starting point.
+        'strategy.orderNodes': 'spectral',
+        'strategy.reduceCrossings': 'barycenter',
+        'strategy.assignLanes': 'direct',
       },
     };
 

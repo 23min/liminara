@@ -61,6 +61,10 @@ async function loadState() {
 
 function render() {
   if (!state) return;
+  try { _render(); } catch (e) { console.error('render error:', e); }
+}
+
+function _render() {
 
   // Status — show running/paused/done clearly
   const statusEl = $('#status');
@@ -276,9 +280,9 @@ function setupListeners() {
 // Convergence chart
 
 const ISLAND_COLORS = {
-  'island-optimized': '#58a6ff',
-  'island-shuffle': '#3fb950',
-  'island-classic': '#d29922',
+  'island-raw': '#f85149',
+  'island-refined': '#3fb950',
+  'island-spectral': '#58a6ff',
 };
 
 function downsample(pts, maxPoints) {

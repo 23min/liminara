@@ -25,6 +25,12 @@ export const STRATEGY_SCHEMA = {
     default: 'none',
   },
   // Continuous parameters that affect layout
+  'strategy.shuffleSeed': {
+    type: 'integer-random',  // special: mutation = completely new random value
+    min: 1,
+    max: 100000,
+    default: 42,
+  },
   'strategy.spectralBlend': {
     type: 'continuous',
     min: 0.0,
@@ -63,7 +69,8 @@ export function randomStrategyGenes(prng) {
       const idx = Math.floor(prng.nextFloat() * spec.values.length);
       out[name] = spec.values[Math.min(idx, spec.values.length - 1)];
     } else {
-      out[name] = spec.min + prng.nextFloat() * (spec.max - spec.min);
+      const v = spec.min + prng.nextFloat() * (spec.max - spec.min);
+      out[name] = spec.type === 'integer-random' ? Math.floor(v) : v;
     }
   }
   return out;
@@ -75,6 +82,9 @@ export function crossoverStrategyGenes(p1, p2, prng) {
     const spec = STRATEGY_SCHEMA[name];
     if (spec.type === 'categorical') {
       out[name] = prng.nextFloat() < 0.5 ? p1[name] : p2[name];
+    } else if (spec.type === 'integer-random') {
+      // Don't blend — pick one parent's value randomly
+      out[name] = prng.nextFloat() < 0.5 ? (p1[name] ?? spec.default) : (p2[name] ?? spec.default);
     } else {
       const alpha = prng.nextFloat();
       out[name] = alpha * (p1[name] ?? spec.default) + (1 - alpha) * (p2[name] ?? spec.default);
@@ -94,6 +104,12 @@ export function mutateStrategyGenes(genes, prng, { categoricalRate = 0.1, contin
           const idx = Math.floor(prng.nextFloat() * others.length);
           out[name] = others[Math.min(idx, others.length - 1)];
         }
+      }
+    } else if (spec.type === 'integer-random') {
+      // High mutation rate (50%) with completely new random value
+      // This keeps the population diverse — seeds don't converge
+      if (prng.nextFloat() < 0.5) {
+        out[name] = Math.floor(spec.min + prng.nextFloat() * (spec.max - spec.min));
       }
     } else {
       const sigma = continuousStrength * (spec.max - spec.min);
