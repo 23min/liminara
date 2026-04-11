@@ -209,10 +209,110 @@ The GA iterated during evolution (hundreds of generations). The result is a reci
 - `bench/experiments/results/<timestamp>/` — timestamped comparison outputs
 - Git tags: `experiment-v6-parallel-tracks` marks the parallel tracks breakthrough
 
+## Phase 8: Reframing — Metro-Line Crossing Minimization (2026-04-11)
+
+Independent research revealed that we've been solving the wrong problem. dag-map's layout is NOT a general DAG drawing problem — it's a **metro-line crossing minimization** (MLCM) problem combined with **edge-path bundling**. This is a well-studied subfield with dramatically better algorithms available.
+
+### The reframe
+
+What we've been doing (Sugiyama thinking):
+```
+Pick layers → order nodes within layers → assign coordinates → extract routes → draw
+```
+
+What we should be doing (MLCM thinking):
+```
+X is fixed (topology or time) → assign Y-offsets per node-bucket →
+  route lines through stations with minimal crossings →
+  bundle same-class edges as shared tracks → draw with clean geometry
+```
+
+The key insight: **we don't need a layout algorithm that picks node positions.** Our nodes already have a natural X (topological depth or timestamp). What we need is:
+
+1. **Track ordering at stations** — given multiple lines passing through a station, which line goes on which track?
+2. **Bundle coherence** — same-class edges should travel together between stations
+3. **Crossing minimization at stations** — crossings at interchange stations are the worst kind
+4. **Monotonicity per line** — lines should not backtrack; monotonic flow is critical
+
+### Key literature identified
+
+| Paper/System | Authors | Relevance |
+|-------------|---------|-----------|
+| **Metro-Line Crossing Minimization (MLCM)** | Asquith, Gansner, Nöllenburg | EXACTLY our problem: given fixed node positions and line assignments, minimize line crossings at stations |
+| **Edge-Path Bundling** | Wallinger, Archambault, Auber, Nöllenburg, Peltonen (IEEE TVCG 2022) | Bundles edges along shared graph paths; preserves individual edge traceability |
+| **Drawing Metro Maps Using Bézier Curves** | Nöllenburg, Wolff (2011) | Octilinear metro layout with clean curve geometry |
+| **Bundling-Aware Drawing** | GD 2024 (Archambault, Liotta, Nöllenburg, Piselli, Tappini, Wallinger) | Joint optimization of layout + bundling (not sequential pipeline) |
+| **Confluent Drawings** | Eppstein, Goodrich, Meng | Train-track structures where edges share physical track — literally what our trunk-with-branches IS |
+| **IPSep-CoLA** | Dwyer, Marriott, Wybrow (2006) | Constraint-based layout via stress majorization with separation constraints |
+| **WebCola** | Dwyer et al. | JavaScript implementation of CoLA; useful for Y-subproblem with pinned X |
+
+### Key researchers
+
+- **Martin Nöllenburg** (TU Wien) — central figure in metro-map layout, MLCM, edge-path bundling
+- **Tim Dwyer** (Monash University) — constraint-based layout, CoLA, WebCola
+- **Kim Marriott** (Monash) — frequent co-author with Dwyer, constraint-based visualization
+- **Michael Wybrow** (Monash) — topology-preserving constrained layout
+
+### What this means for dag-map
+
+1. **Stop fighting Sugiyama from the inside.** We've been adding strategies to a pipeline that fundamentally commits to the wrong abstraction (layers → node ordering → coordinates). The problem is track ordering, not node ordering.
+
+2. **X is fixed — not evolvable, not variable.** X comes from topology (layer) or from the consumer (timestamps). This is a hard constraint, not something to optimize. Our compact-X experiments were interesting but secondary.
+
+3. **The Y problem decomposes per X-bucket.** At each X position (layer), we have a small set of nodes. Between X positions, we have edges/lines. The Y assignment is a sequence of small constraint problems, not one big global optimization.
+
+4. **Lines/routes are INPUT, not discovered.** For Liminara, routes correspond to execution paths (determinism classes). They're known before layout. The MLCM formulation assumes lines are given — this fits perfectly.
+
+5. **The GA's role shifts.** Instead of evolving which Sugiyama heuristic to use, the GA should evolve parameters of the MLCM solver: crossing penalty weights, bundle coherence strength, monotonicity enforcement. Or: the GA explores different track orderings at stations and the fitness function evaluates crossing count + bundle coherence + monotonicity.
+
+6. **Confluent drawings are the theoretical foundation for trunks.** Our trunk-with-branches-peeling-off is literally a confluent drawing primitive. The "trunk = shared track, branch = diverging at junction" concept has a formal basis.
+
+### The question that determines the algorithm
+
+Are routes (lines) a property of the input, or discovered from the graph?
+
+- **Liminara models**: routes are INPUT (provided by the pack). Solve MLCM.
+- **External benchmark DAGs**: routes are DISCOVERED (greedy longest-path). Solve edge-path bundling.
+- **dag-map should support BOTH**: MLCM when routes are given, edge-path bundling when they're not.
+
+### Revised objective function priorities
+
+For the metro-map aesthetic, the research community has converged on:
+
+1. **Crossings at stations** (worst — breaks line-following)
+2. **Crossings between stations** (bad but tolerable)
+3. **Total bends** (≤2 per edge is gold standard, Brandes-Köpf)
+4. **Bundle coherence** (same-class edges staying together)
+5. **Edge length uniformity** (variance of edge lengths)
+6. **Angular resolution at junctions** (minimum angle between diverging branches)
+7. **Monotonicity per line** (lines should not backtrack along the flow axis)
+
+Note: node overlap is NOT in this list. In metro maps, stations can be close or touch — lines through them are the visual element, not the stations themselves.
+
 ## References
 
+### Foundational
 - Sugiyama, Tagawa, Toda (1981) — layered graph drawing framework
+- Purchase (1997) — user studies: crossings dominate, then bends, then symmetry
 - Koren (2005) — spectral graph drawing via eigenvectors
+
+### Metro-map layout
+- Nöllenburg, Wolff (2011) — "Drawing Metro Maps Using Bézier Curves"
+- Asquith, Gansner, Nöllenburg — "Metro-Line Crossing Minimization Problem" (MLCM)
+- Kornaropoulos, Tollis — MLCM with constraint relaxations
+- GD 2024 — bundling-aware drawing (Archambault, Liotta, Nöllenburg et al.)
+
+### Edge bundling
+- Wallinger et al. (2022, IEEE TVCG) — "Edge-Path Bundling: A Less Ambiguous Edge Bundling Approach"
+- Holten (2006) — hierarchical edge bundling
+- Eppstein, Goodrich, Meng — confluent drawings
+
+### Constraint-based layout
+- Dwyer, Marriott, Wybrow (2006) — IPSep-CoLA
+- WebCola — JavaScript implementation of CoLA
+
+### Benchmarks and tools
 - graphdrawing.org — North DAGs and Random DAGs benchmark corpora
 - dagre (`@dagrejs/dagre`) — reference Sugiyama implementation
-- ELK (`elkjs`) — Eclipse Layout Kernel, alternative reference
+- ELK (`elkjs`) — Eclipse Layout Kernel
+- Graph Drawing Symposium (GD) — annual, 32nd edition in 2024
