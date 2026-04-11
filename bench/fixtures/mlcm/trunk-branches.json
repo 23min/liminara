@@ -1,0 +1,42 @@
+{
+  "id": "mlcm-trunk-branches",
+  "name": "Trunk with 4 symmetric branches — the classic metro pattern",
+  "tests": ["R1 (trunk first)", "R2 (branch proximity)", "R5 (symmetric branching)", "R8 (terminal placement)"],
+  "dag": {
+    "nodes": [
+      {"id": "t1", "label": "T1"},
+      {"id": "t2", "label": "T2"},
+      {"id": "t3", "label": "T3"},
+      {"id": "t4", "label": "T4"},
+      {"id": "t5", "label": "T5"},
+      {"id": "t6", "label": "T6"},
+      {"id": "t7", "label": "T7"},
+      {"id": "n1", "label": "N1"},
+      {"id": "n2", "label": "N2"},
+      {"id": "n3", "label": "N3"},
+      {"id": "s1", "label": "S1"},
+      {"id": "s2", "label": "S2"},
+      {"id": "s3", "label": "S3"},
+      {"id": "ne1", "label": "NE1"},
+      {"id": "ne2", "label": "NE2"},
+      {"id": "se1", "label": "SE1"},
+      {"id": "se2", "label": "SE2"}
+    ],
+    "edges": [
+      ["t1", "t2"], ["t2", "t3"], ["t3", "t4"], ["t4", "t5"], ["t5", "t6"], ["t6", "t7"],
+      ["t2", "n1"], ["n1", "n2"], ["n2", "n3"],
+      ["t2", "s1"], ["s1", "s2"], ["s2", "s3"],
+      ["t5", "ne1"], ["ne1", "ne2"],
+      ["t5", "se1"], ["se1", "se2"]
+    ]
+  },
+  "routes": [
+    {"id": "trunk",  "cls": "a", "nodes": ["t1", "t2", "t3", "t4", "t5", "t6", "t7"]},
+    {"id": "north",  "cls": "b", "nodes": ["t2", "n1", "n2", "n3"]},
+    {"id": "south",  "cls": "c", "nodes": ["t2", "s1", "s2", "s3"]},
+    {"id": "northeast", "cls": "d", "nodes": ["t5", "ne1", "ne2"]},
+    {"id": "southeast", "cls": "e", "nodes": ["t5", "se1", "se2"]}
+  ],
+  "theme": "cream",
+  "opts": {}
+}

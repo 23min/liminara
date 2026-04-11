@@ -10,6 +10,7 @@ import { layoutMetro } from '../../dag-map/src/layout-metro.js';
 import { VERSIONS } from './versions.mjs';
 import { loadExperimentFixtures } from './fixtures.mjs';
 import { computeMetrics } from './metrics.mjs';
+import { computeMLCMMetrics } from './mlcm-metrics.mjs';
 import { layoutWithDagre } from '../adapters/dagre.mjs';
 import { layoutWithELK } from '../adapters/elk.mjs';
 
@@ -56,7 +57,8 @@ async function main() {
         const layout = layoutMetro(f.dag, mergedOpts);
         const svg = dagMap(f.dag, mergedOpts).svg;
         const metrics = computeMetrics(f.dag, layout);
-        entry.versions[vName] = { svg, metrics };
+        const mlcm = computeMLCMMetrics(f.dag, layout);
+        entry.versions[vName] = { svg, metrics: { ...metrics, ...mlcm } };
       } catch (err) {
         entry.versions[vName] = { svg: `<svg width="200" height="60"><text x="10" y="30" fill="red">${err.message.slice(0, 60)}</text></svg>`, metrics: null, error: err.message };
       }
@@ -112,13 +114,22 @@ table.summary .best { background: #e6ffe6; font-weight: bold; }
 <h1>Layout Experiment: ${timestamp}</h1>
 <div class="meta">${versionNames.length} versions × ${fixtures.length} fixtures | dagre as reference</div>`;
 
-  // Summary table
-  html += `<table class="summary"><tr><th>Version</th><th>Avg Crossings</th><th>Avg Overlaps</th><th>Avg Dir Changes</th><th>Avg Trunk Var</th><th>Avg Edge Len</th></tr>`;
+  // Summary table — MLCM metrics first (what the literature cares about)
+  html += `<table class="summary"><tr><th>Version</th><th>Stn Cross</th><th>Btw Cross</th><th>Overlaps</th><th>Bends/Line</th><th>Bundle Coh</th><th>Monotonic</th><th>Trunk Var</th></tr>`;
   for (const vName of versionNames) {
     const ms = results.map(r => r.versions[vName]?.metrics).filter(Boolean);
     if (ms.length === 0) continue;
-    const avg = (key) => (ms.reduce((a, m) => a + m[key], 0) / ms.length).toFixed(1);
-    html += `<tr><td>${VERSIONS[vName].label}</td><td>${avg('crossings')}</td><td>${avg('overlaps')}</td><td>${avg('directionChanges')}</td><td>${avg('trunkVariance')}</td><td>${avg('totalEdgeLength')}</td></tr>`;
+    const avg = (key) => (ms.reduce((a, m) => a + (m[key] ?? 0), 0) / ms.length).toFixed(1);
+    const avgPct = (key) => (ms.reduce((a, m) => a + (m[key] ?? 0), 0) / ms.length * 100).toFixed(0) + '%';
+    html += `<tr><td>${VERSIONS[vName].label}</td>`;
+    html += `<td>${avg('stationCrossings')}</td>`;
+    html += `<td>${avg('betweenCrossings')}</td>`;
+    html += `<td>${avg('overlaps')}</td>`;
+    html += `<td>${avg('bendsPerLine')}</td>`;
+    html += `<td>${avgPct('bundleCoherence')}</td>`;
+    html += `<td>${avg('monotonicityViolations')}</td>`;
+    html += `<td>${avg('trunkVariance')}</td>`;
+    html += `</tr>`;
   }
   html += `</table>`;
 
@@ -133,9 +144,10 @@ table.summary .best { background: #e6ffe6; font-weight: bold; }
       if (v.metrics) {
         const m = v.metrics;
         html += `<div class="m">`;
-        html += `cross: <span class="${m.crossings > 0 ? 'bad' : 'good'}">${m.crossings}</span> `;
+        html += `stn✕: <span class="${(m.stationCrossings??0) > 0 ? 'bad' : 'good'}">${m.stationCrossings??0}</span> `;
+        html += `btw✕: <span class="${(m.betweenCrossings??0) > 0 ? 'bad' : ''}">${m.betweenCrossings??0}</span> `;
         html += `overlap: <span class="${m.overlaps > 0 ? 'bad' : ''}">${m.overlaps}</span> `;
-        html += `bends: ${m.directionChanges} `;
+        html += `bends: ${(m.bendsPerLine??0).toFixed(1)}/line `;
         html += `trunk: ${m.trunkVariance.toFixed(0)}`;
         html += `</div>`;
       }

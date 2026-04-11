@@ -1,0 +1,33 @@
+{
+  "id": "mlcm-diamond-merge",
+  "name": "Diamond merge — two lines merge, run together, then split",
+  "tests": ["R3 (no crossing at fork)", "R4 (monotonic tracks)", "R7 (bundle coherence)"],
+  "dag": {
+    "nodes": [
+      {"id": "a1", "label": "A1"},
+      {"id": "a2", "label": "A2"},
+      {"id": "b1", "label": "B1"},
+      {"id": "b2", "label": "B2"},
+      {"id": "m1", "label": "M1"},
+      {"id": "m2", "label": "M2"},
+      {"id": "m3", "label": "M3"},
+      {"id": "c1", "label": "C1"},
+      {"id": "c2", "label": "C2"},
+      {"id": "d1", "label": "D1"},
+      {"id": "d2", "label": "D2"}
+    ],
+    "edges": [
+      ["a1", "a2"], ["a2", "m1"],
+      ["b1", "b2"], ["b2", "m1"],
+      ["m1", "m2"], ["m2", "m3"],
+      ["m3", "c1"], ["c1", "c2"],
+      ["m3", "d1"], ["d1", "d2"]
+    ]
+  },
+  "routes": [
+    {"id": "red",   "cls": "a", "nodes": ["a1", "a2", "m1", "m2", "m3", "c1", "c2"]},
+    {"id": "blue",  "cls": "b", "nodes": ["b1", "b2", "m1", "m2", "m3", "d1", "d2"]}
+  ],
+  "theme": "cream",
+  "opts": {}
+}

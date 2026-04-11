@@ -1,0 +1,37 @@
+{
+  "id": "mlcm-dense-interchange",
+  "name": "Dense interchange — 5 lines through one station, then diverge",
+  "tests": ["R5 (symmetric branching)", "R6 (crossing minimization)", "R7 (bundle coherence)", "R8 (terminal placement)"],
+  "dag": {
+    "nodes": [
+      {"id": "src1", "label": "SRC1"},
+      {"id": "src2", "label": "SRC2"},
+      {"id": "src3", "label": "SRC3"},
+      {"id": "src4", "label": "SRC4"},
+      {"id": "src5", "label": "SRC5"},
+      {"id": "hub",  "label": "HUB"},
+      {"id": "mid1", "label": "MID1"},
+      {"id": "mid2", "label": "MID2"},
+      {"id": "dst1", "label": "DST1"},
+      {"id": "dst2", "label": "DST2"},
+      {"id": "dst3", "label": "DST3"},
+      {"id": "dst4", "label": "DST4"},
+      {"id": "dst5", "label": "DST5"}
+    ],
+    "edges": [
+      ["src1", "hub"], ["src2", "hub"], ["src3", "hub"], ["src4", "hub"], ["src5", "hub"],
+      ["hub", "mid1"], ["hub", "mid2"],
+      ["mid1", "dst1"], ["mid1", "dst2"], ["mid1", "dst3"],
+      ["mid2", "dst4"], ["mid2", "dst5"]
+    ]
+  },
+  "routes": [
+    {"id": "line-a", "cls": "a", "nodes": ["src1", "hub", "mid1", "dst1"]},
+    {"id": "line-b", "cls": "b", "nodes": ["src2", "hub", "mid1", "dst2"]},
+    {"id": "line-c", "cls": "c", "nodes": ["src3", "hub", "mid1", "dst3"]},
+    {"id": "line-d", "cls": "d", "nodes": ["src4", "hub", "mid2", "dst4"]},
+    {"id": "line-e", "cls": "e", "nodes": ["src5", "hub", "mid2", "dst5"]}
+  ],
+  "theme": "cream",
+  "opts": {}
+}

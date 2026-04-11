@@ -1,0 +1,33 @@
+{
+  "id": "mlcm-crossing-challenge",
+  "name": "Two lines that MUST cross — tests crossing minimization and clean rendering",
+  "tests": ["R3 (no crossing at fork)", "R6 (crossing minimization)", "R9 (minimum bend)"],
+  "dag": {
+    "nodes": [
+      {"id": "top-start", "label": "TS"},
+      {"id": "bot-start", "label": "BS"},
+      {"id": "left",  "label": "LEFT"},
+      {"id": "mid-t", "label": "MT"},
+      {"id": "mid-b", "label": "MB"},
+      {"id": "right", "label": "RIGHT"},
+      {"id": "top-end", "label": "TE"},
+      {"id": "bot-end", "label": "BE"}
+    ],
+    "edges": [
+      ["top-start", "left"],
+      ["bot-start", "left"],
+      ["left", "mid-t"],
+      ["left", "mid-b"],
+      ["mid-t", "right"],
+      ["mid-b", "right"],
+      ["right", "top-end"],
+      ["right", "bot-end"]
+    ]
+  },
+  "routes": [
+    {"id": "cross-a", "cls": "a", "nodes": ["top-start", "left", "mid-t", "right", "bot-end"]},
+    {"id": "cross-b", "cls": "b", "nodes": ["bot-start", "left", "mid-b", "right", "top-end"]}
+  ],
+  "theme": "cream",
+  "opts": {}
+}
