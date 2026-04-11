@@ -1,0 +1,218 @@
+# DAG Layout Evolution — Research Log
+
+## Project Context
+
+dag-map is a DAG visualization library used by Liminara's observation layer. It renders directed acyclic graphs as metro-style maps with routes (colored lines), stations (circles), and bezier curves. The original algorithm (`layoutMetro`) was developed through 32 manual iterations (v1-v32) and produced structurally correct but aesthetically rigid layouts.
+
+This research explores evolutionary and algorithmic approaches to substantially improve dag-map's layout quality, aiming to match or exceed dagre (the de facto standard) while maintaining dag-map's distinctive metro-map aesthetic.
+
+## Timeline
+
+### Phase 1: GA Harness (E-DAGBENCH, 2026-04-09)
+
+**Goal:** Build infrastructure to evolve layout parameters.
+
+**What we built:**
+- Energy functional with 8 physics-inspired terms: stretch, bend, crossings, monotone, envelope, channel, repel_nn, repel_ne
+- Island-model GA with 3 populations, tournament selection, regression guard
+- Tinder-style voting UI with Bradley-Terry weight refit
+- External benchmark corpora (North DAGs + Random DAGs from graphdrawing.org, 2,186 graphs)
+- dagre and ELK adapters for comparison
+
+**What we learned:**
+- The original genome only had 4 render parameters (layerSpacing, mainSpacing, subSpacing, scale) + 4 energy-tuning parameters
+- These just "zoom" the layout — they don't change which node is above which or where crossings happen
+- The GA optimized for absolute energy, not competitiveness — it could "cheat" by inflating layouts to reduce repulsion
+
+### Phase 2: Evolvable Pipeline (E-EVOLVE, 2026-04-09 to 2026-04-10)
+
+**Goal:** Refactor layoutMetro into swappable strategy slots so the GA can evolve the algorithm itself.
+
+**Pipeline decomposition:**
+```
+DAG → [Layer Assignment] → [Node Ordering] → [Crossing Reduction] → [Y Assignment] → [X Positioning] → [Coord Refinement] → [Route Extraction] → [Path Building] → Layout
+```
+
+**Strategies implemented:**
+
+| Slot | Strategies | Source |
+|------|-----------|--------|
+| Node ordering | none, barycenter, median, spectral, hybrid, shuffle | barycenter/median ported from layoutHasse |
+| Crossing reduction | none, barycenter-sweep, greedy-switching | ported from layoutHasse |
+| Lane assignment | default (BFS), ordered, direct, composed | direct = ordering IS the layout |
+| X positioning | fixed (grid), compact (no grid), custom, proportional | compact uses neighbor barycenter pull |
+| Coord refinement | none, barycenter (route-level) | |
+
+**Key insight — the wiring problem:**
+The first implementations of crossing reduction and node ordering computed orderings but the lane assignment IGNORED them. Nodes looked identical across strategies because the ordering result was thrown away. Fixed by creating `assign-lanes-direct` where the ordering directly determines Y positions.
+
+**Key insight — spectral ≈ barycenter:**
+Spectral ordering (Fiedler vector of the graph Laplacian) and barycenter sorting produce nearly identical orderings on most graphs because they optimize the same objective: placing connected nodes close together. They're not different enough to be separate island strategies.
+
+### Phase 3: Matrix Infrastructure (E-MATRIX, 2026-04-10)
+
+**Goal:** Replace ad-hoc graph traversals with matrix-based algorithms.
+
+**What we built:**
+- Sparse adjacency matrix and graph Laplacian (combinatorial + normalized)
+- O(|E| log |V|) crossing count via merge sort (replacing O(|E|²))
+- Fiedler vector computation via power iteration
+- Hybrid spectral+barycenter ordering with evolvable blend parameter
+
+**What we learned:**
+- The efficient crossing count is a real improvement for 30+ node graphs
+- Spectral ordering is mathematically interesting but doesn't produce visibly different layouts from barycenter
+- The hybrid blend parameter always converges to near-barycenter values
+
+### Phase 4: Fair Comparison + Stretch Fix (2026-04-10)
+
+**Problem:** dag-map was losing to dagre on 80% of benchmarks.
+
+**Root cause analysis:**
+Per-term breakdown showed stretch dominated 99% of the total energy gap. dag-map's edges were in the millions of units (squared excess) while dagre's were modest.
+
+**Fix 1 — Fair adapters:**
+dagre and ELK adapters were producing straight-line "routes" between node centers. This trivially dodged bend/monotone/channel penalties. Fixed to extract actual edge bend points from dagre/ELK's routing data.
+
+**Fix 2 — Normalized stretch:**
+Changed stretch from `(actual - ideal)²` to `((actual - ideal) / ideal)²`. Scale-invariant: a 10% excess penalizes the same regardless of absolute edge length.
+
+**Result:** dag-map went from 17% to 97% win rate vs dagre on 2,220 benchmarks. But this was a measurement fix, not a layout fix.
+
+### Phase 5: Visual Evaluation + Tinder (2026-04-10 to 2026-04-11)
+
+**Problem:** Benchmark numbers improved but layouts didn't look better to human eyes.
+
+**Tinder iterations:**
+1. First attempt: pairs were indistinguishable (elite converged)
+2. Added cross-island pair selection: still identical (strategies produced same orderings)
+3. Pinned islands to different ordering strategies: still similar (ordering didn't affect Y)
+4. Fixed wiring: `assign-lanes-direct` makes ordering drive Y positions
+5. Force/stress Y positioning: produced different absolute Y values but same relative orderings
+6. Global route offsets for parallel tracks: breakthrough visual improvement
+
+**Key discoveries from visual evaluation:**
+- The original BFS-lane metro style was aesthetically superior to "pure topology" approaches
+- Routes decoupled from positioning causes zig-zag on the trunk (trunk nodes at different Y per layer)
+- Scale and spacing parameters are noise — they don't change layout topology
+- Energy-tuning parameters let the GA "cheat" by adjusting the scorer instead of improving the layout
+- Edge overlap is the #1 unsolved visual problem (257 avg overlaps, no strategy fixes it)
+- Direction changes (zig-zag) are the #2 problem
+
+### Phase 6: Genome Cleanup + New Energy Terms (2026-04-11)
+
+**Removed from genome (consumer constraints, not evolvable):**
+- `render.scale`, `render.layerSpacing` — just zoom
+- `energy.*` params — tune the scorer, not the layout
+
+**Added energy terms:**
+- `E_overlap` — penalizes edges with identical Y at both endpoints
+- `E_direction_changes` — penalizes Y-direction reversals along routes
+
+**Removed from layout:**
+- `cls`-based lane assignment heuristic — layout is purely topological, styling is a rendering overlay
+- `positionX` from genome — X positioning is a consumer constraint
+
+### Phase 7: Rendering Breakthrough (2026-04-11)
+
+**Problem:** Multiple routes through the same node were visually illegible.
+
+**Solution — elongated stations + parallel tracks:**
+1. Multi-route stations rendered as vertical pills (not circles), sized for all tracks
+2. Track marks inside stations showing each platform level
+3. Global Y offset per route (consistent across ALL stations)
+4. Routes run perfectly parallel through shared stations — no per-node offset shifts
+5. Trunk always at center (offset 0)
+
+**Result:** COMPACT+ORDERED and COMPACT+REFINED identified as the best configurations. Tagged as `experiment-v6-parallel-tracks`.
+
+## Key Architecture Decisions
+
+### D1: Routes are rendering, not layout
+Routes (greedy longest-path grouping) are extracted AFTER node positioning. Node positions are computed purely from topology. Routes are used only for visual grouping (colored lines through stations).
+
+**Why:** Decoupling routes from positioning allows crossing reduction and node ordering to operate on the raw DAG topology without being constrained by route grouping.
+
+**Tradeoff:** Lost the original BFS-lane aesthetic where all nodes on the same route shared Y. Fixed by trunk pinning and global route offsets.
+
+### D2: X positioning is a consumer constraint
+Whether X is fixed (grid), compact (neighbor-barycenter), custom (timestamps), or proportional (variable layer widths) is chosen by the consumer, not evolved by the GA.
+
+**Why:** X mode depends on the application context (process timeline vs dependency graph vs workflow), not on what looks "best" in general.
+
+### D3: Trunk nodes pinned at TRUNK_Y
+The longest path (trunk) nodes are always positioned at TRUNK_Y in every layer. Other nodes are spaced around them.
+
+**Why:** Without pinning, crossing-reduction orderings place trunk nodes at different Y positions per layer, creating zig-zag. The trunk should be the visual spine of the graph.
+
+### D4: Global route offsets (not per-node)
+Each route gets a fixed Y offset for its entire length. Route 0 = 0, route 1 = +gap, route 2 = -gap.
+
+**Why:** Per-node offsets caused routes to shift Y between stations (different route counts at each node), creating unnecessary bends. Global offsets keep routes parallel.
+
+## Benchmark Results
+
+### Energy functional (2,220 fixtures, normalized stretch)
+
+| Configuration | vs dagre | vs ELK |
+|--------------|---------|--------|
+| Original dag-map defaults | 0W / 34L | 0W / 34L |
+| Evolved params only (seed 42, 50g) | 442W / 1,777L | 1,525W / 694L |
+| Evolved strategies (seed 99, 200g) | 294W / 1,925L | 1,464W / 755L |
+| Normalized stretch (seed 300) | 2,121W / 98L | 2,212W / 7L |
+| Full strategies (seed 5000) | 2,093W / 126L | 2,206W / 13L |
+
+### Visual quality metrics (23 fixtures, latest experiment)
+
+| Version | Crossings | Overlaps | Dir Changes | Trunk Var |
+|---------|-----------|----------|-------------|-----------|
+| Original | 2.8 | 348 | 2.6 | 36 |
+| Compact+Ordered | 0.4 | 349 | 2.7 | 36 |
+| Compact+Spectral | 0.4 | 349 | 2.7 | 36 |
+| Grid+Ordered | 0.4 | 349 | 2.7 | 36 |
+
+Crossing reduction works (2.8 → 0.4). Overlaps remain unsolved (348 avg). Direction changes and trunk variance are stable.
+
+## What the GA Actually Produces
+
+The GA's output is a **configuration** — a fixed set of strategy choices + parameter values. At runtime there's no GA iteration. You apply the configuration in one deterministic pass:
+
+```
+genome = { orderNodes: 'barycenter', crossingPasses: 20, mainSpacing: 45, ... }
+         ↓
+layoutMetro(dag, genome)  ← one deterministic pass, same input = same output
+         ↓
+layout
+```
+
+The GA iterated during evolution (hundreds of generations). The result is a recipe. Some internal strategies iterate (barycenter does N passes), but that count is fixed in the genome.
+
+## Open Questions
+
+1. **Visual crossing detection** — we count crossings on abstract layer-to-layer edges, not rendered bezier curves. Two edges might not "cross" in the abstract model but overlap visually.
+
+2. **Symmetry** — no metric exists. Symmetric subgraphs should look symmetric.
+
+3. **Cluster coherence** — no metric. Heavily connected subgroups should be visually close.
+
+4. **Angular resolution** — edges from the same node should fan out, not bunch together.
+
+5. **Time-proportional X** — the compact X positioning is the foundation. Liminara's observation layer could map X to op execution timestamps.
+
+6. **Matrix-based improvements** — the matrix infrastructure is built but spectral methods haven't proven visually superior to barycenter. Network simplex coordinate assignment (like dagre's) is unimplemented.
+
+## Experiment Infrastructure
+
+- `bench/experiments/versions.mjs` — named layout configurations
+- `bench/experiments/fixtures.mjs` — standard fixture set (23 graphs, 8-40 nodes)
+- `bench/experiments/compare.mjs` — runs all versions × fixtures, produces HTML + metrics
+- `bench/experiments/results/<timestamp>/` — timestamped comparison outputs
+- Git tags: `experiment-v6-parallel-tracks` marks the parallel tracks breakthrough
+
+## References
+
+- Sugiyama, Tagawa, Toda (1981) — layered graph drawing framework
+- Koren (2005) — spectral graph drawing via eigenvectors
+- graphdrawing.org — North DAGs and Random DAGs benchmark corpora
+- dagre (`@dagrejs/dagre`) — reference Sugiyama implementation
+- ELK (`elkjs`) — Eclipse Layout Kernel, alternative reference
