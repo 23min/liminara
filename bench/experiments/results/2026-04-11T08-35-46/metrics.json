@@ -1,0 +1,1911 @@
+[
+  {
+    "id": "airport_luggage",
+    "source": "internal",
+    "nodes": 8,
+    "edges": 7,
+    "versions": {
+      "v0-original": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 21,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 630,
+          "width": 792,
+          "height": 234,
+          "area": 185328
+        }
+      },
+      "v1-compact-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 21,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 378,
+          "width": 540,
+          "height": 234,
+          "area": 126360
+        }
+      },
+      "v2-compact-spectral": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 21,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 378,
+          "width": 540,
+          "height": 234,
+          "area": 126360
+        }
+      },
+      "v3-compact-classic": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 21,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 378,
+          "width": 540,
+          "height": 234,
+          "area": 126360
+        }
+      },
+      "v4-grid-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 21,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 630,
+          "width": 792,
+          "height": 234,
+          "area": 185328
+        }
+      },
+      "v5-compact-refined": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 21,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 378,
+          "width": 540,
+          "height": 234,
+          "area": 126360
+        }
+      },
+      "dagre": {
+        "metrics": null
+      }
+    }
+  },
+  {
+    "id": "cicd",
+    "source": "internal",
+    "nodes": 8,
+    "edges": 8,
+    "versions": {
+      "v0-original": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 15,
+          "directionChanges": 1,
+          "trunkVariance": 0,
+          "totalEdgeLength": 771,
+          "width": 702,
+          "height": 306,
+          "area": 214812
+        }
+      },
+      "v1-compact-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 15,
+          "directionChanges": 1,
+          "trunkVariance": 0,
+          "totalEdgeLength": 598,
+          "width": 540,
+          "height": 306,
+          "area": 165240
+        }
+      },
+      "v2-compact-spectral": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 15,
+          "directionChanges": 1,
+          "trunkVariance": 0,
+          "totalEdgeLength": 598,
+          "width": 540,
+          "height": 306,
+          "area": 165240
+        }
+      },
+      "v3-compact-classic": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 15,
+          "directionChanges": 1,
+          "trunkVariance": 0,
+          "totalEdgeLength": 598,
+          "width": 540,
+          "height": 306,
+          "area": 165240
+        }
+      },
+      "v4-grid-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 15,
+          "directionChanges": 1,
+          "trunkVariance": 0,
+          "totalEdgeLength": 771,
+          "width": 702,
+          "height": 306,
+          "area": 214812
+        }
+      },
+      "v5-compact-refined": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 15,
+          "directionChanges": 1,
+          "trunkVariance": 0,
+          "totalEdgeLength": 598,
+          "width": 540,
+          "height": 306,
+          "area": 165240
+        }
+      },
+      "dagre": {
+        "metrics": null
+      }
+    }
+  },
+  {
+    "id": "o2c_full",
+    "source": "internal",
+    "nodes": 12,
+    "edges": 13,
+    "versions": {
+      "v0-original": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 45,
+          "directionChanges": 1,
+          "trunkVariance": 0,
+          "totalEdgeLength": 1389,
+          "width": 972,
+          "height": 306,
+          "area": 297432
+        }
+      },
+      "v1-compact-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 45,
+          "directionChanges": 1,
+          "trunkVariance": 0,
+          "totalEdgeLength": 868,
+          "width": 648,
+          "height": 306,
+          "area": 198288
+        }
+      },
+      "v2-compact-spectral": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 45,
+          "directionChanges": 1,
+          "trunkVariance": 0,
+          "totalEdgeLength": 868,
+          "width": 648,
+          "height": 306,
+          "area": 198288
+        }
+      },
+      "v3-compact-classic": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 45,
+          "directionChanges": 1,
+          "trunkVariance": 0,
+          "totalEdgeLength": 868,
+          "width": 648,
+          "height": 306,
+          "area": 198288
+        }
+      },
+      "v4-grid-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 45,
+          "directionChanges": 1,
+          "trunkVariance": 0,
+          "totalEdgeLength": 1389,
+          "width": 972,
+          "height": 306,
+          "area": 297432
+        }
+      },
+      "v5-compact-refined": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 45,
+          "directionChanges": 1,
+          "trunkVariance": 0,
+          "totalEdgeLength": 868,
+          "width": 648,
+          "height": 306,
+          "area": 198288
+        }
+      },
+      "dagre": {
+        "metrics": null
+      }
+    }
+  },
+  {
+    "id": "hire_to_retire",
+    "source": "internal",
+    "nodes": 9,
+    "edges": 8,
+    "versions": {
+      "v0-original": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 21,
+          "directionChanges": 0,
+          "trunkVariance": 829.44,
+          "totalEdgeLength": 745,
+          "width": 792,
+          "height": 306,
+          "area": 242352
+        }
+      },
+      "v1-compact-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 21,
+          "directionChanges": 0,
+          "trunkVariance": 829.44,
+          "totalEdgeLength": 508,
+          "width": 594,
+          "height": 306,
+          "area": 181764
+        }
+      },
+      "v2-compact-spectral": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 21,
+          "directionChanges": 0,
+          "trunkVariance": 829.44,
+          "totalEdgeLength": 508,
+          "width": 594,
+          "height": 306,
+          "area": 181764
+        }
+      },
+      "v3-compact-classic": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 21,
+          "directionChanges": 0,
+          "trunkVariance": 829.44,
+          "totalEdgeLength": 508,
+          "width": 594,
+          "height": 306,
+          "area": 181764
+        }
+      },
+      "v4-grid-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 21,
+          "directionChanges": 0,
+          "trunkVariance": 829.44,
+          "totalEdgeLength": 745,
+          "width": 792,
+          "height": 306,
+          "area": 242352
+        }
+      },
+      "v5-compact-refined": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 21,
+          "directionChanges": 0,
+          "trunkVariance": 829.44,
+          "totalEdgeLength": 508,
+          "width": 594,
+          "height": 306,
+          "area": 181764
+        }
+      },
+      "dagre": {
+        "metrics": null
+      }
+    }
+  },
+  {
+    "id": "logistics_ship",
+    "source": "internal",
+    "nodes": 9,
+    "edges": 8,
+    "versions": {
+      "v0-original": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 28,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 720,
+          "width": 882,
+          "height": 234,
+          "area": 206388
+        }
+      },
+      "v1-compact-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 28,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 432,
+          "width": 594,
+          "height": 234,
+          "area": 138996
+        }
+      },
+      "v2-compact-spectral": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 28,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 432,
+          "width": 594,
+          "height": 234,
+          "area": 138996
+        }
+      },
+      "v3-compact-classic": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 28,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 432,
+          "width": 594,
+          "height": 234,
+          "area": 138996
+        }
+      },
+      "v4-grid-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 28,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 720,
+          "width": 882,
+          "height": 234,
+          "area": 206388
+        }
+      },
+      "v5-compact-refined": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 28,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 432,
+          "width": 594,
+          "height": 234,
+          "area": 138996
+        }
+      },
+      "dagre": {
+        "metrics": null
+      }
+    }
+  },
+  {
+    "id": "healthcare",
+    "source": "internal",
+    "nodes": 9,
+    "edges": 9,
+    "versions": {
+      "v0-original": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 21,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 861,
+          "width": 792,
+          "height": 306,
+          "area": 242352
+        }
+      },
+      "v1-compact-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 21,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 652,
+          "width": 594,
+          "height": 306,
+          "area": 181764
+        }
+      },
+      "v2-compact-spectral": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 21,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 652,
+          "width": 594,
+          "height": 306,
+          "area": 181764
+        }
+      },
+      "v3-compact-classic": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 21,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 652,
+          "width": 594,
+          "height": 306,
+          "area": 181764
+        }
+      },
+      "v4-grid-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 21,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 861,
+          "width": 792,
+          "height": 306,
+          "area": 242352
+        }
+      },
+      "v5-compact-refined": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 21,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 652,
+          "width": 594,
+          "height": 306,
+          "area": 181764
+        }
+      },
+      "dagre": {
+        "metrics": null
+      }
+    }
+  },
+  {
+    "id": "manufacturing",
+    "source": "internal",
+    "nodes": 9,
+    "edges": 8,
+    "versions": {
+      "v0-original": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 28,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 720,
+          "width": 882,
+          "height": 234,
+          "area": 206388
+        }
+      },
+      "v1-compact-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 28,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 432,
+          "width": 594,
+          "height": 234,
+          "area": 138996
+        }
+      },
+      "v2-compact-spectral": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 28,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 432,
+          "width": 594,
+          "height": 234,
+          "area": 138996
+        }
+      },
+      "v3-compact-classic": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 28,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 432,
+          "width": 594,
+          "height": 234,
+          "area": 138996
+        }
+      },
+      "v4-grid-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 28,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 720,
+          "width": 882,
+          "height": 234,
+          "area": 206388
+        }
+      },
+      "v5-compact-refined": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 28,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 432,
+          "width": 594,
+          "height": 234,
+          "area": 138996
+        }
+      },
+      "dagre": {
+        "metrics": null
+      }
+    }
+  },
+  {
+    "id": "movie_production",
+    "source": "internal",
+    "nodes": 9,
+    "edges": 10,
+    "versions": {
+      "v0-original": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 28,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 1041,
+          "width": 792,
+          "height": 306,
+          "area": 242352
+        }
+      },
+      "v1-compact-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 28,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 760,
+          "width": 594,
+          "height": 306,
+          "area": 181764
+        }
+      },
+      "v2-compact-spectral": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 28,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 760,
+          "width": 594,
+          "height": 306,
+          "area": 181764
+        }
+      },
+      "v3-compact-classic": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 28,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 760,
+          "width": 594,
+          "height": 306,
+          "area": 181764
+        }
+      },
+      "v4-grid-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 28,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 1041,
+          "width": 792,
+          "height": 306,
+          "area": 242352
+        }
+      },
+      "v5-compact-refined": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 28,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 760,
+          "width": 594,
+          "height": 306,
+          "area": 181764
+        }
+      },
+      "dagre": {
+        "metrics": null
+      }
+    }
+  },
+  {
+    "id": "deep_chain",
+    "source": "internal",
+    "nodes": 10,
+    "edges": 9,
+    "versions": {
+      "v0-original": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 36,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 810,
+          "width": 972,
+          "height": 234,
+          "area": 227448
+        }
+      },
+      "v1-compact-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 36,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 486,
+          "width": 648,
+          "height": 234,
+          "area": 151632
+        }
+      },
+      "v2-compact-spectral": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 36,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 486,
+          "width": 648,
+          "height": 234,
+          "area": 151632
+        }
+      },
+      "v3-compact-classic": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 36,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 486,
+          "width": 648,
+          "height": 234,
+          "area": 151632
+        }
+      },
+      "v4-grid-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 36,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 810,
+          "width": 972,
+          "height": 234,
+          "area": 227448
+        }
+      },
+      "v5-compact-refined": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 36,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 486,
+          "width": 648,
+          "height": 234,
+          "area": 151632
+        }
+      },
+      "dagre": {
+        "metrics": null
+      }
+    }
+  },
+  {
+    "id": "event_planning",
+    "source": "internal",
+    "nodes": 9,
+    "edges": 9,
+    "versions": {
+      "v0-original": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 21,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 861,
+          "width": 792,
+          "height": 306,
+          "area": 242352
+        }
+      },
+      "v1-compact-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 21,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 652,
+          "width": 594,
+          "height": 306,
+          "area": 181764
+        }
+      },
+      "v2-compact-spectral": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 21,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 652,
+          "width": 594,
+          "height": 306,
+          "area": 181764
+        }
+      },
+      "v3-compact-classic": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 21,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 652,
+          "width": 594,
+          "height": 306,
+          "area": 181764
+        }
+      },
+      "v4-grid-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 21,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 861,
+          "width": 792,
+          "height": 306,
+          "area": 242352
+        }
+      },
+      "v5-compact-refined": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 21,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 652,
+          "width": 594,
+          "height": 306,
+          "area": 181764
+        }
+      },
+      "dagre": {
+        "metrics": null
+      }
+    }
+  },
+  {
+    "id": "supply_chain_10cls",
+    "source": "internal",
+    "nodes": 12,
+    "edges": 11,
+    "versions": {
+      "v0-original": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 55,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 990,
+          "width": 1152,
+          "height": 234,
+          "area": 269568
+        }
+      },
+      "v1-compact-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 55,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 594,
+          "width": 756,
+          "height": 234,
+          "area": 176904
+        }
+      },
+      "v2-compact-spectral": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 55,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 594,
+          "width": 756,
+          "height": 234,
+          "area": 176904
+        }
+      },
+      "v3-compact-classic": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 55,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 594,
+          "width": 756,
+          "height": 234,
+          "area": 176904
+        }
+      },
+      "v4-grid-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 55,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 990,
+          "width": 1152,
+          "height": 234,
+          "area": 269568
+        }
+      },
+      "v5-compact-refined": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 55,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 594,
+          "width": 756,
+          "height": 234,
+          "area": 176904
+        }
+      },
+      "dagre": {
+        "metrics": null
+      }
+    }
+  },
+  {
+    "id": "mfg_dim",
+    "source": "internal",
+    "nodes": 10,
+    "edges": 9,
+    "versions": {
+      "v0-original": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 36,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 810,
+          "width": 972,
+          "height": 234,
+          "area": 227448
+        }
+      },
+      "v1-compact-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 36,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 486,
+          "width": 648,
+          "height": 234,
+          "area": 151632
+        }
+      },
+      "v2-compact-spectral": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 36,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 486,
+          "width": 648,
+          "height": 234,
+          "area": 151632
+        }
+      },
+      "v3-compact-classic": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 36,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 486,
+          "width": 648,
+          "height": 234,
+          "area": 151632
+        }
+      },
+      "v4-grid-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 36,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 810,
+          "width": 972,
+          "height": 234,
+          "area": 227448
+        }
+      },
+      "v5-compact-refined": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 36,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 486,
+          "width": 648,
+          "height": 234,
+          "area": 151632
+        }
+      },
+      "dagre": {
+        "metrics": null
+      }
+    }
+  },
+  {
+    "id": "pipeline_dim",
+    "source": "internal",
+    "nodes": 8,
+    "edges": 8,
+    "versions": {
+      "v0-original": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 21,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 835,
+          "width": 702,
+          "height": 306,
+          "area": 214812
+        }
+      },
+      "v1-compact-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 21,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 576,
+          "width": 540,
+          "height": 306,
+          "area": 165240
+        }
+      },
+      "v2-compact-spectral": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 21,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 576,
+          "width": 540,
+          "height": 306,
+          "area": 165240
+        }
+      },
+      "v3-compact-classic": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 21,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 576,
+          "width": 540,
+          "height": 306,
+          "area": 165240
+        }
+      },
+      "v4-grid-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 21,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 835,
+          "width": 702,
+          "height": 306,
+          "area": 214812
+        }
+      },
+      "v5-compact-refined": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 21,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 576,
+          "width": 540,
+          "height": 306,
+          "area": 165240
+        }
+      },
+      "dagre": {
+        "metrics": null
+      }
+    }
+  },
+  {
+    "id": "g.15.7",
+    "source": "north",
+    "nodes": 15,
+    "edges": 18,
+    "versions": {
+      "v0-original": {
+        "metrics": {
+          "crossings": 3,
+          "overlaps": 6,
+          "directionChanges": 6,
+          "trunkVariance": 0,
+          "totalEdgeLength": 2907,
+          "width": 363,
+          "height": 615,
+          "area": 223245
+        }
+      },
+      "v1-compact-ordered": {
+        "metrics": {
+          "crossings": 1,
+          "overlaps": 6,
+          "directionChanges": 6,
+          "trunkVariance": 0,
+          "totalEdgeLength": 3440,
+          "width": 565,
+          "height": 615,
+          "area": 347475
+        }
+      },
+      "v2-compact-spectral": {
+        "metrics": {
+          "crossings": 1,
+          "overlaps": 6,
+          "directionChanges": 6,
+          "trunkVariance": 0,
+          "totalEdgeLength": 3440,
+          "width": 565,
+          "height": 615,
+          "area": 347475
+        }
+      },
+      "v3-compact-classic": {
+        "metrics": {
+          "crossings": 3,
+          "overlaps": 6,
+          "directionChanges": 6,
+          "trunkVariance": 0,
+          "totalEdgeLength": 3666,
+          "width": 565,
+          "height": 615,
+          "area": 347475
+        }
+      },
+      "v4-grid-ordered": {
+        "metrics": {
+          "crossings": 1,
+          "overlaps": 6,
+          "directionChanges": 6,
+          "trunkVariance": 0,
+          "totalEdgeLength": 2692,
+          "width": 363,
+          "height": 615,
+          "area": 223245
+        }
+      },
+      "v5-compact-refined": {
+        "metrics": {
+          "crossings": 1,
+          "overlaps": 6,
+          "directionChanges": 6,
+          "trunkVariance": 0,
+          "totalEdgeLength": 3440,
+          "width": 565,
+          "height": 615,
+          "area": 347475
+        }
+      },
+      "dagre": {
+        "metrics": null
+      }
+    }
+  },
+  {
+    "id": "g.20.1",
+    "source": "north",
+    "nodes": 20,
+    "edges": 42,
+    "versions": {
+      "v0-original": {
+        "metrics": {
+          "crossings": 3,
+          "overlaps": 186,
+          "directionChanges": 1,
+          "trunkVariance": 0,
+          "totalEdgeLength": 8369,
+          "width": 762,
+          "height": 375,
+          "area": 285750
+        }
+      },
+      "v1-compact-ordered": {
+        "metrics": {
+          "crossings": 1,
+          "overlaps": 174,
+          "directionChanges": 1,
+          "trunkVariance": 0,
+          "totalEdgeLength": 8746,
+          "width": 833,
+          "height": 375,
+          "area": 312375
+        }
+      },
+      "v2-compact-spectral": {
+        "metrics": {
+          "crossings": 1,
+          "overlaps": 174,
+          "directionChanges": 1,
+          "trunkVariance": 0,
+          "totalEdgeLength": 8746,
+          "width": 833,
+          "height": 375,
+          "area": 312375
+        }
+      },
+      "v3-compact-classic": {
+        "metrics": {
+          "crossings": 3,
+          "overlaps": 186,
+          "directionChanges": 1,
+          "trunkVariance": 0,
+          "totalEdgeLength": 8670,
+          "width": 833,
+          "height": 375,
+          "area": 312375
+        }
+      },
+      "v4-grid-ordered": {
+        "metrics": {
+          "crossings": 1,
+          "overlaps": 174,
+          "directionChanges": 1,
+          "trunkVariance": 0,
+          "totalEdgeLength": 8451,
+          "width": 762,
+          "height": 375,
+          "area": 285750
+        }
+      },
+      "v5-compact-refined": {
+        "metrics": {
+          "crossings": 1,
+          "overlaps": 174,
+          "directionChanges": 1,
+          "trunkVariance": 0,
+          "totalEdgeLength": 8746,
+          "width": 833,
+          "height": 375,
+          "area": 312375
+        }
+      },
+      "dagre": {
+        "metrics": null
+      }
+    }
+  },
+  {
+    "id": "g.20.3",
+    "source": "north",
+    "nodes": 20,
+    "edges": 20,
+    "versions": {
+      "v0-original": {
+        "metrics": {
+          "crossings": 1,
+          "overlaps": 31,
+          "directionChanges": 2,
+          "trunkVariance": 0,
+          "totalEdgeLength": 1986,
+          "width": 591,
+          "height": 495,
+          "area": 292545
+        }
+      },
+      "v1-compact-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 35,
+          "directionChanges": 2,
+          "trunkVariance": 0,
+          "totalEdgeLength": 1590,
+          "width": 585,
+          "height": 375,
+          "area": 219375
+        }
+      },
+      "v2-compact-spectral": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 35,
+          "directionChanges": 2,
+          "trunkVariance": 0,
+          "totalEdgeLength": 1590,
+          "width": 585,
+          "height": 375,
+          "area": 219375
+        }
+      },
+      "v3-compact-classic": {
+        "metrics": {
+          "crossings": 1,
+          "overlaps": 31,
+          "directionChanges": 2,
+          "trunkVariance": 0,
+          "totalEdgeLength": 1719,
+          "width": 585,
+          "height": 495,
+          "area": 289575
+        }
+      },
+      "v4-grid-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 35,
+          "directionChanges": 2,
+          "trunkVariance": 0,
+          "totalEdgeLength": 1884,
+          "width": 591,
+          "height": 375,
+          "area": 221625
+        }
+      },
+      "v5-compact-refined": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 35,
+          "directionChanges": 2,
+          "trunkVariance": 0,
+          "totalEdgeLength": 1590,
+          "width": 585,
+          "height": 375,
+          "area": 219375
+        }
+      },
+      "dagre": {
+        "metrics": null
+      }
+    }
+  },
+  {
+    "id": "g.20.7",
+    "source": "north",
+    "nodes": 20,
+    "edges": 26,
+    "versions": {
+      "v0-original": {
+        "metrics": {
+          "crossings": 8,
+          "overlaps": 30,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 4845,
+          "width": 363,
+          "height": 855,
+          "area": 310365
+        }
+      },
+      "v1-compact-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 35,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 7328,
+          "width": 675,
+          "height": 735,
+          "area": 496125
+        }
+      },
+      "v2-compact-spectral": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 35,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 7328,
+          "width": 675,
+          "height": 735,
+          "area": 496125
+        }
+      },
+      "v3-compact-classic": {
+        "metrics": {
+          "crossings": 8,
+          "overlaps": 30,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 7618,
+          "width": 675,
+          "height": 855,
+          "area": 577125
+        }
+      },
+      "v4-grid-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 35,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 4368,
+          "width": 363,
+          "height": 735,
+          "area": 266805
+        }
+      },
+      "v5-compact-refined": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 35,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 7328,
+          "width": 675,
+          "height": 735,
+          "area": 496125
+        }
+      },
+      "dagre": {
+        "metrics": null
+      }
+    }
+  },
+  {
+    "id": "g.25.1",
+    "source": "north",
+    "nodes": 25,
+    "edges": 184,
+    "versions": {
+      "v0-original": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 7156,
+          "directionChanges": 6,
+          "trunkVariance": 0,
+          "totalEdgeLength": 72471,
+          "width": 1104,
+          "height": 555,
+          "area": 612720
+        }
+      },
+      "v1-compact-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 7162,
+          "directionChanges": 6,
+          "trunkVariance": 0,
+          "totalEdgeLength": 64998,
+          "width": 1080,
+          "height": 555,
+          "area": 599400
+        }
+      },
+      "v2-compact-spectral": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 7162,
+          "directionChanges": 6,
+          "trunkVariance": 0,
+          "totalEdgeLength": 64998,
+          "width": 1080,
+          "height": 555,
+          "area": 599400
+        }
+      },
+      "v3-compact-classic": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 7156,
+          "directionChanges": 6,
+          "trunkVariance": 0,
+          "totalEdgeLength": 65075,
+          "width": 1080,
+          "height": 555,
+          "area": 599400
+        }
+      },
+      "v4-grid-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 7162,
+          "directionChanges": 6,
+          "trunkVariance": 0,
+          "totalEdgeLength": 72472,
+          "width": 1104,
+          "height": 555,
+          "area": 612720
+        }
+      },
+      "v5-compact-refined": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 7162,
+          "directionChanges": 6,
+          "trunkVariance": 0,
+          "totalEdgeLength": 64998,
+          "width": 1080,
+          "height": 555,
+          "area": 599400
+        }
+      },
+      "dagre": {
+        "metrics": null
+      }
+    }
+  },
+  {
+    "id": "g.25.4",
+    "source": "north",
+    "nodes": 25,
+    "edges": 28,
+    "versions": {
+      "v0-original": {
+        "metrics": {
+          "crossings": 2,
+          "overlaps": 16,
+          "directionChanges": 6,
+          "trunkVariance": 0,
+          "totalEdgeLength": 4185,
+          "width": 477,
+          "height": 915,
+          "area": 436455
+        }
+      },
+      "v1-compact-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 17,
+          "directionChanges": 6,
+          "trunkVariance": 0,
+          "totalEdgeLength": 5743,
+          "width": 847,
+          "height": 915,
+          "area": 775005
+        }
+      },
+      "v2-compact-spectral": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 17,
+          "directionChanges": 6,
+          "trunkVariance": 0,
+          "totalEdgeLength": 5743,
+          "width": 847,
+          "height": 915,
+          "area": 775005
+        }
+      },
+      "v3-compact-classic": {
+        "metrics": {
+          "crossings": 2,
+          "overlaps": 16,
+          "directionChanges": 6,
+          "trunkVariance": 0,
+          "totalEdgeLength": 5633,
+          "width": 847,
+          "height": 915,
+          "area": 775005
+        }
+      },
+      "v4-grid-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 17,
+          "directionChanges": 6,
+          "trunkVariance": 0,
+          "totalEdgeLength": 4350,
+          "width": 477,
+          "height": 915,
+          "area": 436455
+        }
+      },
+      "v5-compact-refined": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 17,
+          "directionChanges": 6,
+          "trunkVariance": 0,
+          "totalEdgeLength": 5743,
+          "width": 847,
+          "height": 915,
+          "area": 775005
+        }
+      },
+      "dagre": {
+        "metrics": null
+      }
+    }
+  },
+  {
+    "id": "g.30.1",
+    "source": "north",
+    "nodes": 30,
+    "edges": 45,
+    "versions": {
+      "v0-original": {
+        "metrics": {
+          "crossings": 13,
+          "overlaps": 135,
+          "directionChanges": 3,
+          "trunkVariance": 0,
+          "totalEdgeLength": 8484,
+          "width": 705,
+          "height": 615,
+          "area": 433575
+        }
+      },
+      "v1-compact-ordered": {
+        "metrics": {
+          "crossings": 1,
+          "overlaps": 142,
+          "directionChanges": 2,
+          "trunkVariance": 0,
+          "totalEdgeLength": 7412,
+          "width": 837,
+          "height": 495,
+          "area": 414315
+        }
+      },
+      "v2-compact-spectral": {
+        "metrics": {
+          "crossings": 1,
+          "overlaps": 142,
+          "directionChanges": 2,
+          "trunkVariance": 0,
+          "totalEdgeLength": 7412,
+          "width": 837,
+          "height": 495,
+          "area": 414315
+        }
+      },
+      "v3-compact-classic": {
+        "metrics": {
+          "crossings": 13,
+          "overlaps": 135,
+          "directionChanges": 3,
+          "trunkVariance": 0,
+          "totalEdgeLength": 8466,
+          "width": 837,
+          "height": 615,
+          "area": 514755
+        }
+      },
+      "v4-grid-ordered": {
+        "metrics": {
+          "crossings": 1,
+          "overlaps": 142,
+          "directionChanges": 2,
+          "trunkVariance": 0,
+          "totalEdgeLength": 7263,
+          "width": 705,
+          "height": 495,
+          "area": 348975
+        }
+      },
+      "v5-compact-refined": {
+        "metrics": {
+          "crossings": 1,
+          "overlaps": 142,
+          "directionChanges": 2,
+          "trunkVariance": 0,
+          "totalEdgeLength": 7412,
+          "width": 837,
+          "height": 495,
+          "area": 414315
+        }
+      },
+      "dagre": {
+        "metrics": null
+      }
+    }
+  },
+  {
+    "id": "g.30.5",
+    "source": "north",
+    "nodes": 30,
+    "edges": 35,
+    "versions": {
+      "v0-original": {
+        "metrics": {
+          "crossings": 10,
+          "overlaps": 8,
+          "directionChanges": 1,
+          "trunkVariance": 0,
+          "totalEdgeLength": 7498,
+          "width": 363,
+          "height": 1275,
+          "area": 462825
+        }
+      },
+      "v1-compact-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 14,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 9516,
+          "width": 1092,
+          "height": 1215,
+          "area": 1326780
+        }
+      },
+      "v2-compact-spectral": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 14,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 9516,
+          "width": 1092,
+          "height": 1215,
+          "area": 1326780
+        }
+      },
+      "v3-compact-classic": {
+        "metrics": {
+          "crossings": 10,
+          "overlaps": 8,
+          "directionChanges": 1,
+          "trunkVariance": 0,
+          "totalEdgeLength": 10226,
+          "width": 1092,
+          "height": 1275,
+          "area": 1392300
+        }
+      },
+      "v4-grid-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 14,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 6710,
+          "width": 363,
+          "height": 1215,
+          "area": 441045
+        }
+      },
+      "v5-compact-refined": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 14,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 9516,
+          "width": 1092,
+          "height": 1215,
+          "area": 1326780
+        }
+      },
+      "dagre": {
+        "metrics": null
+      }
+    }
+  },
+  {
+    "id": "g.40.5",
+    "source": "north",
+    "nodes": 40,
+    "edges": 56,
+    "versions": {
+      "v0-original": {
+        "metrics": {
+          "crossings": 9,
+          "overlaps": 26,
+          "directionChanges": 19,
+          "trunkVariance": 0,
+          "totalEdgeLength": 16352,
+          "width": 534,
+          "height": 1335,
+          "area": 712890
+        }
+      },
+      "v1-compact-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 34,
+          "directionChanges": 21,
+          "trunkVariance": 0,
+          "totalEdgeLength": 20237,
+          "width": 945,
+          "height": 1095,
+          "area": 1034775
+        }
+      },
+      "v2-compact-spectral": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 34,
+          "directionChanges": 21,
+          "trunkVariance": 0,
+          "totalEdgeLength": 20237,
+          "width": 945,
+          "height": 1095,
+          "area": 1034775
+        }
+      },
+      "v3-compact-classic": {
+        "metrics": {
+          "crossings": 9,
+          "overlaps": 26,
+          "directionChanges": 19,
+          "trunkVariance": 0,
+          "totalEdgeLength": 20371,
+          "width": 945,
+          "height": 1335,
+          "area": 1261575
+        }
+      },
+      "v4-grid-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 34,
+          "directionChanges": 21,
+          "trunkVariance": 0,
+          "totalEdgeLength": 15980,
+          "width": 534,
+          "height": 1095,
+          "area": 584730
+        }
+      },
+      "v5-compact-refined": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 34,
+          "directionChanges": 21,
+          "trunkVariance": 0,
+          "totalEdgeLength": 20237,
+          "width": 945,
+          "height": 1095,
+          "area": 1034775
+        }
+      },
+      "dagre": {
+        "metrics": null
+      }
+    }
+  },
+  {
+    "id": "g.40.7",
+    "source": "north",
+    "nodes": 40,
+    "edges": 49,
+    "versions": {
+      "v0-original": {
+        "metrics": {
+          "crossings": 15,
+          "overlaps": 29,
+          "directionChanges": 14,
+          "trunkVariance": 0,
+          "totalEdgeLength": 10574,
+          "width": 534,
+          "height": 1095,
+          "area": 584730
+        }
+      },
+      "v1-compact-ordered": {
+        "metrics": {
+          "crossings": 6,
+          "overlaps": 28,
+          "directionChanges": 17,
+          "trunkVariance": 0,
+          "totalEdgeLength": 10042,
+          "width": 810,
+          "height": 915,
+          "area": 741150
+        }
+      },
+      "v2-compact-spectral": {
+        "metrics": {
+          "crossings": 6,
+          "overlaps": 28,
+          "directionChanges": 17,
+          "trunkVariance": 0,
+          "totalEdgeLength": 10042,
+          "width": 810,
+          "height": 915,
+          "area": 741150
+        }
+      },
+      "v3-compact-classic": {
+        "metrics": {
+          "crossings": 15,
+          "overlaps": 29,
+          "directionChanges": 14,
+          "trunkVariance": 0,
+          "totalEdgeLength": 12206,
+          "width": 810,
+          "height": 1095,
+          "area": 886950
+        }
+      },
+      "v4-grid-ordered": {
+        "metrics": {
+          "crossings": 6,
+          "overlaps": 28,
+          "directionChanges": 17,
+          "trunkVariance": 0,
+          "totalEdgeLength": 8298,
+          "width": 534,
+          "height": 915,
+          "area": 488610
+        }
+      },
+      "v5-compact-refined": {
+        "metrics": {
+          "crossings": 6,
+          "overlaps": 28,
+          "directionChanges": 17,
+          "trunkVariance": 0,
+          "totalEdgeLength": 10042,
+          "width": 810,
+          "height": 915,
+          "area": 741150
+        }
+      },
+      "dagre": {
+        "metrics": null
+      }
+    }
+  }
+]

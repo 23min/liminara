@@ -1,0 +1,832 @@
+[
+  {
+    "id": "diamond",
+    "source": "internal",
+    "nodes": 4,
+    "edges": 4,
+    "versions": {
+      "v0-original": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 2,
+          "trunkVariance": 288,
+          "totalEdgeLength": 388,
+          "width": 342,
+          "height": 306,
+          "area": 104652
+        }
+      },
+      "v1-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 2,
+          "trunkVariance": 288,
+          "totalEdgeLength": 388,
+          "width": 342,
+          "height": 306,
+          "area": 104652
+        }
+      },
+      "v2-spectral": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 2,
+          "trunkVariance": 288,
+          "totalEdgeLength": 388,
+          "width": 342,
+          "height": 306,
+          "area": 104652
+        }
+      },
+      "v3-shuffle": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 2,
+          "trunkVariance": 288,
+          "totalEdgeLength": 388,
+          "width": 342,
+          "height": 306,
+          "area": 104652
+        }
+      },
+      "v4-classic-plus": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 2,
+          "trunkVariance": 288,
+          "totalEdgeLength": 388,
+          "width": 342,
+          "height": 306,
+          "area": 104652
+        }
+      },
+      "v5-compact": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 2,
+          "trunkVariance": 288,
+          "totalEdgeLength": 357,
+          "width": 324,
+          "height": 306,
+          "area": 99144
+        }
+      },
+      "dagre": {
+        "metrics": null
+      }
+    }
+  },
+  {
+    "id": "procurement",
+    "source": "internal",
+    "nodes": 6,
+    "edges": 5,
+    "versions": {
+      "v0-original": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 10,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 450,
+          "width": 612,
+          "height": 234,
+          "area": 143208
+        }
+      },
+      "v1-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 10,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 450,
+          "width": 612,
+          "height": 234,
+          "area": 143208
+        }
+      },
+      "v2-spectral": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 10,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 450,
+          "width": 612,
+          "height": 234,
+          "area": 143208
+        }
+      },
+      "v3-shuffle": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 10,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 450,
+          "width": 612,
+          "height": 234,
+          "area": 143208
+        }
+      },
+      "v4-classic-plus": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 10,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 450,
+          "width": 612,
+          "height": 234,
+          "area": 143208
+        }
+      },
+      "v5-compact": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 10,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 270,
+          "width": 432,
+          "height": 234,
+          "area": 101088
+        }
+      },
+      "dagre": {
+        "metrics": null
+      }
+    }
+  },
+  {
+    "id": "loan_approval",
+    "source": "internal",
+    "nodes": 6,
+    "edges": 6,
+    "versions": {
+      "v0-original": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 1,
+          "directionChanges": 2,
+          "trunkVariance": 207.36,
+          "totalEdgeLength": 568,
+          "width": 522,
+          "height": 306,
+          "area": 159732
+        }
+      },
+      "v1-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 1,
+          "directionChanges": 2,
+          "trunkVariance": 207.36,
+          "totalEdgeLength": 568,
+          "width": 522,
+          "height": 306,
+          "area": 159732
+        }
+      },
+      "v2-spectral": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 1,
+          "directionChanges": 2,
+          "trunkVariance": 207.36,
+          "totalEdgeLength": 568,
+          "width": 522,
+          "height": 306,
+          "area": 159732
+        }
+      },
+      "v3-shuffle": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 1,
+          "directionChanges": 2,
+          "trunkVariance": 207.36,
+          "totalEdgeLength": 568,
+          "width": 522,
+          "height": 306,
+          "area": 159732
+        }
+      },
+      "v4-classic-plus": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 1,
+          "directionChanges": 2,
+          "trunkVariance": 207.36,
+          "totalEdgeLength": 568,
+          "width": 522,
+          "height": 306,
+          "area": 159732
+        }
+      },
+      "v5-compact": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 1,
+          "directionChanges": 2,
+          "trunkVariance": 207.36,
+          "totalEdgeLength": 465,
+          "width": 432,
+          "height": 306,
+          "area": 132192
+        }
+      },
+      "dagre": {
+        "metrics": null
+      }
+    }
+  },
+  {
+    "id": "insurance_claim",
+    "source": "internal",
+    "nodes": 6,
+    "edges": 6,
+    "versions": {
+      "v0-original": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 2,
+          "directionChanges": 1,
+          "trunkVariance": 243,
+          "totalEdgeLength": 654,
+          "width": 522,
+          "height": 306,
+          "area": 159732
+        }
+      },
+      "v1-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 2,
+          "directionChanges": 1,
+          "trunkVariance": 243,
+          "totalEdgeLength": 654,
+          "width": 522,
+          "height": 306,
+          "area": 159732
+        }
+      },
+      "v2-spectral": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 2,
+          "directionChanges": 1,
+          "trunkVariance": 243,
+          "totalEdgeLength": 654,
+          "width": 522,
+          "height": 306,
+          "area": 159732
+        }
+      },
+      "v3-shuffle": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 2,
+          "directionChanges": 1,
+          "trunkVariance": 243,
+          "totalEdgeLength": 654,
+          "width": 522,
+          "height": 306,
+          "area": 159732
+        }
+      },
+      "v4-classic-plus": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 2,
+          "directionChanges": 1,
+          "trunkVariance": 243,
+          "totalEdgeLength": 654,
+          "width": 522,
+          "height": 306,
+          "area": 159732
+        }
+      },
+      "v5-compact": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 2,
+          "directionChanges": 1,
+          "trunkVariance": 243,
+          "totalEdgeLength": 465,
+          "width": 432,
+          "height": 306,
+          "area": 132192
+        }
+      },
+      "dagre": {
+        "metrics": null
+      }
+    }
+  },
+  {
+    "id": "cicd",
+    "source": "internal",
+    "nodes": 8,
+    "edges": 8,
+    "versions": {
+      "v0-original": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 6,
+          "directionChanges": 1,
+          "trunkVariance": 0,
+          "totalEdgeLength": 748,
+          "width": 702,
+          "height": 306,
+          "area": 214812
+        }
+      },
+      "v1-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 6,
+          "directionChanges": 1,
+          "trunkVariance": 0,
+          "totalEdgeLength": 748,
+          "width": 702,
+          "height": 306,
+          "area": 214812
+        }
+      },
+      "v2-spectral": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 6,
+          "directionChanges": 1,
+          "trunkVariance": 0,
+          "totalEdgeLength": 748,
+          "width": 702,
+          "height": 306,
+          "area": 214812
+        }
+      },
+      "v3-shuffle": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 6,
+          "directionChanges": 1,
+          "trunkVariance": 0,
+          "totalEdgeLength": 748,
+          "width": 702,
+          "height": 306,
+          "area": 214812
+        }
+      },
+      "v4-classic-plus": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 6,
+          "directionChanges": 1,
+          "trunkVariance": 0,
+          "totalEdgeLength": 748,
+          "width": 702,
+          "height": 306,
+          "area": 214812
+        }
+      },
+      "v5-compact": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 6,
+          "directionChanges": 1,
+          "trunkVariance": 0,
+          "totalEdgeLength": 573,
+          "width": 540,
+          "height": 306,
+          "area": 165240
+        }
+      },
+      "dagre": {
+        "metrics": null
+      }
+    }
+  },
+  {
+    "id": "o2c_full",
+    "source": "internal",
+    "nodes": 12,
+    "edges": 13,
+    "versions": {
+      "v0-original": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 21,
+          "directionChanges": 3,
+          "trunkVariance": 207.36,
+          "totalEdgeLength": 1374,
+          "width": 972,
+          "height": 306,
+          "area": 297432
+        }
+      },
+      "v1-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 21,
+          "directionChanges": 3,
+          "trunkVariance": 207.36,
+          "totalEdgeLength": 1374,
+          "width": 972,
+          "height": 306,
+          "area": 297432
+        }
+      },
+      "v2-spectral": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 21,
+          "directionChanges": 3,
+          "trunkVariance": 207.36,
+          "totalEdgeLength": 1374,
+          "width": 972,
+          "height": 306,
+          "area": 297432
+        }
+      },
+      "v3-shuffle": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 21,
+          "directionChanges": 3,
+          "trunkVariance": 207.36,
+          "totalEdgeLength": 1374,
+          "width": 972,
+          "height": 306,
+          "area": 297432
+        }
+      },
+      "v4-classic-plus": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 21,
+          "directionChanges": 3,
+          "trunkVariance": 207.36,
+          "totalEdgeLength": 1374,
+          "width": 972,
+          "height": 306,
+          "area": 297432
+        }
+      },
+      "v5-compact": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 21,
+          "directionChanges": 3,
+          "trunkVariance": 207.36,
+          "totalEdgeLength": 849,
+          "width": 648,
+          "height": 306,
+          "area": 198288
+        }
+      },
+      "dagre": {
+        "metrics": null
+      }
+    }
+  },
+  {
+    "id": "g.10.11",
+    "source": "north",
+    "nodes": 10,
+    "edges": 14,
+    "versions": {
+      "v0-original": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 1,
+          "directionChanges": 6,
+          "trunkVariance": 3600,
+          "totalEdgeLength": 1440,
+          "width": 363,
+          "height": 495,
+          "area": 179685
+        }
+      },
+      "v1-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 1,
+          "directionChanges": 6,
+          "trunkVariance": 3600,
+          "totalEdgeLength": 1440,
+          "width": 363,
+          "height": 495,
+          "area": 179685
+        }
+      },
+      "v2-spectral": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 1,
+          "directionChanges": 6,
+          "trunkVariance": 3600,
+          "totalEdgeLength": 1440,
+          "width": 363,
+          "height": 495,
+          "area": 179685
+        }
+      },
+      "v3-shuffle": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 1,
+          "directionChanges": 6,
+          "trunkVariance": 3600,
+          "totalEdgeLength": 1440,
+          "width": 363,
+          "height": 495,
+          "area": 179685
+        }
+      },
+      "v4-classic-plus": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 1,
+          "directionChanges": 6,
+          "trunkVariance": 3600,
+          "totalEdgeLength": 1440,
+          "width": 363,
+          "height": 495,
+          "area": 179685
+        }
+      },
+      "v5-compact": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 1,
+          "directionChanges": 6,
+          "trunkVariance": 3600,
+          "totalEdgeLength": 2402,
+          "width": 540,
+          "height": 495,
+          "area": 267300
+        }
+      },
+      "dagre": {
+        "metrics": null
+      }
+    }
+  },
+  {
+    "id": "g.20.3",
+    "source": "north",
+    "nodes": 20,
+    "edges": 20,
+    "versions": {
+      "v0-original": {
+        "metrics": {
+          "crossings": 1,
+          "overlaps": 11,
+          "directionChanges": 3,
+          "trunkVariance": 1955.56,
+          "totalEdgeLength": 1878,
+          "width": 591,
+          "height": 375,
+          "area": 221625
+        }
+      },
+      "v1-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 13,
+          "directionChanges": 3,
+          "trunkVariance": 355.56,
+          "totalEdgeLength": 1839,
+          "width": 591,
+          "height": 375,
+          "area": 221625
+        }
+      },
+      "v2-spectral": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 13,
+          "directionChanges": 3,
+          "trunkVariance": 355.56,
+          "totalEdgeLength": 1839,
+          "width": 591,
+          "height": 375,
+          "area": 221625
+        }
+      },
+      "v3-shuffle": {
+        "metrics": {
+          "crossings": 2,
+          "overlaps": 8,
+          "directionChanges": 5,
+          "trunkVariance": 622.22,
+          "totalEdgeLength": 1988,
+          "width": 591,
+          "height": 375,
+          "area": 221625
+        }
+      },
+      "v4-classic-plus": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 13,
+          "directionChanges": 3,
+          "trunkVariance": 355.56,
+          "totalEdgeLength": 1839,
+          "width": 591,
+          "height": 375,
+          "area": 221625
+        }
+      },
+      "v5-compact": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 13,
+          "directionChanges": 3,
+          "trunkVariance": 355.56,
+          "totalEdgeLength": 1554,
+          "width": 585,
+          "height": 375,
+          "area": 219375
+        }
+      },
+      "dagre": {
+        "metrics": null
+      }
+    }
+  },
+  {
+    "id": "g.25.1",
+    "source": "north",
+    "nodes": 25,
+    "edges": 184,
+    "versions": {
+      "v0-original": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 5567,
+          "directionChanges": 9,
+          "trunkVariance": 1713.89,
+          "totalEdgeLength": 70148,
+          "width": 1104,
+          "height": 555,
+          "area": 612720
+        }
+      },
+      "v1-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 5474,
+          "directionChanges": 9,
+          "trunkVariance": 1713.89,
+          "totalEdgeLength": 70067,
+          "width": 1104,
+          "height": 555,
+          "area": 612720
+        }
+      },
+      "v2-spectral": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 5474,
+          "directionChanges": 9,
+          "trunkVariance": 1713.89,
+          "totalEdgeLength": 70067,
+          "width": 1104,
+          "height": 555,
+          "area": 612720
+        }
+      },
+      "v3-shuffle": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 5471,
+          "directionChanges": 8,
+          "trunkVariance": 1713.89,
+          "totalEdgeLength": 70084,
+          "width": 1104,
+          "height": 555,
+          "area": 612720
+        }
+      },
+      "v4-classic-plus": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 5474,
+          "directionChanges": 9,
+          "trunkVariance": 1713.89,
+          "totalEdgeLength": 70067,
+          "width": 1104,
+          "height": 555,
+          "area": 612720
+        }
+      },
+      "v5-compact": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 5474,
+          "directionChanges": 9,
+          "trunkVariance": 1713.89,
+          "totalEdgeLength": 62368,
+          "width": 1080,
+          "height": 555,
+          "area": 599400
+        }
+      },
+      "dagre": {
+        "metrics": null
+      }
+    }
+  },
+  {
+    "id": "g.30.1",
+    "source": "north",
+    "nodes": 30,
+    "edges": 45,
+    "versions": {
+      "v0-original": {
+        "metrics": {
+          "crossings": 13,
+          "overlaps": 25,
+          "directionChanges": 11,
+          "trunkVariance": 2305.79,
+          "totalEdgeLength": 7472,
+          "width": 705,
+          "height": 495,
+          "area": 348975
+        }
+      },
+      "v1-ordered": {
+        "metrics": {
+          "crossings": 1,
+          "overlaps": 19,
+          "directionChanges": 9,
+          "trunkVariance": 2335.54,
+          "totalEdgeLength": 7027,
+          "width": 705,
+          "height": 495,
+          "area": 348975
+        }
+      },
+      "v2-spectral": {
+        "metrics": {
+          "crossings": 1,
+          "overlaps": 19,
+          "directionChanges": 9,
+          "trunkVariance": 2335.54,
+          "totalEdgeLength": 7027,
+          "width": 705,
+          "height": 495,
+          "area": 348975
+        }
+      },
+      "v3-shuffle": {
+        "metrics": {
+          "crossings": 14,
+          "overlaps": 23,
+          "directionChanges": 10,
+          "trunkVariance": 2186.78,
+          "totalEdgeLength": 7512,
+          "width": 705,
+          "height": 495,
+          "area": 348975
+        }
+      },
+      "v4-classic-plus": {
+        "metrics": {
+          "crossings": 1,
+          "overlaps": 19,
+          "directionChanges": 9,
+          "trunkVariance": 2335.54,
+          "totalEdgeLength": 7027,
+          "width": 705,
+          "height": 495,
+          "area": 348975
+        }
+      },
+      "v5-compact": {
+        "metrics": {
+          "crossings": 1,
+          "overlaps": 19,
+          "directionChanges": 9,
+          "trunkVariance": 2335.54,
+          "totalEdgeLength": 7236,
+          "width": 837,
+          "height": 495,
+          "area": 414315
+        }
+      },
+      "dagre": {
+        "metrics": null
+      }
+    }
+  }
+]
