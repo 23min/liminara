@@ -24,18 +24,62 @@ export function computeMetrics(dag, layout) {
   }
   metrics.crossings = countCrossings(layers, childrenOf);
 
-  // 2. Edge overlap (edges sharing identical rounded Y at both endpoints)
-  const edgeKeys = new Map();
-  for (const [fromId, toId] of dag.edges) {
-    const u = positions.get(fromId);
-    const v = positions.get(toId);
-    if (!u || !v) continue;
-    const key = `${Math.round(u.y)},${Math.round(v.y)}`;
-    edgeKeys.set(key, (edgeKeys.get(key) || 0) + 1);
-  }
+  // 2. Route segment overlap — two routes traversing the same edge at the
+  // same effective Y (accounting for track offsets at interchange stations).
   let overlaps = 0;
-  for (const count of edgeKeys.values()) {
-    if (count > 1) overlaps += count * (count - 1) / 2;
+  if (layout.routes && layout.nodeRoutes && layout.lineGap) {
+    const lineGap = layout.lineGap;
+    const ta = layout.trackAssignment;
+
+    // For each pair of consecutive nodes in each route, compute the
+    // effective Y at both endpoints (node Y + track offset)
+    const segKeys = new Map(); // "roundedY1,roundedY2" → count
+    for (let ri = 0; ri < layout.routes.length; ri++) {
+      const route = layout.routes[ri];
+      for (let ni = 0; ni < route.nodes.length - 1; ni++) {
+        const fromId = route.nodes[ni], toId = route.nodes[ni + 1];
+        const u = positions.get(fromId), v = positions.get(toId);
+        if (!u || !v) continue;
+
+        // Compute offset at each node (same logic as path builder)
+        function getOffset(nodeId) {
+          const nr = layout.nodeRoutes.get(nodeId);
+          if (!nr || nr.size <= 1) return 0;
+          const stationTracks = ta?.get(nodeId);
+          if (stationTracks && stationTracks.has(ri)) {
+            return stationTracks.get(ri) * lineGap;
+          }
+          const sorted = [...nr].sort((a, b) => a - b);
+          const trunkIdx = sorted.indexOf(0);
+          const myIdx = sorted.indexOf(ri);
+          if (myIdx === -1) return 0;
+          if (trunkIdx >= 0) return (myIdx - trunkIdx) * lineGap;
+          return (myIdx - (sorted.length - 1) / 2) * lineGap;
+        }
+
+        const y1 = Math.round(u.y + getOffset(fromId));
+        const y2 = Math.round(v.y + getOffset(toId));
+        const key = `${y1},${y2}`;
+        if (!segKeys.has(key)) segKeys.set(key, new Set());
+        segKeys.get(key).add(ri); // track which ROUTES, not segment count
+      }
+    }
+    for (const routeSet of segKeys.values()) {
+      const count = routeSet.size; // number of DIFFERENT routes at this Y pair
+      if (count > 1) overlaps += count * (count - 1) / 2;
+    }
+  } else {
+    // Fallback: count by DAG edges at same node Y
+    const edgeKeys = new Map();
+    for (const [fromId, toId] of dag.edges) {
+      const u = positions.get(fromId), v = positions.get(toId);
+      if (!u || !v) continue;
+      const key = `${Math.round(u.y)},${Math.round(v.y)}`;
+      edgeKeys.set(key, (edgeKeys.get(key) || 0) + 1);
+    }
+    for (const count of edgeKeys.values()) {
+      if (count > 1) overlaps += count * (count - 1) / 2;
+    }
   }
   metrics.overlaps = overlaps;
 
