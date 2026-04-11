@@ -23,6 +23,35 @@ Unlike graph drawing (which has graphdrawing.org with North/Random DAGs), metro-
 research does NOT have a shared downloadable benchmark. Researchers extract data
 from OpenStreetMap or transit agencies. OpenMetroMaps is the closest thing.
 
+### Best Downloadable Sources (from deep research)
+
+| Source | Networks | Format | URL |
+|--------|----------|--------|-----|
+| **octi.cs.uni-freiburg.de** | 8 cities (Freiburg, Vienna, Stuttgart, Berlin, Sydney, Chicago, London, NYC) | JSON/GeoJSON | https://octi.cs.uni-freiburg.de/ |
+| **juliuste/transit-map** | 6 cities (Berlin U-Bahn, Vienna, Stockholm, Lisbon, Nantes, Montpellier) | JSON | https://github.com/juliuste/transit-map |
+| **OpenMetroMaps** | Berlin, Vienna | XML (.omm) | https://github.com/OpenMetroMapsData |
+| **25 Cities Dataset** | 25 cities (Adelaide to Winnipeg) | SQLite/GTFS/CSV | https://zenodo.org/records/1186215 |
+| **GLaDOS/OSF** | Rome-Lib (11,528 graphs), AT&T, North DAGs | JSON/GraphML | https://osf.io/j7ucv/ |
+
+### Key Metro Network Properties
+
+| Network | Stations | Edges | Lines | Max Lines/Edge |
+|---------|----------|-------|-------|----------------|
+| Atlanta MARTA | 38 | ~40 | 2 | 2 |
+| Bucharest | 44 | ~47 | 4 | 2 |
+| Lisbon | 60 | ~65 | 4 | 2 |
+| Montreal | 68 | ~72 | 4 | 2 |
+| Vienna Metro | ~83 | ~86 | 5 | 3 |
+| Taipei | 96 | ~100 | 5 | 3 |
+| Sydney CityRail | ~174 | ~190 | ~15 | ~8 |
+| Moscow | 204 | ~220 | ~12 | ~4 |
+| London Underground | ~270 | ~300 | 11 | 6 |
+| Berlin U-Bahn | ~272 | ~280 | 10 | 4 |
+| Paris Metro | ~304 | ~350 | 16 | 5 |
+
+### Key Finding
+The **juliuste/transit-map** repo is the most directly usable — 6 networks in JSON with station coordinates and line assignments, ready to convert to our fixture format.
+
 ## Strategy for dag-map
 
 Since we can't easily download the exact datasets used in papers, we'll:
