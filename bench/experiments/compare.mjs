@@ -7,6 +7,8 @@ import { fileURLToPath } from 'node:url';
 
 import { dagMap } from '../../dag-map/src/index.js';
 import { layoutMetro } from '../../dag-map/src/layout-metro.js';
+import { layoutFlow } from '../../dag-map/src/layout-flow.js';
+import { renderSVG } from '../../dag-map/src/render.js';
 import { VERSIONS } from './versions.mjs';
 import { loadExperimentFixtures } from './fixtures.mjs';
 import { computeMetrics } from './metrics.mjs';
@@ -72,6 +74,18 @@ async function main() {
       entry.versions['dagre'] = { svg: '<svg width="200" height="60"><text x="10" y="30" fill="red">dagre error</text></svg>', metrics: null };
     }
 
+    // Render layoutFlow (Mode 2) for fixtures with provided routes
+    if (f.routes && f.routes.length > 0) {
+      try {
+        const flowOpts = { routes: f.routes, theme: f.theme || 'cream', direction: 'ltr', scale: 1.2 };
+        const flowLayout = layoutFlow(f.dag, flowOpts);
+        const flowSvg = renderSVG(f.dag, flowLayout, flowOpts);
+        entry.versions['flow'] = { svg: flowSvg, metrics: null, reference: true };
+      } catch (err) {
+        entry.versions['flow'] = { svg: `<svg width="200" height="60"><text x="10" y="30" fill="red">Flow: ${err.message.slice(0, 50)}</text></svg>`, metrics: null };
+      }
+    }
+
     console.log('✓', f.id);
     results.push(entry);
   }
@@ -88,7 +102,7 @@ async function main() {
   await writeFile(join(outDir, 'metrics.csv'), metricsCSV.join('\n'));
 
   // Build HTML comparison
-  const allVersionNames = [...versionNames, 'dagre'];
+  const allVersionNames = [...versionNames, 'dagre', 'flow'];
   const colWidth = Math.floor(100 / allVersionNames.length);
 
   let html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Experiment ${timestamp}</title>
