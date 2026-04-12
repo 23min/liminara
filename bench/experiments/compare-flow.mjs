@@ -10,6 +10,7 @@ import { dagMap } from '../../dag-map/src/index.js';
 import { layoutMetro } from '../../dag-map/src/layout-metro.js';
 import { layoutFlow } from '../../dag-map/src/layout-flow.js';
 import { layoutFlowV2 } from '../../dag-map/src/layout-flow-v2.js';
+import { renderFlowV2 } from '../../dag-map/src/render-flow-v2.js';
 import { renderSVG } from '../../dag-map/src/render.js';
 import { loadExperimentFixtures } from './fixtures.mjs';
 
@@ -73,7 +74,7 @@ async function main() {
           svg = renderSVG(f.dag, layout, mergedOpts);
         } else if (version.engine === 'flowv2') {
           const layout = layoutFlowV2(f.dag, mergedOpts);
-          svg = renderSVG(f.dag, layout, mergedOpts);
+          svg = renderFlowV2(f.dag, layout, mergedOpts);
         } else {
           svg = dagMap(f.dag, mergedOpts).svg;
         }
