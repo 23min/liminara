@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// flow-explorer.mjs — interactive parameter explorer for FlowV2.
-// Serves an HTML page with sliders that re-render the layout in real-time.
+// flow-explorer.mjs — FlowV2 explorer with permutation GA.
+// Shows Default vs Evolved layouts side by side.
 
 import http from 'node:http';
 import { readFileSync, readdirSync } from 'node:fs';
@@ -10,75 +10,125 @@ import { fileURLToPath } from 'node:url';
 import { layoutFlowV2 } from '../../dag-map/src/layout-flow-v2.js';
 import { renderFlowV2 } from '../../dag-map/src/render-flow-v2.js';
 import { models } from '../../dag-map/test/models.js';
+import { evolveRouteOrder, evaluateFitness } from '../direct/permutation-ga.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+const port = parseInt(process.argv[2] || '9950');
 
-// Load all fixtures with routes
+// Load fixtures
 const fixtures = [];
 for (const f of readdirSync(join(__dirname, '..', 'fixtures', 'mlcm')).filter(f => f.endsWith('.json'))) {
   fixtures.push(JSON.parse(readFileSync(join(__dirname, '..', 'fixtures', 'mlcm', f), 'utf8')));
 }
-for (const m of models.filter(m => m.routes && m.routes.length > 0)) {
+for (const m of models.filter(m => m.routes && m.routes.length > 1)) {
   fixtures.push(m);
 }
 for (const f of readdirSync(join(__dirname, '..', 'fixtures', 'metro')).filter(f => f.endsWith('.json'))) {
-  fixtures.push(JSON.parse(readFileSync(join(__dirname, '..', 'fixtures', 'metro', f), 'utf8')));
+  const data = JSON.parse(readFileSync(join(__dirname, '..', 'fixtures', 'metro', f), 'utf8'));
+  if (data.routes && data.routes.length <= 20) fixtures.push(data); // skip huge ones
 }
 
-const port = parseInt(process.argv[2] || '9950');
+// Cache evolved permutations
+const evolved = new Map();
 
 const HTML = `<!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8">
-<title>FlowV2 Parameter Explorer</title>
+<title>FlowV2 Evolution Explorer</title>
 <style>
-body { font-family: -apple-system, sans-serif; margin: 0; background: #f5f5f5; display: flex; flex-direction: column; height: 100vh; }
-.controls { padding: 12px 16px; background: #fff; border-bottom: 1px solid #ddd; display: flex; flex-wrap: wrap; gap: 16px; align-items: center; }
-.control { display: flex; align-items: center; gap: 6px; font-size: 12px; }
-.control label { color: #666; min-width: 80px; }
-.control input[type=range] { width: 120px; }
-.control select { padding: 2px 6px; font-size: 12px; }
-.control .val { color: #333; font-weight: 600; min-width: 30px; }
-.viewport { flex: 1; overflow: auto; padding: 16px; }
-.viewport svg { background: white; box-shadow: 0 1px 4px rgba(0,0,0,0.1); border-radius: 4px; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, sans-serif; background: #f5f5f5; height: 100vh; display: flex; flex-direction: column; }
+.header { padding: 10px 16px; background: #fff; border-bottom: 1px solid #ddd; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.header h1 { font-size: 15px; font-weight: 600; }
+.header select { padding: 4px 8px; font-size: 12px; }
+.header button { padding: 5px 14px; font-size: 12px; border: 1px solid #4a90d9; background: #4a90d9; color: white; border-radius: 4px; cursor: pointer; }
+.header button:hover { background: #357abd; }
+.header button:disabled { opacity: 0.5; cursor: default; }
+.header .status { font-size: 11px; color: #666; }
+.compare { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 0; overflow: auto; }
+.panel { padding: 12px; overflow: auto; border-right: 1px solid #ddd; }
+.panel:last-child { border-right: none; }
+.panel h2 { font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+.panel .metrics { font-size: 11px; font-family: monospace; color: #333; margin-bottom: 8px; }
+.panel .metrics .bad { color: #c00; font-weight: bold; }
+.panel .metrics .good { color: #060; font-weight: bold; }
+.panel svg { background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-radius: 4px; max-width: 100%; height: auto; }
 .tooltip { position: fixed; background: #333; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; pointer-events: none; z-index: 100; display: none; }
 </style>
 </head>
 <body>
-<div class="controls">
-  <div class="control">
-    <label>Fixture:</label>
-    <select id="fixture">${fixtures.map((f, i) => `<option value="${i}">${f.id} (${f.dag.nodes.length}n, ${f.routes?.length || 0}r)</option>`).join('')}</select>
-  </div>
-  <div class="control"><label>Scale:</label><input type="range" id="scale" min="0.5" max="2.5" step="0.1" value="1.5"><span class="val" id="scale-val">1.5</span></div>
-  <div class="control"><label>Layer Sp:</label><input type="range" id="layerSpacing" min="20" max="100" step="5" value="55"><span class="val" id="layerSpacing-val">55</span></div>
-  <div class="control"><label>Dot Sp:</label><input type="range" id="dotSpacing" min="4" max="30" step="1" value="12"><span class="val" id="dotSpacing-val">12</span></div>
-  <div class="control"><label>Track Spread:</label><input type="range" id="trackSpread" min="0" max="8" step="0.5" value="0"><span class="val" id="trackSpread-val">0</span></div>
-  <div class="control"><label>Corner R:</label><input type="range" id="cornerRadius" min="2" max="20" step="1" value="6"><span class="val" id="cornerRadius-val">6</span></div>
+<div class="header">
+  <h1>FlowV2 Evolution</h1>
+  <select id="fixture">${fixtures.map((f, i) => `<option value="${i}">${f.id} (${f.dag.nodes.length}n, ${f.routes?.length || 0}r)</option>`).join('')}</select>
+  <button id="evolve-btn" onclick="runEvolve()">Evolve Route Order</button>
+  <span class="status" id="status"></span>
 </div>
-<div class="viewport" id="viewport"></div>
+<div class="compare">
+  <div class="panel" id="default-panel">
+    <h2>Default Order</h2>
+    <div class="metrics" id="default-metrics"></div>
+    <div id="default-svg"></div>
+  </div>
+  <div class="panel" id="evolved-panel">
+    <h2>Evolved Order</h2>
+    <div class="metrics" id="evolved-metrics"></div>
+    <div id="evolved-svg"></div>
+  </div>
+</div>
 <div class="tooltip" id="tooltip"></div>
 
 <script>
-const params = ['scale','layerSpacing','dotSpacing','trackSpread','cornerRadius'];
 const fixture = document.getElementById('fixture');
 
-async function render() {
-  const opts = {};
-  for (const p of params) {
-    const el = document.getElementById(p);
-    opts[p] = parseFloat(el.value);
-    document.getElementById(p + '-val').textContent = el.value;
+async function loadDefault() {
+  const idx = fixture.value;
+  const res = await fetch('/render?idx=' + idx + '&mode=default');
+  const data = await res.json();
+  document.getElementById('default-svg').innerHTML = data.svg;
+  document.getElementById('default-metrics').innerHTML = formatMetrics(data.metrics, 'default');
+  // Also load evolved if cached
+  const eres = await fetch('/render?idx=' + idx + '&mode=evolved');
+  const edata = await eres.json();
+  if (edata.svg) {
+    document.getElementById('evolved-svg').innerHTML = edata.svg;
+    document.getElementById('evolved-metrics').innerHTML = formatMetrics(edata.metrics, 'evolved', data.metrics);
+  } else {
+    document.getElementById('evolved-svg').innerHTML = '<div style="padding:40px;color:#999;text-align:center">Click "Evolve Route Order" to find the optimal permutation</div>';
+    document.getElementById('evolved-metrics').innerHTML = '';
   }
-  opts.fixtureIdx = parseInt(fixture.value);
-
-  const res = await fetch('/render?' + new URLSearchParams(opts));
-  document.getElementById('viewport').innerHTML = await res.text();
 }
 
-for (const p of params) document.getElementById(p).addEventListener('input', render);
-fixture.addEventListener('change', render);
+function formatMetrics(m, label, baseline) {
+  if (!m) return '';
+  let html = '';
+  const crossCls = m.crossings > 0 ? 'bad' : 'good';
+  html += 'crossings: <span class="' + crossCls + '">' + m.crossings + '</span>';
+  if (baseline) html += ' (was ' + baseline.crossings + ')';
+  html += ' | overlaps: ' + m.overlaps;
+  html += ' | bends: ' + m.bends;
+  html += ' | fitness: ' + m.fitness;
+  if (baseline && baseline.fitness > 0) {
+    const pct = ((1 - m.fitness / baseline.fitness) * 100).toFixed(0);
+    html += ' <span class="good">(' + pct + '% better)</span>';
+  }
+  return html;
+}
+
+async function runEvolve() {
+  const btn = document.getElementById('evolve-btn');
+  const status = document.getElementById('status');
+  btn.disabled = true;
+  status.textContent = 'Evolving...';
+  const idx = fixture.value;
+  const res = await fetch('/evolve?idx=' + idx);
+  const data = await res.json();
+  btn.disabled = false;
+  status.textContent = 'Done — ' + data.generations + ' generations';
+  loadDefault(); // reload both panels
+}
+
+fixture.addEventListener('change', loadDefault);
 
 // Tooltip
 const tip = document.getElementById('tooltip');
@@ -86,17 +136,38 @@ document.addEventListener('mouseover', e => {
   const node = e.target.closest('[data-node-id]');
   const route = e.target.closest('[data-route-id]');
   if (node) { tip.textContent = node.querySelector('.dm-label')?.textContent || node.getAttribute('data-node-id'); tip.style.display = 'block'; }
-  else if (route) { tip.textContent = route.getAttribute('data-route-id') + ': ' + (route.getAttribute('data-route-nodes') || ''); tip.style.display = 'block'; }
+  else if (route) { tip.textContent = route.getAttribute('data-route-id') + ': ' + (route.getAttribute('data-route-nodes')||''); tip.style.display = 'block'; }
 });
 document.addEventListener('mousemove', e => { if (tip.style.display === 'block') { tip.style.left = (e.clientX+12)+'px'; tip.style.top = (e.clientY-8)+'px'; } });
 document.addEventListener('mouseout', e => { if (e.target.closest('[data-node-id]') || e.target.closest('[data-route-id]')) tip.style.display = 'none'; });
 
-render();
+loadDefault();
 </script>
 </body>
 </html>`;
 
-const server = http.createServer((req, res) => {
+function renderFixture(idx, permutation) {
+  const f = fixtures[idx];
+  if (!f) return { svg: '', metrics: null };
+
+  const routes = permutation
+    ? permutation.map(i => f.routes[i])
+    : f.routes;
+
+  const defaultPerm = f.routes.map((_, i) => i);
+  const perm = permutation || defaultPerm;
+  const metrics = evaluateFitness(f.dag, f.routes, perm);
+
+  try {
+    const layout = layoutFlowV2(f.dag, { routes, theme: f.theme || 'cream', trackSpread: 2 });
+    const svg = renderFlowV2(f.dag, layout, {});
+    return { svg, metrics };
+  } catch (e) {
+    return { svg: `<div style="color:red">${e.message}</div>`, metrics };
+  }
+}
+
+const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
 
   if (url.pathname === '/') {
@@ -105,29 +176,43 @@ const server = http.createServer((req, res) => {
   }
 
   if (url.pathname === '/render') {
-    const idx = parseInt(url.searchParams.get('fixtureIdx') || '0');
-    const f = fixtures[idx] || fixtures[0];
+    const idx = parseInt(url.searchParams.get('idx') || '0');
+    const mode = url.searchParams.get('mode') || 'default';
 
-    const opts = {
-      routes: f.routes,
-      theme: f.theme || 'cream',
-      scale: parseFloat(url.searchParams.get('scale') || '1.5'),
-      layerSpacing: parseFloat(url.searchParams.get('layerSpacing') || '55'),
-      dotSpacing: parseFloat(url.searchParams.get('dotSpacing') || '12'),
-      trackSpread: parseFloat(url.searchParams.get('trackSpread') || '0'),
-      cornerRadius: parseFloat(url.searchParams.get('cornerRadius') || '6'),
-    };
-
-    try {
-      const layout = layoutFlowV2(f.dag, opts);
-      const svg = renderFlowV2(f.dag, layout, opts);
-      res.writeHead(200, { 'content-type': 'image/svg+xml' });
-      res.end(svg);
-    } catch (err) {
-      res.writeHead(200, { 'content-type': 'text/html' });
-      res.end(`<div style="color:red;padding:20px">${err.message}</div>`);
+    let result;
+    if (mode === 'evolved' && evolved.has(idx)) {
+      result = renderFixture(idx, evolved.get(idx));
+    } else if (mode === 'evolved') {
+      result = { svg: null, metrics: null };
+    } else {
+      result = renderFixture(idx, null);
     }
-    return;
+
+    res.writeHead(200, { 'content-type': 'application/json' });
+    return res.end(JSON.stringify(result));
+  }
+
+  if (url.pathname === '/evolve') {
+    const idx = parseInt(url.searchParams.get('idx') || '0');
+    const f = fixtures[idx];
+    if (!f) {
+      res.writeHead(400, { 'content-type': 'application/json' });
+      return res.end(JSON.stringify({ error: 'fixture not found' }));
+    }
+
+    const gens = f.routes.length > 15 ? 150 : 80;
+    const pop = Math.max(20, f.routes.length * 3);
+    const result = evolveRouteOrder(f.dag, f.routes, { generations: gens, populationSize: pop });
+
+    evolved.set(idx, result.bestPermutation);
+
+    res.writeHead(200, { 'content-type': 'application/json' });
+    return res.end(JSON.stringify({
+      permutation: result.bestPermutation,
+      fitness: result.bestFitness,
+      generations: result.history.length,
+      history: result.history,
+    }));
   }
 
   res.writeHead(404);
@@ -135,6 +220,6 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(port, () => {
-  console.log(`FlowV2 Explorer: http://localhost:${port}/`);
+  console.log(`FlowV2 Evolution Explorer: http://localhost:${port}/`);
   console.log(`${fixtures.length} fixtures loaded`);
 });
