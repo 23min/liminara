@@ -39,11 +39,8 @@ const VERSIONS = {
     engine: 'flowv2',
     opts: { laneHeight: 90, layerSpacing: 65 },
   },
-  'flow-legacy': {
-    label: 'Flow Legacy',
-    engine: 'flow',
-    opts: { direction: 'ltr', scale: 0.9 },
-  },
+  // Flow Legacy removed — render.js changes for Mode 1 (pills, track
+  // offsets) broke layoutFlow's rendering. FlowV2 replaces it.
 };
 
 async function main() {
