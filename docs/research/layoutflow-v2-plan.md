@@ -130,15 +130,56 @@ layoutFlowV2 REUSES strategies from the shared `strategies/` directory:
 - `track-assignment.js` — MLCM at interchanges
 - `order-nodes-*.js` — ordering strategies
 
-### Milestones
+## Lessons from Flow Legacy vs FlowV2 Comparison (2026-04-12)
+
+### What Legacy does well that FlowV2 must adopt
+
+1. **Shared spine model** — routes share the trunk's Y axis and deviate only
+   at divergence points. NOT one-lane-per-route swimlanes. This is the
+   "directly-follows graph" paradigm from process mining.
+
+2. **Global side assignment** — each non-trunk route gets a FIXED side
+   (left/right of trunk) maintained everywhere. Prevents crossings.
+
+3. **Dot spacing at shared nodes** — parallel routes spread by `dotSpacing`
+   (12px), not `laneHeight` (70px). Very compact.
+
+4. **Station cards with obstacle routing** — cards placed next to stations,
+   edges route around them via occupancy grid.
+
+5. **Sequential trunk-first placement** — trunk laid first gets best path,
+   other routes route around existing obstacles.
+
+### What Legacy does poorly that FlowV2 must fix
+
+1. **No crossing minimization** — relies purely on side assignment
+2. **Hardcoded heuristics** — not evolvable
+3. **No progressive abstraction**
+4. **O(n²) occupancy grid**
+5. **Card overlap on dense graphs** — only tries 6 positions
+
+### The right FlowV2 model
+
+NOT swimlanes. Instead: **shared-spine with deviation tracks**.
 
 ```
-FV2-1: Basic pipeline — topo sort, layer assignment, simple Y lanes,
-       H-V-H edge routing, dot stations. No cards, no bundling.
-       Compare against legacy layoutFlow.
+Trunk:     ────●────●────●────●────●────
+Route A:   ────●────●──┐ ●────●────●────
+                       └─●
+Route B:        ●──┐    ●────●
+                   └────●
+```
 
-FV2-2: Crossing minimization — barycenter sweep, virtual nodes.
-       Measure improvement on MLCM + metro fixtures.
+### Revised milestones
+
+```
+FV2-1: ✅ Basic swimlane pipeline (proved wrong approach)
+
+FV2-2: Shared-spine model — trunk-first, global side assignment,
+       dot spacing. Clean code, evolvable params. Match Legacy quality.
+
+FV2-3: Crossing minimization — barycenter sweep at shared nodes.
+       Measure improvement vs Legacy on MLCM + internal fixtures.
 
 FV2-3: Station cards + obstacle routing — optional cards with
        label/data, edges route around cards.
