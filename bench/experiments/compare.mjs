@@ -117,7 +117,10 @@ table.summary .best { background: #e6ffe6; font-weight: bold; }
 .modal-content h3 { margin: 0 0 8px; font-size: 14px; color: #333; }
 .modal-content svg { display: block; max-width: 100%; height: auto; }
 .modal-content .m { font-size: 11px; color: #666; margin-top: 8px; font-family: monospace; }
+.tooltip { position: fixed; background: #333; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; pointer-events: none; z-index: 2000; display: none; font-family: sans-serif; }
 </style></head><body>
+
+<div class="tooltip" id="tooltip"></div>
 
 <div class="modal" id="modal" onclick="this.classList.remove('open')">
   <div class="modal-content" onclick="event.stopPropagation()">
@@ -139,6 +142,28 @@ function showModal(cell) {
   document.getElementById('modal').classList.add('open');
 }
 document.addEventListener('keydown', e => { if (e.key === 'Escape') document.getElementById('modal').classList.remove('open'); });
+
+// Hover tooltips on station nodes
+const tip = document.getElementById('tooltip');
+document.addEventListener('mouseover', e => {
+  const g = e.target.closest('[data-node-id]');
+  if (g) {
+    const id = g.getAttribute('data-node-id');
+    const label = g.querySelector('.dm-label')?.textContent || id;
+    tip.textContent = label;
+    tip.style.display = 'block';
+  }
+});
+document.addEventListener('mousemove', e => {
+  if (tip.style.display === 'block') {
+    tip.style.left = (e.clientX + 12) + 'px';
+    tip.style.top = (e.clientY - 8) + 'px';
+  }
+});
+document.addEventListener('mouseout', e => {
+  const g = e.target.closest('[data-node-id]');
+  if (g) tip.style.display = 'none';
+});
 </script>
 <h1>Layout Experiment: ${timestamp}</h1>
 <div class="meta">${versionNames.length} versions × ${fixtures.length} fixtures | dagre as reference</div>`;
