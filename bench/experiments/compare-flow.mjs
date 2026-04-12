@@ -9,6 +9,7 @@ import { fileURLToPath } from 'node:url';
 import { dagMap } from '../../dag-map/src/index.js';
 import { layoutMetro } from '../../dag-map/src/layout-metro.js';
 import { layoutFlow } from '../../dag-map/src/layout-flow.js';
+import { layoutFlowV2 } from '../../dag-map/src/layout-flow-v2.js';
 import { renderSVG } from '../../dag-map/src/render.js';
 import { loadExperimentFixtures } from './fixtures.mjs';
 
@@ -23,29 +24,20 @@ const VERSIONS = {
       mainSpacing: 26, subSpacing: 40,
     },
   },
-  'swim-default': {
-    label: 'Swimlane',
-    engine: 'metro',
-    opts: {
-      strategies: { assignLanes: 'swimlane' },
-      mainSpacing: 60,
-    },
+  'flowv2-default': {
+    label: 'FlowV2',
+    engine: 'flowv2',
+    opts: { laneHeight: 70, layerSpacing: 55 },
   },
-  'swim-compact': {
-    label: 'Swim+CompactX',
-    engine: 'metro',
-    opts: {
-      strategies: { assignLanes: 'swimlane', positionX: 'compact' },
-      mainSpacing: 60,
-    },
+  'flowv2-compact': {
+    label: 'FlowV2 Compact',
+    engine: 'flowv2',
+    opts: { laneHeight: 50, layerSpacing: 40, scale: 1.2 },
   },
-  'swim-tight': {
-    label: 'Swim Tight',
-    engine: 'metro',
-    opts: {
-      strategies: { assignLanes: 'swimlane' },
-      mainSpacing: 40,
-    },
+  'flowv2-wide': {
+    label: 'FlowV2 Wide',
+    engine: 'flowv2',
+    opts: { laneHeight: 90, layerSpacing: 65 },
   },
   'flow-legacy': {
     label: 'Flow Legacy',
@@ -81,6 +73,9 @@ async function main() {
         let svg;
         if (version.engine === 'flow') {
           const layout = layoutFlow(f.dag, mergedOpts);
+          svg = renderSVG(f.dag, layout, mergedOpts);
+        } else if (version.engine === 'flowv2') {
+          const layout = layoutFlowV2(f.dag, mergedOpts);
           svg = renderSVG(f.dag, layout, mergedOpts);
         } else {
           svg = dagMap(f.dag, mergedOpts).svg;
