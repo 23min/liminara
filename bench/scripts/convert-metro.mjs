@@ -90,42 +90,65 @@ for (const file of readdirSync(INPUT_DIR).filter(f => f.endsWith('.json'))) {
       fullPath.push(current);
     }
 
-    // Build route by topologically sorting this line's nodes,
-    // then keeping only consecutive pairs that have DAG edges.
-    const lineNodeList = [...lineNodes];
-    lineNodeList.sort((a, b) => (nodeX.get(a) ?? 0) - (nodeX.get(b) ?? 0));
-
-    // Build DAG adjacency within this line
+    // Cover ALL DAG edges belonging to this line.
+    // Build DAG adjacency within this line, then extract paths from
+    // every source to every sink to cover all branches.
     const lineDagAdj = new Map();
-    for (const id of lineNodeList) lineDagAdj.set(id, []);
+    const lineDagIn = new Map();
+    for (const id of lineNodes) { lineDagAdj.set(id, []); lineDagIn.set(id, 0); }
+    const lineDagEdges = new Set();
     for (const [from, to] of dagEdges) {
       if (lineNodes.has(from) && lineNodes.has(to)) {
-        lineDagAdj.get(from)?.push(to);
+        lineDagAdj.get(from).push(to);
+        lineDagIn.set(to, lineDagIn.get(to) + 1);
+        lineDagEdges.add(`${from}→${to}`);
       }
     }
 
-    // Find longest path in this line's DAG subgraph
-    const dist = new Map(), prev = new Map();
-    for (const id of lineNodeList) { dist.set(id, 0); prev.set(id, null); }
-    for (const u of lineNodeList) {
-      for (const v of (lineDagAdj.get(u) || [])) {
-        if (dist.get(u) + 1 > dist.get(v)) {
-          dist.set(v, dist.get(u) + 1);
-          prev.set(v, u);
-        }
+    // Find sources (in-degree 0) and extract paths greedily
+    const coveredEdges = new Set();
+    const sources = [...lineNodes].filter(id => lineDagIn.get(id) === 0);
+    sources.sort((a, b) => (nodeX.get(a) ?? 0) - (nodeX.get(b) ?? 0));
+
+    // Greedy: from each source, follow the longest uncovered path
+    for (const src of sources) {
+      let current = src;
+      const path = [current];
+
+      while (true) {
+        const children = (lineDagAdj.get(current) || [])
+          .filter(c => !coveredEdges.has(`${current}→${c}`));
+        if (children.length === 0) break;
+        // Prefer uncovered children, then any child
+        const next = children[0];
+        coveredEdges.add(`${current}→${next}`);
+        path.push(next);
+        current = next;
+      }
+
+      if (path.length >= 2) {
+        const routeId = routes.filter(r => r.cls === line.id.toLowerCase().replace(/\s+/g, '_')).length > 0
+          ? `${line.id}-${routes.length}`
+          : line.id;
+        routes.push({
+          id: routeId,
+          cls: line.id.toLowerCase().replace(/\s+/g, '_'),
+          nodes: path,
+        });
       }
     }
-    let bestDist = -1, bestEnd = null;
-    for (const [id, d] of dist) { if (d > bestDist) { bestDist = d; bestEnd = id; } }
 
-    if (bestEnd && bestDist > 0) {
-      const path = [];
-      for (let c = bestEnd; c !== null; c = prev.get(c)) path.unshift(c);
+    // Cover any remaining uncovered edges as short routes
+    for (const edgeKey of lineDagEdges) {
+      if (coveredEdges.has(edgeKey)) continue;
+      const [from, to] = edgeKey.split('→');
+      const routeId = `${line.id}-${routes.length}`;
       routes.push({
-        id: line.id,
+        id: routeId,
         cls: line.id.toLowerCase().replace(/\s+/g, '_'),
-        nodes: path,
+        nodes: [from, to],
       });
+      coveredEdges.add(edgeKey);
     }
   }
 
