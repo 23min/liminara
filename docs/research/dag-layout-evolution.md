@@ -316,3 +316,138 @@ Note: node overlap is NOT in this list. In metro maps, stations can be close or 
 - dagre (`@dagrejs/dagre`) — reference Sugiyama implementation
 - ELK (`elkjs`) — Eclipse Layout Kernel
 - Graph Drawing Symposium (GD) — annual, 32nd edition in 2024
+- juliuste/transit-map — 6 metro networks in JSON (Berlin, Vienna, Stockholm, Lisbon, Nantes, Montpellier)
+- GLaDOS/OSF — Rome-Lib, AT&T graph benchmarks
+
+## Phase 9: MLCM Implementation + GA Validation (2026-04-11)
+
+### MLCM track assignment (10 rules)
+
+Implemented a track assignment algorithm based on MLCM literature:
+
+| Rule | What | Validated by |
+|------|------|-------------|
+| R1 | Trunk at track 0 at every station | All fixtures |
+| R2 | Branch proximity (most trunk overlap = closest track) | Ablation |
+| R3 | No crossing at fork (greedy swap) | Ablation |
+| R4 | Monotonic tracks (preserve order between stations) | Ablation |
+| R5 | Symmetric branching above/below trunk | Ablation |
+| R6 | Crossing minimization (local swap) | Ablation: 80% fewer crossings |
+| R7 | Bundle coherence (same-class on adjacent tracks) | 100% on all fixtures |
+| R8 | Terminal placement (starting/ending routes at outer tracks) | Visual |
+| R9 | Bend smoothing (reduce unnecessary track changes) | Visual |
+| R10 | No backtracking (hard constraint, DAG direction) | All fixtures |
+
+### GA validation (seed 10000, 100 generations)
+
+The GA confirmed our manual design and revealed surprising improvements:
+
+| Parameter | GA chose | Our default | Insight |
+|-----------|----------|-------------|---------|
+| orderNodes | `hybrid` | `barycenter` | Spectral+barycenter blend wins |
+| reduceCrossings | `none` | `barycenter` | Hybrid ordering makes crossing reduction redundant |
+| assignLanes | `ordered` | `default` | Unanimous — validates MLCM approach |
+| mainSpacing | ~26px | 40px | Trunk lanes should be tight |
+| subSpacing | ~40px | 25px | Branches need room to spread |
+
+**Key finding:** The GA's role is validation, not discovery. It confirmed which
+of our manually-designed rules matter and which parameter values work best.
+The output is an explainable algorithm, not opaque parameters.
+
+### Ablation testing
+
+Removing ordering + crossing reduction from the best configuration:
+- Between-station crossings: 114 → 580 (5× worse)
+- Total bends: 112 → 157 (40% worse)
+
+Confirms each component contributes measurably.
+
+## Phase 10: Visual Refinement (2026-04-11 to 2026-04-12)
+
+### Rendering improvements
+- **Elongated station pills**: multi-route stations rendered as vertical pills
+  sized to span actual route offsets. Track marks inside show each platform.
+- **Parallel tracks**: routes pass through stations at their track offset Y,
+  running parallel between stations.
+- **Global → local offsets**: route offsets computed locally per station (compact pills)
+  instead of globally (oversized pills). Pill bounds from actual min/max offsets.
+- **Direction-aware track assignment**: branches going above trunk get above tracks,
+  branches going below get below tracks. Eliminates visual crossings at forks.
+- **Adaptive layer spacing**: large layers (16+ nodes) get tighter spacing,
+  capped at 300px total height.
+- **Bezier variation**: hash-based perturbation prevents overlapping curves.
+- **Extra edges eliminated**: auto-discovery and metro conversion both cover ALL
+  DAG edges as route segments. Zero gray dashed "extra" lines.
+
+### Structural test: pill containment
+Added aesthetic test verifying all route offsets at interchange stations fall
+within the pill bounds. Catches rendering/layout mismatches structurally.
+
+### Comparison infrastructure
+- Click-to-zoom modal on comparison page
+- Hover tooltips showing station names
+- Simplified to 5 versions (removed identical spectral/refined)
+- MLCM metrics in summary table
+
+### What we learned about straightening
+Path straightening (pulling nodes toward neighbor barycenters) was attempted
+and reverted — it collapsed nodes into horizontal bands, destroying vertical
+separation and creating more crossings. The wiggly route problem needs
+route-aware ordering, not post-processing.
+
+### Metro network fixtures
+6 real metro networks from juliuste/transit-map converted to DAG fixtures:
+- Lisbon (50 stations, 4 lines), Nantes (81, 3), Montpellier (82, 4)
+- Vienna (98, 5), Stockholm (99, 7), Berlin (169, 9)
+
+Conversion uses longest-path-per-line for main routes + greedy coverage for
+branches. Zero violations, zero extra edges on all networks.
+
+### Trains vs tracks insight
+Metro lines branch (e.g., Stockholm green line has 3 southern branches).
+A single longest-path route can't represent a branching line — it picks one
+branch and demotes the others. Fixed by extracting ALL edges per line as
+routes, covering branches equally.
+
+This connects to our layout modes research: branching networks are naturally
+radial/star (Mode 3) or per-line strips (Mode 2), not linear flow (Mode 1).
+Mode 1 handles them via multiple routes per line, but the visual result is
+less natural than a purpose-built mode.
+
+## Mode 1 Final State (checkpoint-mode1-complete)
+
+### The algorithm (explainable, GA-validated)
+
+```
+1. Topological sort + layer assignment
+2. Hybrid ordering (spectral + barycenter blend)
+3. No crossing reduction (hybrid handles it)
+4. Assign Y: trunk pinned at TRUNK_Y, others by ordering, adaptive spacing
+5. Compact X positioning (neighbor barycenter pull, topological constraints)
+6. MLCM track assignment at interchange stations (R1-R10)
+7. Route extraction (greedy longest-path + full edge coverage)
+8. Build paths: parallel tracks through pills, bezier with variation
+```
+
+### Metrics (27 fixtures)
+
+| Category | Station crossings | Overlaps | Bends | Bundle coherence |
+|----------|:-:|:-:|:-:|:-:|
+| MLCM fixtures | 0 | 0 | 0-1 | 100% |
+| Internal models | 0 | 0 | 0-1 | 100% |
+| Metro networks | 0 | 0-1 | 1.6-4.8 | 100% |
+| North DAGs | 0 | 0-1 | 0-1 | 100% |
+
+### Tests
+- 361 dag-map tests (including aesthetic property tests)
+- 320 bench tests (1 skipped)
+- Pill containment structural guard
+
+### What's next (from layout-modes.md)
+
+| Phase | Mode | Description |
+|-------|------|-------------|
+| B | Mode 4 | Consumer-provided XY + MLCM routing |
+| C | Mode 3 | Radial/star with time-as-distance |
+| D | Mode 2 | Revisit layoutFlow with MLCM metrics |
+| E | Mode 5 | Time-expanded round-trip converter |
