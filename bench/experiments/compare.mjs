@@ -100,7 +100,8 @@ h1 { font-size: 18px; margin-bottom: 4px; }
 .fixture h2 { font-size: 14px; color: #333; margin: 0 0 2px; }
 .fixture .info { font-size: 11px; color: #999; margin-bottom: 8px; }
 .grid { display: grid; grid-template-columns: repeat(${allVersionNames.length}, 1fr); gap: 8px; }
-.cell { border: 1px solid #e0e0e0; border-radius: 4px; padding: 6px; overflow: auto; }
+.cell { border: 1px solid #e0e0e0; border-radius: 4px; padding: 6px; overflow: auto; cursor: pointer; }
+.cell:hover { border-color: #4a90d9; }
 .cell h3 { font-size: 11px; color: #666; margin: 0 0 4px; text-transform: uppercase; letter-spacing: 0.5px; }
 .cell svg { max-width: 100%; height: auto; display: block; }
 .cell .m { font-size: 9px; color: #999; margin-top: 4px; font-family: monospace; }
@@ -110,7 +111,35 @@ table.summary { border-collapse: collapse; width: 100%; margin-top: 16px; font-s
 table.summary th, table.summary td { border: 1px solid #ddd; padding: 4px 8px; text-align: right; }
 table.summary th { background: #f5f5f5; text-align: left; }
 table.summary .best { background: #e6ffe6; font-weight: bold; }
+.modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; cursor: pointer; overflow: auto; }
+.modal.open { display: flex; align-items: center; justify-content: center; }
+.modal-content { background: white; border-radius: 8px; padding: 16px; max-width: 95vw; max-height: 95vh; overflow: auto; }
+.modal-content h3 { margin: 0 0 8px; font-size: 14px; color: #333; }
+.modal-content svg { display: block; max-width: 100%; height: auto; }
+.modal-content .m { font-size: 11px; color: #666; margin-top: 8px; font-family: monospace; }
 </style></head><body>
+
+<div class="modal" id="modal" onclick="this.classList.remove('open')">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <h3 id="modal-title"></h3>
+    <div id="modal-svg"></div>
+    <div class="m" id="modal-metrics"></div>
+  </div>
+</div>
+
+<script>
+function showModal(cell) {
+  const title = cell.querySelector('h3')?.textContent || '';
+  const fixture = cell.closest('.fixture')?.querySelector('h2')?.textContent || '';
+  const svg = cell.querySelector('svg')?.outerHTML || '';
+  const metrics = cell.querySelector('.m')?.innerHTML || '';
+  document.getElementById('modal-title').textContent = fixture + ' — ' + title;
+  document.getElementById('modal-svg').innerHTML = svg;
+  document.getElementById('modal-metrics').innerHTML = metrics;
+  document.getElementById('modal').classList.add('open');
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') document.getElementById('modal').classList.remove('open'); });
+</script>
 <h1>Layout Experiment: ${timestamp}</h1>
 <div class="meta">${versionNames.length} versions × ${fixtures.length} fixtures | dagre as reference</div>`;
 
@@ -140,7 +169,7 @@ table.summary .best { background: #e6ffe6; font-weight: bold; }
       const v = r.versions[vName];
       if (!v) continue;
       const label = VERSIONS[vName]?.label || vName;
-      html += `<div class="cell"><h3>${label}</h3>${v.svg}`;
+      html += `<div class="cell" onclick="showModal(this)"><h3>${label}</h3>${v.svg}`;
       if (v.metrics) {
         const m = v.metrics;
         html += `<div class="m">`;
