@@ -1,15 +1,14 @@
 // permutation-ga.mjs — GA for route ordering in FlowV2.
 //
 // Genome = route permutation (which route at which Y position).
-// Fitness = crossings + overlaps + bends on the rendered layout.
-// Operators: order crossover (OX), swap/insert mutation.
+// Fitness = visual crossings + visual overlaps + bends.
+// Measured on actual dot positions from the layout, not SVG paths.
 
 import { layoutFlowV2 } from '../../dag-map/src/layout-flow-v2.js';
 
 // ── Fitness ──
 
 export function evaluateFitness(dag, routes, permutation) {
-  // Reorder routes according to permutation
   const reorderedRoutes = permutation.map(i => routes[i]);
 
   try {
@@ -24,23 +23,29 @@ export function evaluateFitness(dag, routes, permutation) {
     let overlaps = 0;
     let bends = 0;
 
-    // Count segment crossings between different routes
+    // Build actual route paths as sequences of (x, y) from dot positions.
+    // This is what the user SEES, not abstract endpoints.
+    const routePoints = []; // ri → [{x, y}, ...]
+    for (let ri = 0; ri < reorderedRoutes.length; ri++) {
+      const pts = [];
+      for (const nodeId of reorderedRoutes[ri].nodes) {
+        const dp = layout.dotPositions.get(`${nodeId}:${ri}`);
+        const pos = dp || layout.positions.get(nodeId);
+        if (pos) pts.push({ x: pos.x, y: pos.y });
+      }
+      routePoints.push(pts);
+    }
+
+    // Visual crossings: for each pair of route segments, check if
+    // the straight lines between consecutive dots cross.
     const allSegs = [];
-    for (let ri = 0; ri < layout.routePaths.length; ri++) {
-      for (const seg of layout.routePaths[ri]) {
-        const m = seg.d.match(/^M\s+([\d.e+-]+)\s+([\d.e+-]+)/);
-        const points = seg.d.match(/[\d.e+-]+/g);
-        if (m && points && points.length >= 4) {
-          const x1 = parseFloat(points[0]), y1 = parseFloat(points[1]);
-          // Find last coordinate pair
-          const x2 = parseFloat(points[points.length - 2]);
-          const y2 = parseFloat(points[points.length - 1]);
-          allSegs.push({ ri, x1, y1, x2, y2 });
-        }
+    for (let ri = 0; ri < routePoints.length; ri++) {
+      const pts = routePoints[ri];
+      for (let k = 0; k < pts.length - 1; k++) {
+        allSegs.push({ ri, x1: pts[k].x, y1: pts[k].y, x2: pts[k + 1].x, y2: pts[k + 1].y });
       }
     }
 
-    // Pairwise crossing check
     for (let i = 0; i < allSegs.length; i++) {
       for (let j = i + 1; j < allSegs.length; j++) {
         if (allSegs[i].ri === allSegs[j].ri) continue;
@@ -48,26 +53,45 @@ export function evaluateFitness(dag, routes, permutation) {
       }
     }
 
-    // Count overlaps: segments from different routes at same Y
-    const yPairs = new Map();
-    for (const seg of allSegs) {
-      const key = `${Math.round(seg.y1)},${Math.round(seg.y2)}`;
-      if (!yPairs.has(key)) yPairs.set(key, new Set());
-      yPairs.get(key).add(seg.ri);
+    // Visual overlaps: two DIFFERENT routes at the same Y between
+    // the same pair of X coordinates (nodes at same layer).
+    // Check each dot position: if two different routes have dots
+    // within 1px of the same Y at the same X, they overlap.
+    const dotKeys = new Map(); // "roundX,roundY" → Set<ri>
+    for (let ri = 0; ri < routePoints.length; ri++) {
+      for (const pt of routePoints[ri]) {
+        const key = `${Math.round(pt.x)},${Math.round(pt.y)}`;
+        if (!dotKeys.has(key)) dotKeys.set(key, new Set());
+        dotKeys.get(key).add(ri);
+      }
     }
-    for (const routeSet of yPairs.values()) {
+    for (const routeSet of dotKeys.values()) {
       if (routeSet.size > 1) overlaps += routeSet.size - 1;
     }
 
-    // Count bends per route
-    for (const route of reorderedRoutes) {
-      const ys = route.nodes.map(id => {
-        const p = layout.positions.get(id);
-        return p ? p.y : 0;
-      });
+    // Also check segment overlaps: segments from different routes
+    // traveling at the same Y (parallel overlay)
+    for (let i = 0; i < allSegs.length; i++) {
+      for (let j = i + 1; j < allSegs.length; j++) {
+        if (allSegs[i].ri === allSegs[j].ri) continue;
+        // Same Y at both endpoints AND overlapping X range
+        if (Math.abs(allSegs[i].y1 - allSegs[j].y1) < 1.5 &&
+            Math.abs(allSegs[i].y2 - allSegs[j].y2) < 1.5) {
+          // Check X overlap
+          const minX1 = Math.min(allSegs[i].x1, allSegs[i].x2);
+          const maxX1 = Math.max(allSegs[i].x1, allSegs[i].x2);
+          const minX2 = Math.min(allSegs[j].x1, allSegs[j].x2);
+          const maxX2 = Math.max(allSegs[j].x1, allSegs[j].x2);
+          if (minX1 < maxX2 && minX2 < maxX1) overlaps++;
+        }
+      }
+    }
+
+    // Bends: Y-direction reversals per route (using dot positions)
+    for (const pts of routePoints) {
       let prevDy = 0;
-      for (let k = 1; k < ys.length; k++) {
-        const dy = ys[k] - ys[k - 1];
+      for (let k = 1; k < pts.length; k++) {
+        const dy = pts[k].y - pts[k - 1].y;
         if (Math.abs(dy) > 0.5 && Math.abs(prevDy) > 0.5) {
           if ((prevDy > 0 && dy < 0) || (prevDy < 0 && dy > 0)) bends++;
         }
@@ -76,7 +100,7 @@ export function evaluateFitness(dag, routes, permutation) {
     }
 
     return {
-      fitness: crossings * 100 + overlaps * 10 + bends * 5,
+      fitness: crossings * 100 + overlaps * 20 + bends * 5,
       crossings,
       overlaps,
       bends,
@@ -103,7 +127,6 @@ function dir(ax, ay, bx, by, cx, cy) {
 
 export function randomPermutation(n, rng) {
   const perm = Array.from({ length: n }, (_, i) => i);
-  // Fisher-Yates shuffle
   for (let i = n - 1; i > 0; i--) {
     const j = Math.floor(rng() * (i + 1));
     [perm[i], perm[j]] = [perm[j], perm[i]];
@@ -115,12 +138,8 @@ export function orderCrossover(parentA, parentB, rng) {
   const n = parentA.length;
   const start = Math.floor(rng() * n);
   const end = start + Math.floor(rng() * (n - start));
-
   const child = new Array(n).fill(-1);
-  // Copy substring from A
   for (let i = start; i <= end; i++) child[i] = parentA[i];
-
-  // Fill remaining from B, preserving order
   const used = new Set(child.filter(x => x >= 0));
   const bOrder = parentB.filter(x => !used.has(x));
   let bi = 0;
@@ -131,19 +150,17 @@ export function orderCrossover(parentA, parentB, rng) {
 }
 
 export function mutateSwap(perm, rng) {
-  const n = perm.length;
   const copy = [...perm];
-  const i = Math.floor(rng() * n);
-  const j = Math.floor(rng() * n);
+  const i = Math.floor(rng() * copy.length);
+  const j = Math.floor(rng() * copy.length);
   [copy[i], copy[j]] = [copy[j], copy[i]];
   return copy;
 }
 
 export function mutateInsert(perm, rng) {
-  const n = perm.length;
   const copy = [...perm];
-  const from = Math.floor(rng() * n);
-  const to = Math.floor(rng() * n);
+  const from = Math.floor(rng() * copy.length);
+  const to = Math.floor(rng() * copy.length);
   const item = copy.splice(from, 1)[0];
   copy.splice(to, 0, item);
   return copy;
@@ -159,7 +176,6 @@ export function evolveRouteOrder(dag, routes, {
   seed = 42,
   onGeneration = null,
 } = {}) {
-  // Seeded PRNG
   let rngState = seed;
   function rng() {
     rngState = (rngState * 1103515245 + 12345) & 0x7fffffff;
@@ -169,12 +185,14 @@ export function evolveRouteOrder(dag, routes, {
   const n = routes.length;
   if (n <= 1) return { bestPermutation: [0], bestFitness: { fitness: 0, crossings: 0, overlaps: 0, bends: 0 }, history: [] };
 
-  // Initialize population
   let population = [];
-  for (let i = 0; i < populationSize; i++) {
+  // Include the default order as one of the initial population
+  const defaultPerm = Array.from({ length: n }, (_, i) => i);
+  population.push({ perm: defaultPerm, ...evaluateFitness(dag, routes, defaultPerm) });
+
+  for (let i = 1; i < populationSize; i++) {
     const perm = randomPermutation(n, rng);
-    const fit = evaluateFitness(dag, routes, perm);
-    population.push({ perm, ...fit });
+    population.push({ perm, ...evaluateFitness(dag, routes, perm) });
   }
   population.sort((a, b) => a.fitness - b.fitness);
 
@@ -182,26 +200,16 @@ export function evolveRouteOrder(dag, routes, {
 
   for (let gen = 0; gen < generations; gen++) {
     const nextPop = [];
+    for (let i = 0; i < eliteCount; i++) nextPop.push(population[i]);
 
-    // Elitism
-    for (let i = 0; i < eliteCount; i++) {
-      nextPop.push(population[i]);
-    }
-
-    // Breed
     while (nextPop.length < populationSize) {
-      // Tournament selection
       const p1 = tournament(population, 3, rng);
       const p2 = tournament(population, 3, rng);
-
       let childPerm = orderCrossover(p1.perm, p2.perm, rng);
-
       if (rng() < mutationRate) {
         childPerm = rng() < 0.5 ? mutateSwap(childPerm, rng) : mutateInsert(childPerm, rng);
       }
-
-      const fit = evaluateFitness(dag, routes, childPerm);
-      nextPop.push({ perm: childPerm, ...fit });
+      nextPop.push({ perm: childPerm, ...evaluateFitness(dag, routes, childPerm) });
     }
 
     nextPop.sort((a, b) => a.fitness - b.fitness);
@@ -209,25 +217,18 @@ export function evolveRouteOrder(dag, routes, {
 
     const best = population[0];
     history.push({ gen, fitness: best.fitness, crossings: best.crossings, overlaps: best.overlaps, bends: best.bends });
-
     if (onGeneration) onGeneration(gen, best, population);
-
-    // Early termination if perfect
     if (best.fitness === 0) break;
   }
 
-  return {
-    bestPermutation: population[0].perm,
-    bestFitness: population[0],
-    history,
-  };
+  return { bestPermutation: population[0].perm, bestFitness: population[0], history };
 }
 
 function tournament(pop, size, rng) {
   let best = pop[Math.floor(rng() * pop.length)];
   for (let i = 1; i < size; i++) {
-    const candidate = pop[Math.floor(rng() * pop.length)];
-    if (candidate.fitness < best.fitness) best = candidate;
+    const c = pop[Math.floor(rng() * pop.length)];
+    if (c.fitness < best.fitness) best = c;
   }
   return best;
 }
