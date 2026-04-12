@@ -10,5 +10,8 @@
   "dependencies": {
     "@dagrejs/dagre": "^3.0.0",
     "elkjs": "^0.11.1"
+  },
+  "devDependencies": {
+    "playwright": "^1.59.1"
   }
 }
