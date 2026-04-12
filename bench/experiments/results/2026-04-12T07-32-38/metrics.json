@@ -1,0 +1,2729 @@
+[
+  {
+    "id": "mlcm-crossing-challenge",
+    "source": "mlcm",
+    "nodes": 8,
+    "edges": 8,
+    "versions": {
+      "v0-original": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 2,
+          "trunkVariance": 36,
+          "totalEdgeLength": 464,
+          "width": 363,
+          "height": 210,
+          "area": 76230,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 1,
+          "totalBends": 2
+        }
+      },
+      "v1-compact-classic": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 2,
+          "trunkVariance": 36,
+          "totalEdgeLength": 415,
+          "width": 360,
+          "height": 210,
+          "area": 75600,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 1,
+          "totalBends": 2
+        }
+      },
+      "v2-compact-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 2,
+          "trunkVariance": 36,
+          "totalEdgeLength": 415,
+          "width": 360,
+          "height": 210,
+          "area": 75600,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 1,
+          "totalBends": 2
+        }
+      },
+      "v3-ga-evolved": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 2,
+          "trunkVariance": 36,
+          "totalEdgeLength": 415,
+          "width": 360,
+          "height": 210,
+          "area": 75600,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 1,
+          "totalBends": 2
+        }
+      },
+      "v4-grid-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 2,
+          "trunkVariance": 36,
+          "totalEdgeLength": 464,
+          "width": 363,
+          "height": 210,
+          "area": 76230,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 1,
+          "totalBends": 2
+        }
+      },
+      "dagre": {
+        "metrics": null
+      }
+    }
+  },
+  {
+    "id": "mlcm-dense-interchange",
+    "source": "mlcm",
+    "nodes": 13,
+    "edges": 12,
+    "versions": {
+      "v0-original": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 4,
+          "trunkVariance": 0,
+          "totalEdgeLength": 773,
+          "width": 306,
+          "height": 275,
+          "area": 84150,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0.8,
+          "totalBends": 4
+        }
+      },
+      "v1-compact-classic": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 4,
+          "trunkVariance": 0,
+          "totalEdgeLength": 1196,
+          "width": 533,
+          "height": 275,
+          "area": 146575,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0.8,
+          "totalBends": 4
+        }
+      },
+      "v2-compact-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 4,
+          "trunkVariance": 0,
+          "totalEdgeLength": 1196,
+          "width": 533,
+          "height": 275,
+          "area": 146575,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0.8,
+          "totalBends": 4
+        }
+      },
+      "v3-ga-evolved": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 4,
+          "trunkVariance": 0,
+          "totalEdgeLength": 1194,
+          "width": 533,
+          "height": 275,
+          "area": 146575,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0.8,
+          "totalBends": 4
+        }
+      },
+      "v4-grid-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 4,
+          "trunkVariance": 0,
+          "totalEdgeLength": 773,
+          "width": 306,
+          "height": 275,
+          "area": 84150,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0.8,
+          "totalBends": 4
+        }
+      },
+      "dagre": {
+        "metrics": null
+      }
+    }
+  },
+  {
+    "id": "mlcm-diamond-merge",
+    "source": "mlcm",
+    "nodes": 11,
+    "edges": 10,
+    "versions": {
+      "v0-original": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 1,
+          "trunkVariance": 0,
+          "totalEdgeLength": 575,
+          "width": 477,
+          "height": 217,
+          "area": 103509,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0.5,
+          "totalBends": 1
+        }
+      },
+      "v1-compact-classic": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 1,
+          "trunkVariance": 0,
+          "totalEdgeLength": 545,
+          "width": 495,
+          "height": 217,
+          "area": 107415,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0.5,
+          "totalBends": 1
+        }
+      },
+      "v2-compact-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 1,
+          "trunkVariance": 0,
+          "totalEdgeLength": 545,
+          "width": 495,
+          "height": 217,
+          "area": 107415,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0.5,
+          "totalBends": 1
+        }
+      },
+      "v3-ga-evolved": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 1,
+          "trunkVariance": 0,
+          "totalEdgeLength": 545,
+          "width": 495,
+          "height": 217,
+          "area": 107415,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0.5,
+          "totalBends": 1
+        }
+      },
+      "v4-grid-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 1,
+          "trunkVariance": 0,
+          "totalEdgeLength": 575,
+          "width": 477,
+          "height": 217,
+          "area": 103509,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0.5,
+          "totalBends": 1
+        }
+      },
+      "dagre": {
+        "metrics": null
+      }
+    }
+  },
+  {
+    "id": "mlcm-parallel-runs",
+    "source": "mlcm",
+    "nodes": 10,
+    "edges": 9,
+    "versions": {
+      "v0-original": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 1,
+          "trunkVariance": 27.55,
+          "totalEdgeLength": 578,
+          "width": 477,
+          "height": 225,
+          "area": 107325,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0.3333333333333333,
+          "totalBends": 1
+        }
+      },
+      "v1-compact-classic": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 1,
+          "trunkVariance": 27.55,
+          "totalEdgeLength": 475,
+          "width": 450,
+          "height": 225,
+          "area": 101250,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0.3333333333333333,
+          "totalBends": 1
+        }
+      },
+      "v2-compact-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 1,
+          "trunkVariance": 27.55,
+          "totalEdgeLength": 475,
+          "width": 450,
+          "height": 225,
+          "area": 101250,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0.3333333333333333,
+          "totalBends": 1
+        }
+      },
+      "v3-ga-evolved": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 1,
+          "trunkVariance": 27.55,
+          "totalEdgeLength": 475,
+          "width": 450,
+          "height": 225,
+          "area": 101250,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0.3333333333333333,
+          "totalBends": 1
+        }
+      },
+      "v4-grid-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 1,
+          "trunkVariance": 27.55,
+          "totalEdgeLength": 578,
+          "width": 477,
+          "height": 225,
+          "area": 107325,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0.3333333333333333,
+          "totalBends": 1
+        }
+      },
+      "dagre": {
+        "metrics": null
+      }
+    }
+  },
+  {
+    "id": "mlcm-trunk-branches",
+    "source": "mlcm",
+    "nodes": 17,
+    "edges": 16,
+    "versions": {
+      "v0-original": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 2,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 937,
+          "width": 477,
+          "height": 254,
+          "area": 121158,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0,
+          "totalBends": 0
+        }
+      },
+      "v1-compact-classic": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 2,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 1006,
+          "width": 535,
+          "height": 254,
+          "area": 135890,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0,
+          "totalBends": 0
+        }
+      },
+      "v2-compact-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 2,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 1006,
+          "width": 535,
+          "height": 254,
+          "area": 135890,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0,
+          "totalBends": 0
+        }
+      },
+      "v3-ga-evolved": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 1000,
+          "width": 535,
+          "height": 264,
+          "area": 141240,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0,
+          "totalBends": 0
+        }
+      },
+      "v4-grid-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 2,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 937,
+          "width": 477,
+          "height": 254,
+          "area": 121158,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0,
+          "totalBends": 0
+        }
+      },
+      "dagre": {
+        "metrics": null
+      }
+    }
+  },
+  {
+    "id": "metro-bvg",
+    "source": "metro",
+    "nodes": 169,
+    "edges": 180,
+    "versions": {
+      "v0-original": {
+        "metrics": {
+          "crossings": 145,
+          "overlaps": 7,
+          "directionChanges": 57,
+          "trunkVariance": 3808.24,
+          "totalEdgeLength": 25347,
+          "width": 2244,
+          "height": 576,
+          "area": 1292544,
+          "stationCrossings": 0,
+          "betweenCrossings": 428,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 25,
+          "bendsPerLine": 6.333333333333333,
+          "totalBends": 57
+        }
+      },
+      "v1-compact-classic": {
+        "metrics": {
+          "crossings": 145,
+          "overlaps": 8,
+          "directionChanges": 57,
+          "trunkVariance": 3808.24,
+          "totalEdgeLength": 18738,
+          "width": 2541,
+          "height": 576,
+          "area": 1463616,
+          "stationCrossings": 0,
+          "betweenCrossings": 195,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 25,
+          "bendsPerLine": 6.333333333333333,
+          "totalBends": 57
+        }
+      },
+      "v2-compact-ordered": {
+        "metrics": {
+          "crossings": 17,
+          "overlaps": 5,
+          "directionChanges": 31,
+          "trunkVariance": 7483.68,
+          "totalEdgeLength": 15505,
+          "width": 2541,
+          "height": 635,
+          "area": 1613535,
+          "stationCrossings": 0,
+          "betweenCrossings": 67,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 25,
+          "bendsPerLine": 3.4444444444444446,
+          "totalBends": 31
+        }
+      },
+      "v3-ga-evolved": {
+        "metrics": {
+          "crossings": 35,
+          "overlaps": 4,
+          "directionChanges": 49,
+          "trunkVariance": 10838.49,
+          "totalEdgeLength": 16052,
+          "width": 2541,
+          "height": 603,
+          "area": 1532223,
+          "stationCrossings": 0,
+          "betweenCrossings": 84,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 25,
+          "bendsPerLine": 5.444444444444445,
+          "totalBends": 49
+        }
+      },
+      "v4-grid-ordered": {
+        "metrics": {
+          "crossings": 17,
+          "overlaps": 4,
+          "directionChanges": 31,
+          "trunkVariance": 7483.68,
+          "totalEdgeLength": 22352,
+          "width": 2244,
+          "height": 635,
+          "area": 1424940,
+          "stationCrossings": 0,
+          "betweenCrossings": 122,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 25,
+          "bendsPerLine": 3.4444444444444446,
+          "totalBends": 31
+        }
+      },
+      "dagre": {
+        "metrics": null
+      }
+    }
+  },
+  {
+    "id": "metro-lisboa",
+    "source": "metro",
+    "nodes": 50,
+    "edges": 52,
+    "versions": {
+      "v0-original": {
+        "metrics": {
+          "crossings": 2,
+          "overlaps": 3,
+          "directionChanges": 10,
+          "trunkVariance": 30.9,
+          "totalEdgeLength": 8022,
+          "width": 1674,
+          "height": 410,
+          "area": 686340,
+          "stationCrossings": 0,
+          "betweenCrossings": 8,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 16,
+          "bendsPerLine": 2.5,
+          "totalBends": 10
+        }
+      },
+      "v1-compact-classic": {
+        "metrics": {
+          "crossings": 2,
+          "overlaps": 3,
+          "directionChanges": 10,
+          "trunkVariance": 30.9,
+          "totalEdgeLength": 5369,
+          "width": 1703,
+          "height": 410,
+          "area": 698230,
+          "stationCrossings": 0,
+          "betweenCrossings": 3,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 16,
+          "bendsPerLine": 2.5,
+          "totalBends": 10
+        }
+      },
+      "v2-compact-ordered": {
+        "metrics": {
+          "crossings": 1,
+          "overlaps": 3,
+          "directionChanges": 5,
+          "trunkVariance": 30.9,
+          "totalEdgeLength": 5324,
+          "width": 1703,
+          "height": 381,
+          "area": 648843,
+          "stationCrossings": 0,
+          "betweenCrossings": 5,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 16,
+          "bendsPerLine": 1.25,
+          "totalBends": 5
+        }
+      },
+      "v3-ga-evolved": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 3,
+          "directionChanges": 6,
+          "trunkVariance": 30.9,
+          "totalEdgeLength": 5386,
+          "width": 1703,
+          "height": 409,
+          "area": 696527,
+          "stationCrossings": 0,
+          "betweenCrossings": 5,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 16,
+          "bendsPerLine": 1.5,
+          "totalBends": 6
+        }
+      },
+      "v4-grid-ordered": {
+        "metrics": {
+          "crossings": 1,
+          "overlaps": 3,
+          "directionChanges": 5,
+          "trunkVariance": 30.9,
+          "totalEdgeLength": 7989,
+          "width": 1674,
+          "height": 381,
+          "area": 637794,
+          "stationCrossings": 0,
+          "betweenCrossings": 7,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 16,
+          "bendsPerLine": 1.25,
+          "totalBends": 5
+        }
+      },
+      "dagre": {
+        "metrics": null
+      }
+    }
+  },
+  {
+    "id": "metro-montpellier",
+    "source": "metro",
+    "nodes": 82,
+    "edges": 85,
+    "versions": {
+      "v0-original": {
+        "metrics": {
+          "crossings": 14,
+          "overlaps": 3,
+          "directionChanges": 18,
+          "trunkVariance": 1669.59,
+          "totalEdgeLength": 10343,
+          "width": 1617,
+          "height": 455,
+          "area": 735735,
+          "stationCrossings": 0,
+          "betweenCrossings": 46,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 15,
+          "bendsPerLine": 4.5,
+          "totalBends": 18
+        }
+      },
+      "v1-compact-classic": {
+        "metrics": {
+          "crossings": 14,
+          "overlaps": 3,
+          "directionChanges": 18,
+          "trunkVariance": 1669.59,
+          "totalEdgeLength": 5369,
+          "width": 1396,
+          "height": 455,
+          "area": 635180,
+          "stationCrossings": 0,
+          "betweenCrossings": 21,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 15,
+          "bendsPerLine": 4.5,
+          "totalBends": 18
+        }
+      },
+      "v2-compact-ordered": {
+        "metrics": {
+          "crossings": 4,
+          "overlaps": 1,
+          "directionChanges": 17,
+          "trunkVariance": 420.95,
+          "totalEdgeLength": 5096,
+          "width": 1396,
+          "height": 426,
+          "area": 594696,
+          "stationCrossings": 0,
+          "betweenCrossings": 12,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 15,
+          "bendsPerLine": 4.25,
+          "totalBends": 17
+        }
+      },
+      "v3-ga-evolved": {
+        "metrics": {
+          "crossings": 11,
+          "overlaps": 9,
+          "directionChanges": 20,
+          "trunkVariance": 594.56,
+          "totalEdgeLength": 5343,
+          "width": 1396,
+          "height": 426,
+          "area": 594696,
+          "stationCrossings": 0,
+          "betweenCrossings": 21,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 15,
+          "bendsPerLine": 5,
+          "totalBends": 20
+        }
+      },
+      "v4-grid-ordered": {
+        "metrics": {
+          "crossings": 4,
+          "overlaps": 1,
+          "directionChanges": 17,
+          "trunkVariance": 420.95,
+          "totalEdgeLength": 10148,
+          "width": 1617,
+          "height": 426,
+          "area": 688842,
+          "stationCrossings": 0,
+          "betweenCrossings": 30,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 15,
+          "bendsPerLine": 4.25,
+          "totalBends": 17
+        }
+      },
+      "dagre": {
+        "metrics": null
+      }
+    }
+  },
+  {
+    "id": "metro-nantes",
+    "source": "metro",
+    "nodes": 81,
+    "edges": 80,
+    "versions": {
+      "v0-original": {
+        "metrics": {
+          "crossings": 16,
+          "overlaps": 1,
+          "directionChanges": 15,
+          "trunkVariance": 9156.34,
+          "totalEdgeLength": 9811,
+          "width": 1617,
+          "height": 495,
+          "area": 800415,
+          "stationCrossings": 0,
+          "betweenCrossings": 3,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 20,
+          "bendsPerLine": 5,
+          "totalBends": 15
+        }
+      },
+      "v1-compact-classic": {
+        "metrics": {
+          "crossings": 16,
+          "overlaps": 1,
+          "directionChanges": 15,
+          "trunkVariance": 9156.34,
+          "totalEdgeLength": 6251,
+          "width": 1733,
+          "height": 495,
+          "area": 857835,
+          "stationCrossings": 0,
+          "betweenCrossings": 3,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 20,
+          "bendsPerLine": 5,
+          "totalBends": 15
+        }
+      },
+      "v2-compact-ordered": {
+        "metrics": {
+          "crossings": 5,
+          "overlaps": 1,
+          "directionChanges": 10,
+          "trunkVariance": 8584.67,
+          "totalEdgeLength": 6091,
+          "width": 1733,
+          "height": 517,
+          "area": 895961,
+          "stationCrossings": 0,
+          "betweenCrossings": 3,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 20,
+          "bendsPerLine": 3.3333333333333335,
+          "totalBends": 10
+        }
+      },
+      "v3-ga-evolved": {
+        "metrics": {
+          "crossings": 9,
+          "overlaps": 1,
+          "directionChanges": 9,
+          "trunkVariance": 10444.03,
+          "totalEdgeLength": 6256,
+          "width": 1733,
+          "height": 542,
+          "area": 939286,
+          "stationCrossings": 0,
+          "betweenCrossings": 9,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 20,
+          "bendsPerLine": 3,
+          "totalBends": 9
+        }
+      },
+      "v4-grid-ordered": {
+        "metrics": {
+          "crossings": 5,
+          "overlaps": 1,
+          "directionChanges": 10,
+          "trunkVariance": 8584.67,
+          "totalEdgeLength": 9789,
+          "width": 1617,
+          "height": 517,
+          "area": 835989,
+          "stationCrossings": 0,
+          "betweenCrossings": 3,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 20,
+          "bendsPerLine": 3.3333333333333335,
+          "totalBends": 10
+        }
+      },
+      "dagre": {
+        "metrics": null
+      }
+    }
+  },
+  {
+    "id": "metro-stockholm",
+    "source": "metro",
+    "nodes": 99,
+    "edges": 99,
+    "versions": {
+      "v0-original": {
+        "metrics": {
+          "crossings": 9,
+          "overlaps": 10,
+          "directionChanges": 18,
+          "trunkVariance": 179.56,
+          "totalEdgeLength": 11986,
+          "width": 1560,
+          "height": 519,
+          "area": 809640,
+          "stationCrossings": 0,
+          "betweenCrossings": 69,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 22,
+          "bendsPerLine": 2.5714285714285716,
+          "totalBends": 18
+        }
+      },
+      "v1-compact-classic": {
+        "metrics": {
+          "crossings": 9,
+          "overlaps": 8,
+          "directionChanges": 18,
+          "trunkVariance": 179.56,
+          "totalEdgeLength": 8030,
+          "width": 1845,
+          "height": 519,
+          "area": 957555,
+          "stationCrossings": 0,
+          "betweenCrossings": 53,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 22,
+          "bendsPerLine": 2.5714285714285716,
+          "totalBends": 18
+        }
+      },
+      "v2-compact-ordered": {
+        "metrics": {
+          "crossings": 1,
+          "overlaps": 1,
+          "directionChanges": 10,
+          "trunkVariance": 2004.92,
+          "totalEdgeLength": 7902,
+          "width": 1845,
+          "height": 584,
+          "area": 1077480,
+          "stationCrossings": 0,
+          "betweenCrossings": 22,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 22,
+          "bendsPerLine": 1.4285714285714286,
+          "totalBends": 10
+        }
+      },
+      "v3-ga-evolved": {
+        "metrics": {
+          "crossings": 20,
+          "overlaps": 5,
+          "directionChanges": 22,
+          "trunkVariance": 4934.09,
+          "totalEdgeLength": 8339,
+          "width": 1845,
+          "height": 590,
+          "area": 1088550,
+          "stationCrossings": 0,
+          "betweenCrossings": 38,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 22,
+          "bendsPerLine": 3.142857142857143,
+          "totalBends": 22
+        }
+      },
+      "v4-grid-ordered": {
+        "metrics": {
+          "crossings": 1,
+          "overlaps": 1,
+          "directionChanges": 10,
+          "trunkVariance": 2004.92,
+          "totalEdgeLength": 11874,
+          "width": 1560,
+          "height": 584,
+          "area": 911040,
+          "stationCrossings": 0,
+          "betweenCrossings": 31,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 22,
+          "bendsPerLine": 1.4285714285714286,
+          "totalBends": 10
+        }
+      },
+      "dagre": {
+        "metrics": null
+      }
+    }
+  },
+  {
+    "id": "metro-wien",
+    "source": "metro",
+    "nodes": 98,
+    "edges": 104,
+    "versions": {
+      "v0-original": {
+        "metrics": {
+          "crossings": 9,
+          "overlaps": 10,
+          "directionChanges": 20,
+          "trunkVariance": 2250.42,
+          "totalEdgeLength": 13208,
+          "width": 1845,
+          "height": 448,
+          "area": 826560,
+          "stationCrossings": 0,
+          "betweenCrossings": 31,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 21,
+          "bendsPerLine": 4,
+          "totalBends": 20
+        }
+      },
+      "v1-compact-classic": {
+        "metrics": {
+          "crossings": 9,
+          "overlaps": 8,
+          "directionChanges": 20,
+          "trunkVariance": 2250.42,
+          "totalEdgeLength": 6792,
+          "width": 1687,
+          "height": 448,
+          "area": 755776,
+          "stationCrossings": 0,
+          "betweenCrossings": 24,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 21,
+          "bendsPerLine": 4,
+          "totalBends": 20
+        }
+      },
+      "v2-compact-ordered": {
+        "metrics": {
+          "crossings": 3,
+          "overlaps": 8,
+          "directionChanges": 9,
+          "trunkVariance": 3540.51,
+          "totalEdgeLength": 6680,
+          "width": 1687,
+          "height": 440,
+          "area": 742280,
+          "stationCrossings": 0,
+          "betweenCrossings": 11,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 21,
+          "bendsPerLine": 1.8,
+          "totalBends": 9
+        }
+      },
+      "v3-ga-evolved": {
+        "metrics": {
+          "crossings": 14,
+          "overlaps": 13,
+          "directionChanges": 22,
+          "trunkVariance": 3687.51,
+          "totalEdgeLength": 6977,
+          "width": 1687,
+          "height": 467,
+          "area": 787829,
+          "stationCrossings": 0,
+          "betweenCrossings": 33,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 21,
+          "bendsPerLine": 4.4,
+          "totalBends": 22
+        }
+      },
+      "v4-grid-ordered": {
+        "metrics": {
+          "crossings": 3,
+          "overlaps": 10,
+          "directionChanges": 9,
+          "trunkVariance": 3540.51,
+          "totalEdgeLength": 13162,
+          "width": 1845,
+          "height": 440,
+          "area": 811800,
+          "stationCrossings": 0,
+          "betweenCrossings": 22,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 21,
+          "bendsPerLine": 1.8,
+          "totalBends": 9
+        }
+      },
+      "dagre": {
+        "metrics": null
+      }
+    }
+  },
+  {
+    "id": "airport_luggage",
+    "source": "internal",
+    "nodes": 8,
+    "edges": 7,
+    "versions": {
+      "v0-original": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 630,
+          "width": 792,
+          "height": 234,
+          "area": 185328,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0,
+          "totalBends": 0
+        }
+      },
+      "v1-compact-classic": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 378,
+          "width": 540,
+          "height": 234,
+          "area": 126360,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0,
+          "totalBends": 0
+        }
+      },
+      "v2-compact-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 378,
+          "width": 540,
+          "height": 234,
+          "area": 126360,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0,
+          "totalBends": 0
+        }
+      },
+      "v3-ga-evolved": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 378,
+          "width": 540,
+          "height": 234,
+          "area": 126360,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0,
+          "totalBends": 0
+        }
+      },
+      "v4-grid-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 630,
+          "width": 792,
+          "height": 234,
+          "area": 185328,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0,
+          "totalBends": 0
+        }
+      },
+      "dagre": {
+        "metrics": null
+      }
+    }
+  },
+  {
+    "id": "cicd",
+    "source": "internal",
+    "nodes": 8,
+    "edges": 8,
+    "versions": {
+      "v0-original": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 1,
+          "trunkVariance": 0,
+          "totalEdgeLength": 724,
+          "width": 702,
+          "height": 252,
+          "area": 176904,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0.25,
+          "totalBends": 1
+        }
+      },
+      "v1-compact-classic": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 1,
+          "trunkVariance": 0,
+          "totalEdgeLength": 544,
+          "width": 540,
+          "height": 252,
+          "area": 136080,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0.25,
+          "totalBends": 1
+        }
+      },
+      "v2-compact-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 1,
+          "trunkVariance": 0,
+          "totalEdgeLength": 544,
+          "width": 540,
+          "height": 252,
+          "area": 136080,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0.25,
+          "totalBends": 1
+        }
+      },
+      "v3-ga-evolved": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 1,
+          "trunkVariance": 0,
+          "totalEdgeLength": 544,
+          "width": 540,
+          "height": 252,
+          "area": 136080,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0.25,
+          "totalBends": 1
+        }
+      },
+      "v4-grid-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 1,
+          "trunkVariance": 0,
+          "totalEdgeLength": 724,
+          "width": 702,
+          "height": 252,
+          "area": 176904,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0.25,
+          "totalBends": 1
+        }
+      },
+      "dagre": {
+        "metrics": null
+      }
+    }
+  },
+  {
+    "id": "o2c_full",
+    "source": "internal",
+    "nodes": 12,
+    "edges": 13,
+    "versions": {
+      "v0-original": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 1,
+          "trunkVariance": 0,
+          "totalEdgeLength": 1353,
+          "width": 972,
+          "height": 252,
+          "area": 244944,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0.2,
+          "totalBends": 1
+        }
+      },
+      "v1-compact-classic": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 1,
+          "trunkVariance": 0,
+          "totalEdgeLength": 814,
+          "width": 648,
+          "height": 252,
+          "area": 163296,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0.2,
+          "totalBends": 1
+        }
+      },
+      "v2-compact-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 1,
+          "trunkVariance": 0,
+          "totalEdgeLength": 814,
+          "width": 648,
+          "height": 252,
+          "area": 163296,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0.2,
+          "totalBends": 1
+        }
+      },
+      "v3-ga-evolved": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 1,
+          "trunkVariance": 0,
+          "totalEdgeLength": 814,
+          "width": 648,
+          "height": 252,
+          "area": 163296,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0.2,
+          "totalBends": 1
+        }
+      },
+      "v4-grid-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 1,
+          "trunkVariance": 0,
+          "totalEdgeLength": 1353,
+          "width": 972,
+          "height": 252,
+          "area": 244944,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0.2,
+          "totalBends": 1
+        }
+      },
+      "dagre": {
+        "metrics": null
+      }
+    }
+  },
+  {
+    "id": "hire_to_retire",
+    "source": "internal",
+    "nodes": 9,
+    "edges": 8,
+    "versions": {
+      "v0-original": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 1,
+          "directionChanges": 0,
+          "trunkVariance": 51.84,
+          "totalEdgeLength": 722,
+          "width": 792,
+          "height": 252,
+          "area": 199584,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0,
+          "totalBends": 0
+        }
+      },
+      "v1-compact-classic": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 1,
+          "directionChanges": 0,
+          "trunkVariance": 51.84,
+          "totalEdgeLength": 487,
+          "width": 594,
+          "height": 252,
+          "area": 149688,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0,
+          "totalBends": 0
+        }
+      },
+      "v2-compact-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 1,
+          "directionChanges": 0,
+          "trunkVariance": 51.84,
+          "totalEdgeLength": 487,
+          "width": 594,
+          "height": 252,
+          "area": 149688,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0,
+          "totalBends": 0
+        }
+      },
+      "v3-ga-evolved": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 1,
+          "directionChanges": 0,
+          "trunkVariance": 51.84,
+          "totalEdgeLength": 487,
+          "width": 594,
+          "height": 252,
+          "area": 149688,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0,
+          "totalBends": 0
+        }
+      },
+      "v4-grid-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 1,
+          "directionChanges": 0,
+          "trunkVariance": 51.84,
+          "totalEdgeLength": 722,
+          "width": 792,
+          "height": 252,
+          "area": 199584,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0,
+          "totalBends": 0
+        }
+      },
+      "dagre": {
+        "metrics": null
+      }
+    }
+  },
+  {
+    "id": "logistics_ship",
+    "source": "internal",
+    "nodes": 9,
+    "edges": 8,
+    "versions": {
+      "v0-original": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 720,
+          "width": 882,
+          "height": 234,
+          "area": 206388,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0,
+          "totalBends": 0
+        }
+      },
+      "v1-compact-classic": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 432,
+          "width": 594,
+          "height": 234,
+          "area": 138996,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0,
+          "totalBends": 0
+        }
+      },
+      "v2-compact-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 432,
+          "width": 594,
+          "height": 234,
+          "area": 138996,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0,
+          "totalBends": 0
+        }
+      },
+      "v3-ga-evolved": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 432,
+          "width": 594,
+          "height": 234,
+          "area": 138996,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0,
+          "totalBends": 0
+        }
+      },
+      "v4-grid-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 720,
+          "width": 882,
+          "height": 234,
+          "area": 206388,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0,
+          "totalBends": 0
+        }
+      },
+      "dagre": {
+        "metrics": null
+      }
+    }
+  },
+  {
+    "id": "healthcare",
+    "source": "internal",
+    "nodes": 9,
+    "edges": 9,
+    "versions": {
+      "v0-original": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 814,
+          "width": 792,
+          "height": 252,
+          "area": 199584,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0,
+          "totalBends": 0
+        }
+      },
+      "v1-compact-classic": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 598,
+          "width": 594,
+          "height": 252,
+          "area": 149688,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0,
+          "totalBends": 0
+        }
+      },
+      "v2-compact-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 598,
+          "width": 594,
+          "height": 252,
+          "area": 149688,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0,
+          "totalBends": 0
+        }
+      },
+      "v3-ga-evolved": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 598,
+          "width": 594,
+          "height": 252,
+          "area": 149688,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0,
+          "totalBends": 0
+        }
+      },
+      "v4-grid-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 814,
+          "width": 792,
+          "height": 252,
+          "area": 199584,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0,
+          "totalBends": 0
+        }
+      },
+      "dagre": {
+        "metrics": null
+      }
+    }
+  },
+  {
+    "id": "manufacturing",
+    "source": "internal",
+    "nodes": 9,
+    "edges": 8,
+    "versions": {
+      "v0-original": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 1,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 720,
+          "width": 882,
+          "height": 234,
+          "area": 206388,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0,
+          "totalBends": 0
+        }
+      },
+      "v1-compact-classic": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 1,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 432,
+          "width": 594,
+          "height": 234,
+          "area": 138996,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0,
+          "totalBends": 0
+        }
+      },
+      "v2-compact-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 1,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 432,
+          "width": 594,
+          "height": 234,
+          "area": 138996,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0,
+          "totalBends": 0
+        }
+      },
+      "v3-ga-evolved": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 1,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 432,
+          "width": 594,
+          "height": 234,
+          "area": 138996,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0,
+          "totalBends": 0
+        }
+      },
+      "v4-grid-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 1,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 720,
+          "width": 882,
+          "height": 234,
+          "area": 206388,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0,
+          "totalBends": 0
+        }
+      },
+      "dagre": {
+        "metrics": null
+      }
+    }
+  },
+  {
+    "id": "movie_production",
+    "source": "internal",
+    "nodes": 9,
+    "edges": 10,
+    "versions": {
+      "v0-original": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 994,
+          "width": 792,
+          "height": 252,
+          "area": 199584,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0,
+          "totalBends": 0
+        }
+      },
+      "v1-compact-classic": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 706,
+          "width": 594,
+          "height": 252,
+          "area": 149688,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0,
+          "totalBends": 0
+        }
+      },
+      "v2-compact-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 706,
+          "width": 594,
+          "height": 252,
+          "area": 149688,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0,
+          "totalBends": 0
+        }
+      },
+      "v3-ga-evolved": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 706,
+          "width": 594,
+          "height": 252,
+          "area": 149688,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0,
+          "totalBends": 0
+        }
+      },
+      "v4-grid-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 994,
+          "width": 792,
+          "height": 252,
+          "area": 199584,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0,
+          "totalBends": 0
+        }
+      },
+      "dagre": {
+        "metrics": null
+      }
+    }
+  },
+  {
+    "id": "deep_chain",
+    "source": "internal",
+    "nodes": 10,
+    "edges": 9,
+    "versions": {
+      "v0-original": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 810,
+          "width": 972,
+          "height": 234,
+          "area": 227448,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0,
+          "totalBends": 0
+        }
+      },
+      "v1-compact-classic": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 486,
+          "width": 648,
+          "height": 234,
+          "area": 151632,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0,
+          "totalBends": 0
+        }
+      },
+      "v2-compact-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 486,
+          "width": 648,
+          "height": 234,
+          "area": 151632,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0,
+          "totalBends": 0
+        }
+      },
+      "v3-ga-evolved": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 486,
+          "width": 648,
+          "height": 234,
+          "area": 151632,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0,
+          "totalBends": 0
+        }
+      },
+      "v4-grid-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 810,
+          "width": 972,
+          "height": 234,
+          "area": 227448,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0,
+          "totalBends": 0
+        }
+      },
+      "dagre": {
+        "metrics": null
+      }
+    }
+  },
+  {
+    "id": "event_planning",
+    "source": "internal",
+    "nodes": 9,
+    "edges": 9,
+    "versions": {
+      "v0-original": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 814,
+          "width": 792,
+          "height": 252,
+          "area": 199584,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0,
+          "totalBends": 0
+        }
+      },
+      "v1-compact-classic": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 598,
+          "width": 594,
+          "height": 252,
+          "area": 149688,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0,
+          "totalBends": 0
+        }
+      },
+      "v2-compact-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 598,
+          "width": 594,
+          "height": 252,
+          "area": 149688,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0,
+          "totalBends": 0
+        }
+      },
+      "v3-ga-evolved": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 598,
+          "width": 594,
+          "height": 252,
+          "area": 149688,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0,
+          "totalBends": 0
+        }
+      },
+      "v4-grid-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 814,
+          "width": 792,
+          "height": 252,
+          "area": 199584,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0,
+          "totalBends": 0
+        }
+      },
+      "dagre": {
+        "metrics": null
+      }
+    }
+  },
+  {
+    "id": "supply_chain_10cls",
+    "source": "internal",
+    "nodes": 12,
+    "edges": 11,
+    "versions": {
+      "v0-original": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 1,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 990,
+          "width": 1152,
+          "height": 234,
+          "area": 269568,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0,
+          "totalBends": 0
+        }
+      },
+      "v1-compact-classic": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 1,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 594,
+          "width": 756,
+          "height": 234,
+          "area": 176904,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0,
+          "totalBends": 0
+        }
+      },
+      "v2-compact-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 1,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 594,
+          "width": 756,
+          "height": 234,
+          "area": 176904,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0,
+          "totalBends": 0
+        }
+      },
+      "v3-ga-evolved": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 1,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 594,
+          "width": 756,
+          "height": 234,
+          "area": 176904,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0,
+          "totalBends": 0
+        }
+      },
+      "v4-grid-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 1,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 990,
+          "width": 1152,
+          "height": 234,
+          "area": 269568,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0,
+          "totalBends": 0
+        }
+      },
+      "dagre": {
+        "metrics": null
+      }
+    }
+  },
+  {
+    "id": "mfg_dim",
+    "source": "internal",
+    "nodes": 10,
+    "edges": 9,
+    "versions": {
+      "v0-original": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 1,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 810,
+          "width": 972,
+          "height": 234,
+          "area": 227448,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0,
+          "totalBends": 0
+        }
+      },
+      "v1-compact-classic": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 1,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 486,
+          "width": 648,
+          "height": 234,
+          "area": 151632,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0,
+          "totalBends": 0
+        }
+      },
+      "v2-compact-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 1,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 486,
+          "width": 648,
+          "height": 234,
+          "area": 151632,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0,
+          "totalBends": 0
+        }
+      },
+      "v3-ga-evolved": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 1,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 486,
+          "width": 648,
+          "height": 234,
+          "area": 151632,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0,
+          "totalBends": 0
+        }
+      },
+      "v4-grid-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 1,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 810,
+          "width": 972,
+          "height": 234,
+          "area": 227448,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0,
+          "totalBends": 0
+        }
+      },
+      "dagre": {
+        "metrics": null
+      }
+    }
+  },
+  {
+    "id": "pipeline_dim",
+    "source": "internal",
+    "nodes": 8,
+    "edges": 8,
+    "versions": {
+      "v0-original": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 812,
+          "width": 702,
+          "height": 252,
+          "area": 176904,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0,
+          "totalBends": 0
+        }
+      },
+      "v1-compact-classic": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 543,
+          "width": 540,
+          "height": 252,
+          "area": 136080,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0,
+          "totalBends": 0
+        }
+      },
+      "v2-compact-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 543,
+          "width": 540,
+          "height": 252,
+          "area": 136080,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0,
+          "totalBends": 0
+        }
+      },
+      "v3-ga-evolved": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 543,
+          "width": 540,
+          "height": 252,
+          "area": 136080,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0,
+          "totalBends": 0
+        }
+      },
+      "v4-grid-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 0,
+          "trunkVariance": 0,
+          "totalEdgeLength": 812,
+          "width": 702,
+          "height": 252,
+          "area": 176904,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0,
+          "totalBends": 0
+        }
+      },
+      "dagre": {
+        "metrics": null
+      }
+    }
+  },
+  {
+    "id": "g.20.3",
+    "source": "north",
+    "nodes": 20,
+    "edges": 20,
+    "versions": {
+      "v0-original": {
+        "metrics": {
+          "crossings": 1,
+          "overlaps": 0,
+          "directionChanges": 2,
+          "trunkVariance": 0,
+          "totalEdgeLength": 1748,
+          "width": 591,
+          "height": 311,
+          "area": 183801,
+          "stationCrossings": 0,
+          "betweenCrossings": 1,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0.3333333333333333,
+          "totalBends": 2
+        }
+      },
+      "v1-compact-classic": {
+        "metrics": {
+          "crossings": 1,
+          "overlaps": 0,
+          "directionChanges": 2,
+          "trunkVariance": 0,
+          "totalEdgeLength": 1447,
+          "width": 585,
+          "height": 311,
+          "area": 181935,
+          "stationCrossings": 0,
+          "betweenCrossings": 1,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0.3333333333333333,
+          "totalBends": 2
+        }
+      },
+      "v2-compact-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 1,
+          "trunkVariance": 0,
+          "totalEdgeLength": 1416,
+          "width": 585,
+          "height": 282,
+          "area": 164970,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0.16666666666666666,
+          "totalBends": 1
+        }
+      },
+      "v3-ga-evolved": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 1,
+          "trunkVariance": 0,
+          "totalEdgeLength": 1452,
+          "width": 585,
+          "height": 310,
+          "area": 181350,
+          "stationCrossings": 0,
+          "betweenCrossings": 2,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0.16666666666666666,
+          "totalBends": 1
+        }
+      },
+      "v4-grid-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 0,
+          "directionChanges": 1,
+          "trunkVariance": 0,
+          "totalEdgeLength": 1723,
+          "width": 591,
+          "height": 282,
+          "area": 166662,
+          "stationCrossings": 0,
+          "betweenCrossings": 0,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0.16666666666666666,
+          "totalBends": 1
+        }
+      },
+      "dagre": {
+        "metrics": null
+      }
+    }
+  },
+  {
+    "id": "g.30.1",
+    "source": "north",
+    "nodes": 30,
+    "edges": 45,
+    "versions": {
+      "v0-original": {
+        "metrics": {
+          "crossings": 13,
+          "overlaps": 0,
+          "directionChanges": 2,
+          "trunkVariance": 0,
+          "totalEdgeLength": 6129,
+          "width": 705,
+          "height": 314,
+          "area": 221370,
+          "stationCrossings": 0,
+          "betweenCrossings": 15,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0.14285714285714285,
+          "totalBends": 2
+        }
+      },
+      "v1-compact-classic": {
+        "metrics": {
+          "crossings": 13,
+          "overlaps": 0,
+          "directionChanges": 2,
+          "trunkVariance": 0,
+          "totalEdgeLength": 6383,
+          "width": 837,
+          "height": 314,
+          "area": 262818,
+          "stationCrossings": 0,
+          "betweenCrossings": 22,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0.14285714285714285,
+          "totalBends": 2
+        }
+      },
+      "v2-compact-ordered": {
+        "metrics": {
+          "crossings": 1,
+          "overlaps": 0,
+          "directionChanges": 3,
+          "trunkVariance": 0,
+          "totalEdgeLength": 6298,
+          "width": 837,
+          "height": 310,
+          "area": 259470,
+          "stationCrossings": 0,
+          "betweenCrossings": 1,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0.21428571428571427,
+          "totalBends": 3
+        }
+      },
+      "v3-ga-evolved": {
+        "metrics": {
+          "crossings": 3,
+          "overlaps": 0,
+          "directionChanges": 4,
+          "trunkVariance": 0,
+          "totalEdgeLength": 6260,
+          "width": 837,
+          "height": 290,
+          "area": 242730,
+          "stationCrossings": 0,
+          "betweenCrossings": 7,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0.2857142857142857,
+          "totalBends": 4
+        }
+      },
+      "v4-grid-ordered": {
+        "metrics": {
+          "crossings": 1,
+          "overlaps": 0,
+          "directionChanges": 3,
+          "trunkVariance": 0,
+          "totalEdgeLength": 5979,
+          "width": 705,
+          "height": 310,
+          "area": 218550,
+          "stationCrossings": 0,
+          "betweenCrossings": 1,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0.21428571428571427,
+          "totalBends": 3
+        }
+      },
+      "dagre": {
+        "metrics": null
+      }
+    }
+  },
+  {
+    "id": "g.40.5",
+    "source": "north",
+    "nodes": 40,
+    "edges": 56,
+    "versions": {
+      "v0-original": {
+        "metrics": {
+          "crossings": 9,
+          "overlaps": 1,
+          "directionChanges": 16,
+          "trunkVariance": 0,
+          "totalEdgeLength": 7029,
+          "width": 534,
+          "height": 480,
+          "area": 256320,
+          "stationCrossings": 0,
+          "betweenCrossings": 43,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0.7272727272727273,
+          "totalBends": 16
+        }
+      },
+      "v1-compact-classic": {
+        "metrics": {
+          "crossings": 9,
+          "overlaps": 1,
+          "directionChanges": 16,
+          "trunkVariance": 0,
+          "totalEdgeLength": 12662,
+          "width": 945,
+          "height": 480,
+          "area": 453600,
+          "stationCrossings": 0,
+          "betweenCrossings": 70,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0.7272727272727273,
+          "totalBends": 16
+        }
+      },
+      "v2-compact-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 1,
+          "directionChanges": 12,
+          "trunkVariance": 0,
+          "totalEdgeLength": 12354,
+          "width": 945,
+          "height": 420,
+          "area": 396900,
+          "stationCrossings": 0,
+          "betweenCrossings": 42,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0.5454545454545454,
+          "totalBends": 12
+        }
+      },
+      "v3-ga-evolved": {
+        "metrics": {
+          "crossings": 24,
+          "overlaps": 0,
+          "directionChanges": 12,
+          "trunkVariance": 0,
+          "totalEdgeLength": 12929,
+          "width": 945,
+          "height": 444,
+          "area": 419580,
+          "stationCrossings": 0,
+          "betweenCrossings": 93,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0.5454545454545454,
+          "totalBends": 12
+        }
+      },
+      "v4-grid-ordered": {
+        "metrics": {
+          "crossings": 0,
+          "overlaps": 1,
+          "directionChanges": 12,
+          "trunkVariance": 0,
+          "totalEdgeLength": 6758,
+          "width": 534,
+          "height": 420,
+          "area": 224280,
+          "stationCrossings": 0,
+          "betweenCrossings": 30,
+          "bundleCoherence": 1,
+          "monotonicityViolations": 0,
+          "bendsPerLine": 0.5454545454545454,
+          "totalBends": 12
+        }
+      },
+      "dagre": {
+        "metrics": null
+      }
+    }
+  }
+]
