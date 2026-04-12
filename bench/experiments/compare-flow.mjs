@@ -137,11 +137,20 @@ function showModal(cell) {
 document.addEventListener('keydown', e => { if (e.key === 'Escape') document.getElementById('modal').classList.remove('open'); });
 const tip = document.getElementById('tooltip');
 document.addEventListener('mouseover', e => {
-  const g = e.target.closest('[data-node-id]');
-  if (g) { tip.textContent = g.querySelector('.dm-label')?.textContent || g.getAttribute('data-node-id'); tip.style.display = 'block'; }
+  const node = e.target.closest('[data-node-id]');
+  const route = e.target.closest('[data-route-id]');
+  if (node) {
+    tip.textContent = node.querySelector('.dm-label')?.textContent || node.getAttribute('data-node-id');
+    tip.style.display = 'block';
+  } else if (route) {
+    const id = route.getAttribute('data-route-id');
+    const nodes = route.getAttribute('data-route-nodes') || '';
+    tip.textContent = id + ': ' + nodes;
+    tip.style.display = 'block';
+  }
 });
 document.addEventListener('mousemove', e => { if (tip.style.display === 'block') { tip.style.left = (e.clientX+12)+'px'; tip.style.top = (e.clientY-8)+'px'; } });
-document.addEventListener('mouseout', e => { if (e.target.closest('[data-node-id]')) tip.style.display = 'none'; });
+document.addEventListener('mouseout', e => { if (e.target.closest('[data-node-id]') || e.target.closest('[data-route-id]')) tip.style.display = 'none'; });
 </script>
 
 <h1>Mode 2: Swimlane Layout Comparison</h1>
