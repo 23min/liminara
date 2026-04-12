@@ -74,15 +74,22 @@ async function main() {
       entry.versions['dagre'] = { svg: '<svg width="200" height="60"><text x="10" y="30" fill="red">dagre error</text></svg>', metrics: null };
     }
 
-    // Render layoutFlow (Mode 2) for fixtures with provided routes
+    // Render layoutFlow variants (Mode 2) for fixtures with provided routes
     if (f.routes && f.routes.length > 0) {
-      try {
-        const flowOpts = { routes: f.routes, theme: f.theme || 'cream', direction: 'ltr', scale: 1.2 };
-        const flowLayout = layoutFlow(f.dag, flowOpts);
-        const flowSvg = renderSVG(f.dag, flowLayout, flowOpts);
-        entry.versions['flow'] = { svg: flowSvg, metrics: null, reference: true };
-      } catch (err) {
-        entry.versions['flow'] = { svg: `<svg width="200" height="60"><text x="10" y="30" fill="red">Flow: ${err.message.slice(0, 50)}</text></svg>`, metrics: null };
+      const flowVariants = {
+        'flow-ltr': { label: 'Flow LTR', direction: 'ltr', scale: 1.0, columnSpacing: 60, layerSpacing: 40 },
+        'flow-ttb': { label: 'Flow TTB', direction: 'ttb', scale: 1.0, columnSpacing: 60, layerSpacing: 40 },
+        'flow-compact': { label: 'Flow Compact', direction: 'ltr', scale: 0.8, columnSpacing: 40, layerSpacing: 30, dotSpacing: 8 },
+      };
+      for (const [vName, fOpts] of Object.entries(flowVariants)) {
+        try {
+          const opts = { routes: f.routes, theme: f.theme || 'cream', ...fOpts };
+          const flowLayout = layoutFlow(f.dag, opts);
+          const flowSvg = renderSVG(f.dag, flowLayout, opts);
+          entry.versions[vName] = { svg: flowSvg, metrics: null, label: fOpts.label };
+        } catch (err) {
+          entry.versions[vName] = { svg: `<svg width="200" height="60"><text x="10" y="30" fill="red">${err.message.slice(0, 50)}</text></svg>`, metrics: null, label: fOpts.label };
+        }
       }
     }
 
@@ -102,7 +109,7 @@ async function main() {
   await writeFile(join(outDir, 'metrics.csv'), metricsCSV.join('\n'));
 
   // Build HTML comparison
-  const allVersionNames = [...versionNames, 'dagre', 'flow'];
+  const allVersionNames = [...versionNames, 'dagre', 'flow-ltr', 'flow-ttb', 'flow-compact'];
   const colWidth = Math.floor(100 / allVersionNames.length);
 
   let html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Experiment ${timestamp}</title>
@@ -128,6 +135,7 @@ table.summary .best { background: #e6ffe6; font-weight: bold; }
 .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; cursor: pointer; overflow: auto; }
 .modal.open { display: flex; align-items: center; justify-content: center; }
 .modal-content { background: white; border-radius: 8px; padding: 16px; max-width: 95vw; max-height: 95vh; overflow: auto; }
+.modal-content svg { max-width: none; width: auto; }
 .modal-content h3 { margin: 0 0 8px; font-size: 14px; color: #333; }
 .modal-content svg { display: block; max-width: 100%; height: auto; }
 .modal-content .m { font-size: 11px; color: #666; margin-top: 8px; font-family: monospace; }
@@ -207,7 +215,7 @@ document.addEventListener('mouseout', e => {
     for (const vName of allVersionNames) {
       const v = r.versions[vName];
       if (!v) continue;
-      const label = VERSIONS[vName]?.label || vName;
+      const label = VERSIONS[vName]?.label || v?.label || vName;
       html += `<div class="cell" onclick="showModal(this)"><h3>${label}</h3>${v.svg}`;
       if (v.metrics) {
         const m = v.metrics;

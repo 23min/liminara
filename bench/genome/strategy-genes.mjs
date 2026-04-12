@@ -16,7 +16,7 @@ export const STRATEGY_SCHEMA = {
   },
   'strategy.assignLanes': {
     type: 'categorical',
-    values: ['default', 'ordered', 'direct'],
+    values: ['default', 'ordered', 'direct', 'swimlane'],
     default: 'default',
   },
   'strategy.refineCoordinates': {

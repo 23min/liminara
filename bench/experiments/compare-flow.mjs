@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// compare-flow.mjs — Mode 2 (layoutFlow) comparison page.
-// Shows Flow variants side by side with one Mode 1 reference.
+// compare-flow.mjs — Mode 2 (swimlane) comparison page.
+// Shows swimlane variants built on layoutMetro + legacy layoutFlow reference.
 
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
@@ -14,23 +14,43 @@ import { loadExperimentFixtures } from './fixtures.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-// Flow variants to compare
-const FLOW_VERSIONS = {
-  'flow-default': {
-    label: 'Flow Default',
-    opts: { direction: 'ltr' },
+const VERSIONS = {
+  'metro-ref': {
+    label: 'Metro (Mode 1)',
+    engine: 'metro',
+    opts: {
+      strategies: { orderNodes: 'hybrid', reduceCrossings: 'none', assignLanes: 'ordered', positionX: 'compact' },
+      mainSpacing: 26, subSpacing: 40,
+    },
   },
-  'flow-ttb': {
-    label: 'Flow TTB',
-    opts: { direction: 'ttb' },
+  'swim-default': {
+    label: 'Swimlane',
+    engine: 'metro',
+    opts: {
+      strategies: { assignLanes: 'swimlane' },
+      mainSpacing: 60,
+    },
   },
-  'flow-compact': {
-    label: 'Flow Compact',
-    opts: { direction: 'ltr', scale: 0.9, columnSpacing: 50, layerSpacing: 35, dotSpacing: 10 },
+  'swim-compact': {
+    label: 'Swim+CompactX',
+    engine: 'metro',
+    opts: {
+      strategies: { assignLanes: 'swimlane', positionX: 'compact' },
+      mainSpacing: 60,
+    },
   },
-  'flow-wide': {
-    label: 'Flow Wide',
-    opts: { direction: 'ltr', scale: 1.2, columnSpacing: 100, layerSpacing: 50 },
+  'swim-tight': {
+    label: 'Swim Tight',
+    engine: 'metro',
+    opts: {
+      strategies: { assignLanes: 'swimlane' },
+      mainSpacing: 40,
+    },
+  },
+  'flow-legacy': {
+    label: 'Flow Legacy',
+    engine: 'flow',
+    opts: { direction: 'ltr', scale: 0.9 },
   },
 };
 
@@ -40,41 +60,34 @@ async function main() {
   await mkdir(outDir, { recursive: true });
 
   const allFixtures = await loadExperimentFixtures();
-  // Only fixtures with provided routes (Flow requires them)
   const fixtures = allFixtures.filter(f => f.routes && f.routes.length > 0);
 
-  const versionNames = Object.keys(FLOW_VERSIONS);
-  const allVersionNames = ['metro-ref', ...versionNames];
+  const versionNames = Object.keys(VERSIONS);
 
-  console.log(`Comparing ${versionNames.length} Flow variants + Metro reference × ${fixtures.length} fixtures`);
+  console.log(`Comparing ${versionNames.length} versions × ${fixtures.length} fixtures`);
 
   const results = [];
 
   for (const f of fixtures) {
     const entry = { id: f.id, source: f.source, nodes: f.dag.nodes.length, edges: f.dag.edges.length, routes: f.routes.length, versions: {} };
 
-    // Mode 1 reference (GA Evolved)
-    try {
-      const metroOpts = {
-        theme: f.theme || 'cream', ...(f.opts || {}), routes: f.routes, labelSize: 1.2,
-        strategies: { orderNodes: 'hybrid', reduceCrossings: 'none', assignLanes: 'ordered', positionX: 'compact' },
-        mainSpacing: 26, subSpacing: 40,
-      };
-      entry.versions['metro-ref'] = { svg: dagMap(f.dag, metroOpts).svg, label: 'Metro (Mode 1)' };
-    } catch (err) {
-      entry.versions['metro-ref'] = { svg: `<svg width="200" height="60"><text x="10" y="30" fill="red">${err.message.slice(0, 50)}</text></svg>`, label: 'Metro (Mode 1)' };
-    }
-
-    // Flow variants
-    for (const [vName, version] of Object.entries(FLOW_VERSIONS)) {
+    for (const [vName, version] of Object.entries(VERSIONS)) {
       try {
-        const opts = { routes: f.routes, theme: f.theme || 'cream', ...version.opts };
-        const layout = layoutFlow(f.dag, opts);
-        const svg = renderSVG(f.dag, layout, opts);
-        entry.versions[vName] = { svg, label: version.label,
-          info: `${layout.width?.toFixed(0)}×${layout.height?.toFixed(0)}px` };
+        const baseOpts = { theme: f.theme || 'cream', ...(f.opts || {}), routes: f.routes, labelSize: 1.2 };
+        const mergedOpts = { ...baseOpts, ...version.opts };
+        if (version.opts?.strategies) mergedOpts.strategies = { ...version.opts.strategies };
+        if (version.opts?.strategyConfig) mergedOpts.strategyConfig = { ...version.opts.strategyConfig };
+
+        let svg;
+        if (version.engine === 'flow') {
+          const layout = layoutFlow(f.dag, mergedOpts);
+          svg = renderSVG(f.dag, layout, mergedOpts);
+        } else {
+          svg = dagMap(f.dag, mergedOpts).svg;
+        }
+        entry.versions[vName] = { svg, label: version.label };
       } catch (err) {
-        entry.versions[vName] = { svg: `<svg width="200" height="60"><text x="10" y="30" fill="red">${err.message.slice(0, 50)}</text></svg>`, label: version.label };
+        entry.versions[vName] = { svg: `<svg width="200" height="60"><text x="10" y="30" fill="red">${err.message.slice(0, 60)}</text></svg>`, label: version.label };
       }
     }
 
@@ -83,7 +96,7 @@ async function main() {
   }
 
   // Build HTML
-  let html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Flow Comparison ${timestamp}</title>
+  let html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Swimlane Comparison ${timestamp}</title>
 <style>
 body { font-family: -apple-system, sans-serif; margin: 0; padding: 16px; background: #f0f0f0; }
 h1 { font-size: 20px; margin-bottom: 4px; }
@@ -91,15 +104,14 @@ h1 { font-size: 20px; margin-bottom: 4px; }
 .fixture { background: white; margin-bottom: 24px; padding: 12px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
 .fixture h2 { font-size: 14px; color: #333; margin: 0 0 2px; }
 .fixture .info { font-size: 11px; color: #999; margin-bottom: 8px; }
-.grid { display: grid; grid-template-columns: repeat(${allVersionNames.length}, 1fr); gap: 8px; }
-.cell { border: 1px solid #e0e0e0; border-radius: 4px; padding: 6px; overflow: auto; cursor: pointer; max-height: 400px; }
+.grid { display: grid; grid-template-columns: repeat(${versionNames.length}, 1fr); gap: 8px; }
+.cell { border: 1px solid #e0e0e0; border-radius: 4px; padding: 6px; overflow: auto; cursor: pointer; max-height: 500px; }
 .cell:hover { border-color: #4a90d9; }
 .cell h3 { font-size: 11px; color: #666; margin: 0 0 4px; text-transform: uppercase; letter-spacing: 0.5px; }
-.cell .size { font-size: 9px; color: #aaa; }
 .cell svg { max-width: 100%; height: auto; display: block; }
 .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; cursor: pointer; overflow: auto; }
 .modal.open { display: flex; align-items: flex-start; justify-content: center; padding: 20px; }
-.modal-content { background: white; border-radius: 8px; padding: 16px; overflow: auto; max-width: 95vw; }
+.modal-content { background: white; border-radius: 8px; padding: 16px; overflow: auto; max-width: 95vw; max-height: 95vh; }
 .modal-content h3 { margin: 0 0 8px; font-size: 14px; color: #333; }
 .modal-content svg { display: block; max-width: none; width: auto; height: auto; }
 .tooltip { position: fixed; background: #333; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; pointer-events: none; z-index: 2000; display: none; }
@@ -131,17 +143,15 @@ document.addEventListener('mousemove', e => { if (tip.style.display === 'block')
 document.addEventListener('mouseout', e => { if (e.target.closest('[data-node-id]')) tip.style.display = 'none'; });
 </script>
 
-<h1>Mode 2: Flow Layout Comparison</h1>
-<div class="meta">${versionNames.length} Flow variants + Metro reference × ${fixtures.length} fixtures</div>`;
+<h1>Mode 2: Swimlane Layout Comparison</h1>
+<div class="meta">${versionNames.length} versions × ${fixtures.length} fixtures | Swimlane = each route gets its own Y lane</div>`;
 
   for (const r of results) {
     html += `<div class="fixture"><h2>${r.id}</h2><div class="info">${r.source} — ${r.nodes} nodes, ${r.edges} edges, ${r.routes} routes</div><div class="grid">`;
-    for (const vName of allVersionNames) {
+    for (const vName of versionNames) {
       const v = r.versions[vName];
       if (!v) continue;
-      html += `<div class="cell" onclick="showModal(this)"><h3>${v.label || vName}</h3>${v.svg}`;
-      if (v.info) html += `<div class="size">${v.info}</div>`;
-      html += `</div>`;
+      html += `<div class="cell" onclick="showModal(this)"><h3>${v.label || vName}</h3>${v.svg}</div>`;
     }
     html += `</div></div>`;
   }
