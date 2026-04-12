@@ -12,6 +12,7 @@ import { layoutFlow } from '../../dag-map/src/layout-flow.js';
 import { layoutFlowV2 } from '../../dag-map/src/layout-flow-v2.js';
 import { renderFlowV2 } from '../../dag-map/src/render-flow-v2.js';
 import { renderSVG } from '../../dag-map/src/render.js';
+import { createStationRenderer, createEdgeRenderer } from '../../dag-map/src/render-flow-station.js';
 import { loadExperimentFixtures } from './fixtures.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -40,8 +41,11 @@ const VERSIONS = {
     engine: 'flowv2',
     opts: { laneHeight: 90, layerSpacing: 65 },
   },
-  // Flow Legacy removed — render.js changes for Mode 1 (pills, track
-  // offsets) broke layoutFlow's rendering. FlowV2 replaces it.
+  'flow-legacy': {
+    label: 'Flow Legacy',
+    engine: 'flow-legacy',
+    opts: { direction: 'ltr', scale: 1.0 },
+  },
 };
 
 async function main() {
@@ -69,9 +73,13 @@ async function main() {
         if (version.opts?.strategyConfig) mergedOpts.strategyConfig = { ...version.opts.strategyConfig };
 
         let svg;
-        if (version.engine === 'flow') {
+        if (version.engine === 'flow-legacy') {
+          // Render with layoutFlow's own custom renderers to bypass
+          // render.js pill/track changes that break Flow rendering
           const layout = layoutFlow(f.dag, mergedOpts);
-          svg = renderSVG(f.dag, layout, mergedOpts);
+          const renderNode = createStationRenderer(layout, f.routes);
+          const renderEdge = createEdgeRenderer(layout);
+          svg = renderSVG(f.dag, layout, { ...mergedOpts, renderNode, renderEdge });
         } else if (version.engine === 'flowv2') {
           const layout = layoutFlowV2(f.dag, mergedOpts);
           svg = renderFlowV2(f.dag, layout, mergedOpts);
