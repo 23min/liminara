@@ -47,6 +47,20 @@ export const VERSIONS = {
     },
   },
 
+  // Compact X + route-aware crossing reduction
+  'v3b-route-aware': {
+    label: 'Route-Aware',
+    opts: {
+      strategies: {
+        orderNodes: 'barycenter',
+        reduceCrossings: 'route-aware',
+        assignLanes: 'direct',
+        positionX: 'compact',
+      },
+      strategyConfig: { crossingPasses: 12 },
+    },
+  },
+
   // Grid X + ordered (for comparison — shows compact X benefit)
   'v4-grid-ordered': {
     label: 'Grid+Ordered',

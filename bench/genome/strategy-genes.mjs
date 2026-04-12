@@ -11,7 +11,7 @@ export const STRATEGY_SCHEMA = {
   },
   'strategy.reduceCrossings': {
     type: 'categorical',
-    values: ['none', 'barycenter', 'greedy'],
+    values: ['none', 'barycenter', 'greedy', 'route-aware'],
     default: 'none',
   },
   'strategy.assignLanes': {
