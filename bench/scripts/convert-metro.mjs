@@ -4,7 +4,8 @@
 // Input: { nodes, edges, lines } with edges having metadata.lines
 // Output: { id, dag: {nodes, edges}, routes, theme, opts }
 //
-// Routes are built by tracing each line through its edges.
+// Routes are built by tracing each line through its edges, then
+// filtering to only include segments that exist as DAG edges.
 
 import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
 import { join, dirname, basename } from 'node:path';
@@ -30,47 +31,36 @@ for (const file of readdirSync(INPUT_DIR).filter(f => f.endsWith('.json'))) {
   const slug = basename(file, '.input.json');
   const raw = JSON.parse(readFileSync(join(INPUT_DIR, file), 'utf8'));
 
-  // Build adjacency for route tracing
-  const adj = new Map(); // nodeId → [{neighbor, lines}]
-  for (const nd of raw.nodes) {
-    adj.set(nd.id, []);
-  }
-  for (const edge of raw.edges) {
-    const lines = edge.metadata?.lines || [];
-    adj.get(edge.source)?.push({ neighbor: edge.target, lines });
-    adj.get(edge.target)?.push({ neighbor: edge.source, lines });
-  }
-
-  // Build DAG edges — use geographic X to determine direction (left to right)
+  // Build geographic X for DAG direction
   const nodeX = new Map();
   for (const nd of raw.nodes) {
     nodeX.set(nd.id, nd.metadata?.x ?? 0);
   }
 
+  // Build DAG edges: orient by geographic X (left to right)
+  const dagEdgeSet = new Set();
   const dagEdges = [];
-  const edgeSet = new Set();
   for (const edge of raw.edges) {
     const sx = nodeX.get(edge.source) ?? 0;
     const tx = nodeX.get(edge.target) ?? 0;
-    // Direction: left to right (higher X = later)
     let from = edge.source, to = edge.target;
     if (sx > tx) { from = edge.target; to = edge.source; }
-    // Avoid duplicate edges
+    // Same X: use node ID as tiebreaker for determinism
+    if (sx === tx && from > to) { from = edge.target; to = edge.source; }
     const key = `${from}→${to}`;
-    if (!edgeSet.has(key)) {
-      edgeSet.add(key);
+    if (!dagEdgeSet.has(key)) {
+      dagEdgeSet.add(key);
       dagEdges.push([from, to]);
     }
   }
 
-  // Build routes by tracing each line through its edges
+  // Build routes: trace each line, then filter to DAG-direction segments only
   const routes = [];
   for (const line of raw.lines) {
-    // Find all edges belonging to this line
     const lineEdges = raw.edges.filter(e => e.metadata?.lines?.includes(line.id));
     if (lineEdges.length === 0) continue;
 
-    // Build adjacency for this line only
+    // Build undirected adjacency for this line
     const lineAdj = new Map();
     const lineNodes = new Set();
     for (const e of lineEdges) {
@@ -82,24 +72,55 @@ for (const file of readdirSync(INPUT_DIR).filter(f => f.endsWith('.json'))) {
       lineAdj.get(e.target).push(e.source);
     }
 
-    // Find endpoints (degree 1 in this line's subgraph)
+    // Find endpoints (degree 1)
     const endpoints = [...lineNodes].filter(id => (lineAdj.get(id)?.length ?? 0) === 1);
+    if (endpoints.length < 2) continue;
 
-    if (endpoints.length >= 2) {
-      // Trace from leftmost endpoint
-      endpoints.sort((a, b) => (nodeX.get(a) ?? 0) - (nodeX.get(b) ?? 0));
-      const start = endpoints[0];
-      const path = [start];
-      const visited = new Set([start]);
-      let current = start;
-      while (true) {
-        const neighbors = (lineAdj.get(current) || []).filter(n => !visited.has(n));
-        if (neighbors.length === 0) break;
-        current = neighbors[0];
-        visited.add(current);
-        path.push(current);
+    // Trace from leftmost endpoint
+    endpoints.sort((a, b) => (nodeX.get(a) ?? 0) - (nodeX.get(b) ?? 0));
+    const start = endpoints[0];
+    const fullPath = [start];
+    const visited = new Set([start]);
+    let current = start;
+    while (true) {
+      const neighbors = (lineAdj.get(current) || []).filter(n => !visited.has(n));
+      if (neighbors.length === 0) break;
+      current = neighbors[0];
+      visited.add(current);
+      fullPath.push(current);
+    }
+
+    // Build route by topologically sorting this line's nodes,
+    // then keeping only consecutive pairs that have DAG edges.
+    const lineNodeList = [...lineNodes];
+    lineNodeList.sort((a, b) => (nodeX.get(a) ?? 0) - (nodeX.get(b) ?? 0));
+
+    // Build DAG adjacency within this line
+    const lineDagAdj = new Map();
+    for (const id of lineNodeList) lineDagAdj.set(id, []);
+    for (const [from, to] of dagEdges) {
+      if (lineNodes.has(from) && lineNodes.has(to)) {
+        lineDagAdj.get(from)?.push(to);
       }
+    }
 
+    // Find longest path in this line's DAG subgraph
+    const dist = new Map(), prev = new Map();
+    for (const id of lineNodeList) { dist.set(id, 0); prev.set(id, null); }
+    for (const u of lineNodeList) {
+      for (const v of (lineDagAdj.get(u) || [])) {
+        if (dist.get(u) + 1 > dist.get(v)) {
+          dist.set(v, dist.get(u) + 1);
+          prev.set(v, u);
+        }
+      }
+    }
+    let bestDist = -1, bestEnd = null;
+    for (const [id, d] of dist) { if (d > bestDist) { bestDist = d; bestEnd = id; } }
+
+    if (bestEnd && bestDist > 0) {
+      const path = [];
+      for (let c = bestEnd; c !== null; c = prev.get(c)) path.unshift(c);
       routes.push({
         id: line.id,
         cls: line.id.toLowerCase().replace(/\s+/g, '_'),
@@ -108,7 +129,16 @@ for (const file of readdirSync(INPUT_DIR).filter(f => f.endsWith('.json'))) {
     }
   }
 
-  // Build fixture
+  // Verify: every route segment must exist as a DAG edge
+  let violations = 0;
+  for (const route of routes) {
+    for (let i = 1; i < route.nodes.length; i++) {
+      if (!dagEdgeSet.has(`${route.nodes[i-1]}→${route.nodes[i]}`)) {
+        violations++;
+      }
+    }
+  }
+
   const fixture = {
     id: `metro-${slug}`,
     name: NAMES[slug] || slug,
@@ -124,5 +154,6 @@ for (const file of readdirSync(INPUT_DIR).filter(f => f.endsWith('.json'))) {
 
   const outPath = join(OUTPUT_DIR, `${slug}.json`);
   writeFileSync(outPath, JSON.stringify(fixture, null, 2));
-  console.log(`✓ ${slug}: ${fixture.dag.nodes.length} stations, ${fixture.dag.edges.length} edges, ${routes.length} lines → ${outPath}`);
+  const routeSegs = routes.reduce((a, r) => a + r.nodes.length - 1, 0);
+  console.log(`✓ ${slug}: ${fixture.dag.nodes.length} stations, ${dagEdges.length} edges, ${routes.length} routes (${routeSegs} segments), ${violations} violations`);
 }
