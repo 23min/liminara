@@ -10,3 +10,6 @@
 [submodule ".ai"]
 	path = .ai
 	url = https://github.com/23min/ai-workflow.git
+[submodule "admin-pack"]
+	path = admin-pack
+	url = https://github.com/23min/admin-pack.git

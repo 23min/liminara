@@ -7,19 +7,18 @@ Despite the filename, this file is shared workspace context for both Claude and 
 Keep it assistant-neutral.
 Generated assistant adapter files under `.github/` and `.claude/` are local build outputs by default.
 Keep their source of truth in `.ai/` and `.ai-repo/`, and regenerate them locally with `bash .ai/sync.sh`.
-`CLAUDE.md` remains versioned by default because it carries shared workspace context.
 
-## Hard Rules
+## Hard Rules (summary — full rules in `.ai/rules.md`)
 
-### Commits — NEVER without explicit human approval
-- "continue", "ok", "looks good" do **NOT** count as approval
-- Wait for: "commit", "push it", "go ahead and commit", "merge it"
-- Before committing: stage changes, show diff summary, propose message, **STOP and wait**
-- Before pushing: **STOP and ask**
+- **NEVER commit or push without explicit human approval** — "continue" / "ok" do not count
+- **TDD by default** for logic, API, and data code — red → green → refactor
+- **Branch coverage (hard rule)** — every reachable conditional branch needs a test before declaring done; perform a line-by-line audit before the commit-approval prompt, not after the human asks
+- **Identify the agent first** — read the agent file, adopt its role, follow its skill
+- **Branch discipline** — do NOT commit milestone work directly to `main`
+- **Update CLAUDE.md Current Work** after starting or wrapping a milestone
 - Conventional Commits format: `feat:`, `fix:`, `chore:`, `docs:`, `test:`, `refactor:`
 
-### Agent Workflow — ALWAYS identify the agent first
-Before writing any code, determine which agent handles this task:
+## Agent Routing
 
 | Intent | Agent | Read first |
 |--------|-------|------------|
@@ -28,63 +27,18 @@ Before writing any code, determine which agent handles this task:
 | review, check, validate, wrap, finish | **reviewer** | `.ai/agents/reviewer.md` + relevant skill |
 | release, deploy, tag, publish | **deployer** | `.ai/agents/deployer.md` + relevant skill |
 
-Read the agent file. Adopt its role and constraints. Follow its skill workflow.
-
-### TDD — Write tests first
-- **Logic, API, data code:** strict TDD — red → green → refactor
-- **UI components/layout:** build first, then add smoke tests to verify
-- **Scaffold milestones:** tests can come at end as verification
-- No exceptions for logic code unless the user explicitly waives it
-
-### Branches
-- Follow repo-specific branch conventions when they refine the framework defaults.
-- Framework default epic work: `epic/<slug>` integration branch from `main`
-- Framework default milestone work: `milestone/<id>` branch from the repo's configured base branch
-- Do NOT commit milestone work directly to `main`
-
-### Tracking Artifacts
-- Tracking doc: use the repo's configured tracking path and naming convention — update after each AC
-- Decisions: `work/decisions.md` — log architectural/technical decisions made
-- Gaps: `work/gaps.md` — log discovered issues deferred for later
-- Agent learnings: `work/agent-history/<agent>.md` — append patterns and pitfalls
-
-### Code Quality
-- Tests must be deterministic (no network calls, no time-dependent)
-- Build must be green before declaring done
-- Prefer minimal changes — don't refactor unrelated code
-
-### Security
-- Never paste secrets, tokens, or credentials into prompts, docs, or logs
-- New dependencies require human approval
-
-## Enforcement Levels
-
-| Level | Rule | What happens if skipped |
-|-------|------|------------------------|
-| **Hard gate** | Commit approval, push approval | Work is lost or pushed without review |
-| **Hard gate** | Branch workflow | Milestone work lands on wrong branch |
-| **Hard gate** | Update CLAUDE.md current work | Next conversation starts with stale context |
-| **Required** | TDD (for logic code) | Bugs ship without test coverage |
-| **Required** | Tracking doc updates | Progress is invisible |
-| **Required** | decisions.md, gaps.md | Knowledge is lost between sessions |
-| **Required** | agent-history append | Same mistakes repeated |
-
 ## Framework Sources
 
-Agents read the **generated adapters** for their host tool, not the source files below:
-- Claude Code reads `.claude/agents/`, `.claude/skills/<name>/SKILL.md`, `.claude/rules/`
-- Copilot reads `.github/chatmodes/`, `.github/skills/<name>/SKILL.md`, `.github/copilot-instructions.md`
-
-To change agent behavior, edit the source below and re-run `.ai/sync.sh` to regenerate adapters.
-
-| Source path | Purpose |
-|------|---------|
-| `.ai/rules.md` | Full rules (this CLAUDE.md summarizes them) |
-| `.ai/paths.md` | Where artifacts live |
-| `.ai/agents/` | Agent definition sources |
-| `.ai/skills/` | Skill workflow sources |
+| Source | Purpose |
+|--------|---------|
+| `.ai/rules.md` | Full rules and enforcement levels |
+| `.ai/paths.md` | Artifact layout defaults |
+| `.ai/agents/` | Agent definitions (→ `.claude/agents/`, `.github/chatmodes/`) |
+| `.ai/skills/` | Skill workflows (→ `.claude/skills/`, `.github/skills/`) |
 | `.ai/templates/` | Document templates |
-| `.ai-repo/` | Project-specific extensions and overrides |
+| `.ai-repo/rules/` | **Project-specific rules** — read before starting work |
+| `.ai-repo/config/` | Artifact layout overrides |
+| `.ai-repo/skills/` | Project-specific skills |
 
 ## Resolved Artifact Layout
 
