@@ -73,6 +73,19 @@ Discovered work items deferred for later.
 - **Process mining over historical runs** — Camunda's Optimize analyzes completed process instances for bottlenecks and deviations. Liminara's JSONL event logs are already pm4py-compatible (see ADJACENT_TECHNOLOGIES.md §2). A tool or future pack that runs statistical analysis over historical runs to find slow ops, common failure patterns, and plan deviations.
 - **Agentic subprocess pattern** — Camunda models LLM agents as ad-hoc subprocesses where the LLM dynamically picks which tasks to run. In Liminara terms: a `recordable` op whose decision is "which sub-DAG to execute." The decision gets recorded, so replay works. Worth considering for packs where the plan itself is nondeterministic (e.g., serendipity exploration in Radar).
 
+## Port executor: no process pooling (cold-start per invocation)
+**Discovered:** 2026-04-16 (E-21 planning — op lifecycle review)
+**Relates to:** E-21 Pack Contribution Contract, future ML-heavy packs
+**Severity:** Not blocking near-term packs (Radar, admin-pack, VSME) whose ops are dominated by I/O or subprocess work; **blocking** for future packs that load local ML models or heavy native libraries per invocation
+**Context:** `Liminara.Executor.Port.run/3` spawns a fresh Python process (`uv run python -u runner.py`) on every op invocation, sends one request, receives one response, closes the port. Startup cost is roughly 150-300 ms on typical hardware. For I/O- or compute-bound ops this is negligible; for ops that must load a model into memory before first use, it becomes prohibitive (2-second startup on a 1-second op is 67% overhead; across 100 invocations that is minutes of pure cold-start waste).
+**Items:**
+- Add a persistent-worker pool to `Liminara.Executor.Port`: N long-lived Python processes keyed by op module, each holding the runner loop open and accepting many requests over the same port. Round-robin or least-busy dispatch.
+- Prewarm on runtime boot so the first pack invocation does not pay first-run cost.
+- Eviction policy (LRU kill on memory pressure).
+- Health-check + restart on unhealthy signals.
+- Transparent to pack authors — pack manifest and wire protocol are unchanged; this is internal runtime work.
+- The same pattern extends to future `:container`, `:wasm`, and `:remote` executors, which have much larger cold-start costs and **must** be designed around persistent workers from day one (codified in E-21's ADR-EXECUTOR-01).
+
 ## Remaining execution-spec compatibility bridge outside Radar
 **Discovered:** 2026-04-05 (M-TRUTH-03 wrap)
 **Relates to:** E-20 Execution Truth, M-TRUTH-03

@@ -74,14 +74,22 @@ Tightly scoped to capabilities Radar has already proven it needs for production 
   - [ ] First-class warning/degraded-success contract for ops and runs
   - [ ] Observation + UI surfacing of cause, severity, remediation, and output impact
   - [ ] Radar adoption for placeholder/fallback paths and briefing annotations
+- [ ] E-21 Pack Contribution Contract [planning]
+  - Four sub-epics turn Liminara into a language-agnostic runtime + observation host. Packs are external repos contributing via a data contract (manifest + executable units), not library imports.
+  - [ ] **E-21a Contract Design** — ADRs, CUE schemas, fixtures, `design-contract` skill, `cue vet` CI (2 milestones; docs only; critical-path gate)
+  - [ ] **E-21b Runtime Pack Infrastructure** — `PackLoader`, `PackRegistry`, `SurfaceRenderer`, `SecretSource` (+ env-var adapter), `TriggerManager` (`:cron`, `:file_watch`, `:manual`), A2UI MultiProvider in `ex_a2ui`, advisory FS-scope enforcement (3 milestones; validated by loading Radar through the generic loader)
+  - [ ] **E-21c Pack Developer Experience** — `liminara-pack-sdk` (Python, PyPI), `liminara_pack_sdk` (Elixir, Hex), `liminara_ui` widgets (data_grid, pdf_viewer, timeline, json_viewer, dag_map embedder), `liminara-new-pack` + `liminara-test-harness` CLIs (pipx), `e2e-harness` skill, `examples/file_watch_demo` reference pack (3 milestones)
+  - [ ] **E-21d Radar Extraction + Migration** — Radar moves to external `radar-pack` submodule; pack authoring guide; admin-pack-ready checkpoint; schema-evolution doc (2 milestones; capstone)
 - [ ] E-12 Op Sandbox (Layers 2-3) — audit hooks, Landlock, capability declarations in execution spec `isolation` section, sandbox metadata in run events
   - [ ] M-ISO-01 Executor isolation (audit hooks, Landlock)
   - [ ] M-ISO-02 Provenance & documentation (sandbox config in events, docs)
+  - [ ] Hard filesystem isolation for pack-instance FS scope (upgrades E-21's advisory scope)
 - [ ] Recovery mode — "resume from last success" (create new run from failed run, skip completed nodes)
 - [ ] Lightweight topic config — YAML/JSON config listing topics (sources, focus, schedule, paths); Radar.Pack.plan/1 takes topic config and namespaces file paths; GenServer scheduler iterates topics
 - [ ] Observation UI: topic filter — tag runs with topic ID, filter in dashboard
 
 *Scope rule (D-012): only items Radar has already proven it needs. No broad platform abstractions.*
+*E-21 exception: the pack contribution contract expands Phase 5c beyond the D-012 scope rule because admin-pack (external, personal) is introduced as the second-pack forcing function. This prevents one-pack abstraction and hardens the contract before VSME (Phase 6) consumes it.*
 
 ## Phase 6: VSME — Not started [decided next]
 
