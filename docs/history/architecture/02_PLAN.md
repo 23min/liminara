@@ -200,7 +200,7 @@ Observation.Server (GenServer per run)
 - Pack-managed reference data (Eurocode5, SMHI snow loads, BBR)
 - Fan-out DAG (manufacture → drawings + nc + bom in parallel)
 
-**Done when:** A trivial house design produces correct structural output, PDF drawings, and a BOM. Has a buyer.
+**Done when:** A trivial house design produces correct structural output, PDF drawings, and a BOM.
 
 **Dependencies:** Phase 5 (Radar validates the runtime first).
 

@@ -235,7 +235,7 @@ NC export isn't just geometry — it's manufacturing intent. Key formats:
 - **BVN/BVX:** Hundegger-specific formats
 - **WUP:** Weinmann/HOMAG panel processing format
 
-Each machine vendor has preferences and quirks. The buyer's partners' specific equipment determines which backend to implement first.
+Each machine vendor has preferences and quirks. A first implementation targets whichever machine ecosystem the earliest users happen to run.
 
 **Staged approach:**
 1. Human-readable cutlists (CSV/PDF) — immediate value

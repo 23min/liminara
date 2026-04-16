@@ -824,8 +824,6 @@ location ──→ loads ─────────┘                        �
 
 **Reference data:** Eurocode 5 (structural), SMHI snow loads (geographic), BBR (energy). Registered via `Pack.init/0`, versioned. When regulations change, the pack version updates, cache keys invalidate, designs re-evaluate automatically.
 
-**Has a buyer.**
-
 ### 10.5 Software Factory
 
 **Pack ID:** `software_factory`

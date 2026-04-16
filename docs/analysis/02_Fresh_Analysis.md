@@ -71,7 +71,6 @@ Crosser (founded 2016, Sweden, acquired by AVEVA Dec 2025) is instructive not as
 1. **Visual flow design matters.** Every successful orchestration tool has one. Liminara's observation layer is read-only. Eventually you need a way to *design* DAGs visually, not just observe them.
 2. **The "800 connectors" game exists but don't play it.** Crosser wins on breadth of integrations. Liminara wins on depth of provenance. Different games.
 3. **Edge/hybrid deployment is valuable.** The BEAM's distribution capabilities (literally built for telecom at Ericsson) could be a differentiator for running nodes at the edge, coordinated from the cloud.
-4. **The acquisition path:** Crosser was acquired by a domain buyer (AVEVA needed IoT integration). Liminara's acquisition path would be a company that needs auditable AI workflows — think compliance-heavy industries, regulated AI under the EU AI Act.
 
 ### 2.2 Decision Recording Is Emerging as a Recognized Need
 
@@ -120,11 +119,11 @@ The Pack abstraction is sound. Five callbacks is the right surface area. The aci
 |------|-----------|------------|
 | **Radar** | High | Pipeline mode, clear product value, exercises LLM decisions, caching, scheduling. First product. |
 | **Report Compiler** | High | Toy pack, perfect test fixture. Exercises every core concept in miniature. |
-| **House Compiler** | Medium | IR pipeline maps literally, but needs Rust NIFs, binary artifacts, regulatory data. Has a buyer. |
+| **House Compiler** | Medium | IR pipeline maps literally, but needs Rust NIFs, binary artifacts, regulatory data. |
 | **Software Factory** | Low (for now) | Discovery mode is genuinely harder. Competing with Claude Code, Cursor, Copilot agents. |
 | **Everything else** | Cut | Agent Fleets, Population Sim, Evolutionary Factory — research projects, not products. |
 
-**Prove the abstraction with Radar + Report Compiler. The house compiler is the second act if someone is paying for it.**
+**Prove the abstraction with Radar + Report Compiler. The house compiler is a later act once the runtime is solid.**
 
 ### 3.3 Is This Worth Building?
 
@@ -133,7 +132,6 @@ The Pack abstraction is sound. Five callbacks is the right surface area. The aci
 - The market is proven ($5B+ in durable execution)
 - The timing is right — AI workflows exploding, regulation coming (EU AI Act, audit trails)
 - Elixir/OTP is the right tool for orchestration
-- There's a buyer for the house compiler
 
 **Against:**
 - Solo developer building what Temporal has 200+ engineers on

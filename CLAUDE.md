@@ -145,7 +145,7 @@ Always include Co-Authored-By when GitHub Copilot contributed.
 
 1. **Radar** (omvärldsbevakning) — daily intelligence briefing. Next to build.
 2. **VSME** — SME sustainability reporting (first compliance pack)
-3. **House Compiler** — design → manufacturing. Has a buyer.
+3. **House Compiler** — design → manufacturing.
 4. **DPP** — Digital Product Passport (Feb 2027 enforcement)
 
 # TDD Conventions for Liminara
