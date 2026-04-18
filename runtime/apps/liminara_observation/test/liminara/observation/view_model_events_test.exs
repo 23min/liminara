@@ -58,7 +58,8 @@ defmodule Liminara.Observation.ViewModelEventsTest do
         "node_id" => node_id,
         "output_hashes" => ["sha256:out1"],
         "cache_hit" => false,
-        "duration_ms" => 42
+        "duration_ms" => 42,
+        "warnings" => []
       },
       prev_hash: "sha256:op_started_#{node_id}",
       timestamp: ts
@@ -86,7 +87,8 @@ defmodule Liminara.Observation.ViewModelEventsTest do
       payload: %{
         "run_id" => run_id,
         "outcome" => "success",
-        "artifact_hashes" => []
+        "artifact_hashes" => [],
+        "warning_summary" => %{"warning_count" => 0, "degraded_node_ids" => []}
       },
       prev_hash: "sha256:op_completed_a",
       timestamp: "2026-03-19T14:00:05.000Z"

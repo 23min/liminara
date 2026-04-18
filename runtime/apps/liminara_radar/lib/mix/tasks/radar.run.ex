@@ -12,6 +12,7 @@ defmodule Mix.Tasks.Radar.Run do
   alias Liminara.Radar
   alias Liminara.Radar.Config
   alias Liminara.Run
+  alias Liminara.Run.Cli
 
   @impl true
   def run(args) do
@@ -65,6 +66,8 @@ defmodule Mix.Tasks.Radar.Run do
         if result.status == :failed do
           print_failure_details(result)
         end
+
+        Cli.maybe_print_degraded_banner(result)
 
         print_collect_summary(result, store_root)
         print_briefing_summary(result, store_root)

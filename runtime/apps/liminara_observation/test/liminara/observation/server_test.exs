@@ -306,7 +306,8 @@ defmodule Liminara.Observation.ServerTest do
           "node_id" => "a",
           "output_hashes" => ["sha256:r1"],
           "cache_hit" => false,
-          "duration_ms" => 42
+          "duration_ms" => 42,
+          "warnings" => []
         },
         prev_hash: "sha256:os",
         timestamp: "2026-03-19T14:00:02.000Z"
@@ -617,7 +618,8 @@ defmodule Liminara.Observation.ServerTest do
             "node_id" => node_id,
             "output_hashes" => ["sha256:r_#{node_id}"],
             "cache_hit" => false,
-            "duration_ms" => 5
+            "duration_ms" => 5,
+            "warnings" => []
           },
           prev_hash: started_hash,
           timestamp: "2026-03-19T14:00:02.000Z"
@@ -631,7 +633,12 @@ defmodule Liminara.Observation.ServerTest do
     send_pg_event(run_id, %{
       event_hash: "sha256:rc",
       event_type: "run_completed",
-      payload: %{"run_id" => run_id, "outcome" => "success", "artifact_hashes" => []},
+      payload: %{
+        "run_id" => run_id,
+        "outcome" => "success",
+        "artifact_hashes" => [],
+        "warning_summary" => %{"warning_count" => 0, "degraded_node_ids" => []}
+      },
       prev_hash: final_prev,
       timestamp: "2026-03-19T14:00:05.000Z"
     })

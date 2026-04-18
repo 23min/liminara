@@ -204,15 +204,33 @@ One paragraph: overall assessment (approve / request changes).
 - **JavaScript**: node:test or vitest, deterministic (no network, no time-dependent)
 - Test names should read as specifications, not describe implementation
 
+## Running Tests from an AI Assistant (operational rules)
+
+These rules exist to avoid wasted sessions waiting on tests that never report. They apply any time an AI assistant runs `mix test` (or another test runner) via a shell tool.
+
+- **Never run the full umbrella `mix test`.** The Liminara umbrella has at least one pre-existing integration-test pathology (A2UI WebSocket / Python port) that causes the aggregate run to hang well past the 10-minute shell timeout, producing no output. Scope every invocation to a single app (`mix test apps/<app>/test`) or a specific file path.
+- **Never use `run_in_background: true` for tests.** Background tasks only deliver completion notifications on the next turn boundary. An assistant that launches a background test and then says "waiting" ends its turn with nothing scheduled — no wake-up happens until the user types the next message. This looks exactly like a stuck session. Run tests in the foreground with an explicit `timeout` that matches the suite's expected wall time (e.g. 120000ms for a per-app suite).
+- **Beware cross-suite test isolation flakes.** Some tests (e.g. `a2ui_provider_test`) pass in isolation but fail when run alongside other apps' suites in one `mix test` invocation. When validating, prefer per-app suites run separately rather than multi-path invocations. If per-app runs are green individually, treat the multi-path failure as a known flake rather than a regression.
+- **If you must poll, use `Monitor` with a specific grep filter, not `sleep`/`run_in_background`.** Long leading `sleep` commands are blocked, and `run_in_background` does not notify mid-turn.
+- **On timeout, pull the partial output and re-run with narrower scope.** Do not re-run the same hanging command with a longer timeout — diagnose what's hanging (typically a single slow file) and run the fast subset first.
+
 
 ## Current Work
 <!-- Updated by start-milestone and wrap-milestone skills. -->
 
 ### Active milestone
 
-**No milestone currently in progress**
-- `M-TRUTH-03: Radar Semantic Cleanup` is complete and merged into `epic/E-20-execution-truth`
-- Next up in Phase 5c is `E-19: Warnings & Degraded Outcomes`, starting with `M-WARN-01`
+**M-WARN-01: Runtime Warning Contract** — **complete** (ratification milestone — runtime work had pre-landed under E-20)
+- Spec: `work/epics/E-19-warnings-degraded-outcomes/M-WARN-01-runtime-warning-contract.md`
+- Tracking: `work/epics/E-19-warnings-degraded-outcomes/M-WARN-01-tracking.md`
+- Targeted test suite: 70 tests, 0 failures
+
+**Next up: M-WARN-02: Observation + UI surfacing** (status: approved, ready to start)
+- Spec: `work/epics/E-19-warnings-degraded-outcomes/M-WARN-02-observation-ui-surfacing.md`
+- Scope: project warnings + warning_summary through `Liminara.Observation.ViewModel`; render degraded badges on the runs dashboard DAG, a warnings section in the node inspector, and degraded indicators on the runs list; surface degraded runs in `mix radar.run` / `mix demo_run` CLI output
+- No backward-compatibility fallback — projection raises on missing/malformed warning payloads (M-WARN-01 guarantees the shape)
+- Depends on: M-WARN-01 (complete)
+- Downstream: M-WARN-03 (Radar briefing annotation), E-21a ADR-OPSPEC-01
 
 ### Where things stand
 

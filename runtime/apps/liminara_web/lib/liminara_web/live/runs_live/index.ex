@@ -72,15 +72,58 @@ defmodule LiminaraWeb.RunsLive.Index do
             run_id: run_id,
             pack_id: pack_id,
             status: event_type_to_status(event_type),
-            started_at: ts
+            started_at: ts,
+            warning_count: warning_count_from_payload(payload),
+            degraded: derive_degraded(event_type, payload)
           }
 
         existing ->
-          %{existing | status: update_status(existing.status, event_type)}
+          update_existing_run(existing, event_type, payload)
       end
 
     Map.put(runs, run_id, updated_run)
   end
+
+  defp update_existing_run(existing, event_type, payload) do
+    status = update_status(existing.status, event_type)
+
+    updated_warning_count =
+      Map.get(existing, :warning_count, 0) +
+        update_warning_count(existing, payload, event_type)
+
+    updated_degraded =
+      derive_degraded(event_type, payload) or Map.get(existing, :degraded, false)
+
+    run = %{
+      existing
+      | status: status,
+        warning_count: updated_warning_count,
+        degraded: updated_degraded
+    }
+
+    # Failed runs never display as degraded; the failure takes precedence.
+    if run.status == "failed", do: %{run | degraded: false}, else: run
+  end
+
+  defp warning_count_from_payload(payload) do
+    case payload["warning_summary"] do
+      %{"warning_count" => n} when is_integer(n) -> n
+      _ -> 0
+    end
+  end
+
+  defp update_warning_count(_existing, payload, event_type)
+       when event_type in ["run_completed", "run_failed"] do
+    warning_count_from_payload(payload)
+  end
+
+  defp update_warning_count(_existing, _payload, _event_type), do: 0
+
+  defp derive_degraded(event_type, payload) when event_type in ["run_completed"] do
+    warning_count_from_payload(payload) > 0
+  end
+
+  defp derive_degraded(_event_type, _payload), do: false
 
   @impl true
   def terminate(_reason, _socket) do
@@ -127,6 +170,11 @@ defmodule LiminaraWeb.RunsLive.Index do
                 </td>
                 <td style="padding:8px 12px;">
                   <span class={"status status--#{run.status}"}>{run.status}</span>
+                  <%= if Map.get(run, :degraded, false) do %>
+                    <span class="status status--degraded" title="Completed with warnings">
+                      degraded ({Map.get(run, :warning_count, 0)})
+                    </span>
+                  <% end %>
                 </td>
                 <td style="padding:8px 12px; color:var(--dm-muted);">
                   {format_timestamp(run.started_at)}
@@ -181,26 +229,32 @@ defmodule LiminaraWeb.RunsLive.Index do
     path = Path.join([runs_root, run_id, "events.jsonl"])
 
     case read_first_and_last_line(path) do
-      {nil, nil} ->
-        nil
+      {nil, nil} -> nil
+      {first_line, last_line} -> build_run_summary(run_id, first_line, last_line)
+    end
+  end
 
-      {first_line, last_line} ->
-        first = Jason.decode!(first_line)
-        pack_id = get_in(first, ["payload", "pack_id"]) || "unknown"
+  defp build_run_summary(run_id, first_line, last_line) do
+    first = Jason.decode!(first_line)
+    pack_id = get_in(first, ["payload", "pack_id"]) || "unknown"
 
-        # Only show runs that begin with run_started — skip test artifacts
-        if first["event_type"] != "run_started" or not real_run?(run_id, pack_id) do
-          nil
-        else
-          last = if last_line == first_line, do: first, else: Jason.decode!(last_line)
+    # Only show runs that begin with run_started — skip test artifacts
+    if first["event_type"] != "run_started" or not real_run?(run_id, pack_id) do
+      nil
+    else
+      last = if last_line == first_line, do: first, else: Jason.decode!(last_line)
+      status = event_type_to_status(last["event_type"])
+      warning_count = warning_count_from_payload(last["payload"] || %{})
+      degraded = status == "completed" and warning_count > 0
 
-          %{
-            run_id: run_id,
-            pack_id: pack_id,
-            status: event_type_to_status(last["event_type"]),
-            started_at: first["timestamp"]
-          }
-        end
+      %{
+        run_id: run_id,
+        pack_id: pack_id,
+        status: status,
+        started_at: first["timestamp"],
+        warning_count: warning_count,
+        degraded: degraded
+      }
     end
   end
 

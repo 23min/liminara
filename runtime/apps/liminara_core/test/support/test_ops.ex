@@ -608,6 +608,180 @@ defmodule Liminara.TestOps.WithNoCacheExecutionSpec do
   end
 end
 
+defmodule Liminara.TestOps.WithSingleWarningUncachedSpec do
+  @moduledoc """
+  Emits one canonical warning with `cache_policy: :none` so aggregation tests
+  that rely on the singleton cache are not perturbed by earlier runs sharing
+  the same content-addressed inputs.
+  """
+  @behaviour Liminara.Op
+
+  alias Liminara.{ExecutionSpec, OpResult, Warning}
+
+  @impl true
+  def name, do: "single_warning_uncached_legacy"
+
+  @impl true
+  def version, do: "1.0.0"
+
+  @impl true
+  def determinism, do: :pure
+
+  @impl true
+  def execution_spec do
+    ExecutionSpec.new(%{
+      identity: %{name: "single_warning_uncached", version: "1.0.0"},
+      determinism: %{class: :pure, cache_policy: :none, replay_policy: :reexecute},
+      execution: %{executor: :inline, entrypoint: "single_warning_uncached"},
+      contracts: %{
+        outputs: %{result: :artifact},
+        warnings: %{may_emit: true}
+      }
+    })
+  end
+
+  @impl true
+  def execute(%{"text" => text}) do
+    %OpResult{
+      outputs: %{"result" => String.upcase(text)},
+      warnings: [
+        Warning.new(%{
+          code: "uncached_warning",
+          severity: :low,
+          summary: "warning emitted by an uncached op"
+        })
+      ]
+    }
+  end
+end
+
+defmodule Liminara.TestOps.WithMultipleWarningsSpec do
+  @moduledoc """
+  Emits several warnings on the same node — used to verify aggregation counts
+  each warning while listing the emitting node once in `degraded_nodes`.
+  """
+  @behaviour Liminara.Op
+
+  alias Liminara.{ExecutionSpec, OpResult, Warning}
+
+  @impl true
+  def name, do: "multi_warning_legacy"
+
+  @impl true
+  def version, do: "1.0.0"
+
+  @impl true
+  def determinism, do: :pure
+
+  @impl true
+  def execution_spec do
+    ExecutionSpec.new(%{
+      identity: %{name: "multi_warning", version: "1.0.0"},
+      determinism: %{class: :pure, cache_policy: :none, replay_policy: :reexecute},
+      execution: %{executor: :inline, entrypoint: "multi_warning"},
+      contracts: %{
+        outputs: %{result: :artifact},
+        warnings: %{may_emit: true}
+      }
+    })
+  end
+
+  @impl true
+  def execute(%{"text" => text}) do
+    %OpResult{
+      outputs: %{"result" => String.upcase(text)},
+      warnings: [
+        Warning.new(%{code: "w1", severity: :low, summary: "first warning"}),
+        Warning.new(%{code: "w2", severity: :medium, summary: "second warning"}),
+        Warning.new(%{code: "w3", severity: :degraded, summary: "third warning"})
+      ]
+    }
+  end
+end
+
+defmodule Liminara.TestOps.WithViolatingWarningExecutionSpec do
+  @moduledoc """
+  Emits a warning while declaring `contracts.warnings.may_emit: false`.
+  Used to exercise runtime contract-violation enforcement.
+  """
+  @behaviour Liminara.Op
+
+  alias Liminara.{ExecutionSpec, OpResult, Warning}
+
+  @impl true
+  def name, do: "violating_warning_legacy"
+
+  @impl true
+  def version, do: "1.0.0"
+
+  @impl true
+  def determinism, do: :pure
+
+  @impl true
+  def execution_spec do
+    ExecutionSpec.new(%{
+      identity: %{name: "violating_warning", version: "1.0.0"},
+      determinism: %{class: :pure, cache_policy: :none, replay_policy: :reexecute},
+      execution: %{executor: :inline, entrypoint: "violating_warning"},
+      contracts: %{
+        outputs: %{result: :artifact},
+        warnings: %{may_emit: false}
+      }
+    })
+  end
+
+  @impl true
+  def execute(%{"text" => text}) do
+    %OpResult{
+      outputs: %{"result" => String.upcase(text)},
+      warnings: [
+        Warning.new(%{
+          code: "disallowed_warning",
+          severity: :low,
+          summary: "op emits a warning despite declaring may_emit: false"
+        })
+      ]
+    }
+  end
+end
+
+defmodule Liminara.TestOps.WithConformingSilentExecutionSpec do
+  @moduledoc """
+  Declares `contracts.warnings.may_emit: false` and emits no warnings.
+  Baseline for the may_emit enforcement contract.
+  """
+  @behaviour Liminara.Op
+
+  alias Liminara.{ExecutionSpec, OpResult}
+
+  @impl true
+  def name, do: "conforming_silent_legacy"
+
+  @impl true
+  def version, do: "1.0.0"
+
+  @impl true
+  def determinism, do: :pure
+
+  @impl true
+  def execution_spec do
+    ExecutionSpec.new(%{
+      identity: %{name: "conforming_silent", version: "1.0.0"},
+      determinism: %{class: :pure, cache_policy: :none, replay_policy: :reexecute},
+      execution: %{executor: :inline, entrypoint: "conforming_silent"},
+      contracts: %{
+        outputs: %{result: :artifact},
+        warnings: %{may_emit: false}
+      }
+    })
+  end
+
+  @impl true
+  def execute(%{"text" => text}) do
+    %OpResult{outputs: %{"result" => String.upcase(text)}}
+  end
+end
+
 defmodule Liminara.TestOps.WithReplayReexecuteExecutionSpec do
   @behaviour Liminara.Op
 

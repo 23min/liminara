@@ -416,6 +416,126 @@ defmodule Liminara.ExecutionRuntimeContractTest do
       assert completed["payload"]["cache_hit"] == false
     end
 
+    test "op with may_emit: true and warnings emits them unchanged", ctx do
+      plan =
+        Plan.new()
+        |> Plan.add_node("warn", Liminara.TestOps.WithWarningMap, %{
+          "text" => {:literal, "hello"}
+        })
+
+      assert {:ok, result} =
+               Run.execute(plan,
+                 pack_id: "test_pack",
+                 pack_version: "0.1.0",
+                 store_root: ctx.store_root,
+                 runs_root: ctx.runs_root
+               )
+
+      assert result.status == :success
+
+      assert {:ok, events} = Event.Store.read_all(ctx.runs_root, result.run_id)
+
+      completed =
+        Enum.find(events, fn e ->
+          e["event_type"] == "op_completed" and e["payload"]["node_id"] == "warn"
+        end)
+
+      warnings = completed["payload"]["warnings"]
+      assert length(warnings) == 1
+      # No violation warning is injected
+      codes = Enum.map(warnings, & &1["code"])
+      refute "op_warning_contract_violation" in codes
+    end
+
+    test "op with may_emit: false and no warnings produces no violation", ctx do
+      plan =
+        Plan.new()
+        |> Plan.add_node("silent", Liminara.TestOps.WithConformingSilentExecutionSpec, %{
+          "text" => {:literal, "hello"}
+        })
+
+      assert {:ok, result} =
+               Run.execute(plan,
+                 pack_id: "test_pack",
+                 pack_version: "0.1.0",
+                 store_root: ctx.store_root,
+                 runs_root: ctx.runs_root
+               )
+
+      assert result.status == :success
+
+      assert {:ok, events} = Event.Store.read_all(ctx.runs_root, result.run_id)
+
+      completed =
+        Enum.find(events, fn e ->
+          e["event_type"] == "op_completed" and e["payload"]["node_id"] == "silent"
+        end)
+
+      assert completed["payload"]["warnings"] == []
+    end
+
+    test "op with may_emit: false that emits warnings gets a runtime-injected violation warning",
+         ctx do
+      plan =
+        Plan.new()
+        |> Plan.add_node("violator", Liminara.TestOps.WithViolatingWarningExecutionSpec, %{
+          "text" => {:literal, "hello"}
+        })
+
+      assert {:ok, result} =
+               Run.execute(plan,
+                 pack_id: "test_pack",
+                 pack_version: "0.1.0",
+                 store_root: ctx.store_root,
+                 runs_root: ctx.runs_root
+               )
+
+      assert result.status == :success
+
+      assert {:ok, events} = Event.Store.read_all(ctx.runs_root, result.run_id)
+
+      completed =
+        Enum.find(events, fn e ->
+          e["event_type"] == "op_completed" and e["payload"]["node_id"] == "violator"
+        end)
+
+      warnings = completed["payload"]["warnings"]
+      codes = Enum.map(warnings, & &1["code"])
+
+      assert "op_warning_contract_violation" in codes
+      assert "disallowed_warning" in codes
+
+      violation =
+        Enum.find(warnings, fn w -> w["code"] == "op_warning_contract_violation" end)
+
+      assert violation["severity"] == "high"
+      assert is_binary(violation["summary"]) and violation["summary"] != ""
+    end
+
+    test "violation warning also appears when the op runs under Run.Server", _ctx do
+      plan =
+        Plan.new()
+        |> Plan.add_node("violator", Liminara.TestOps.WithViolatingWarningExecutionSpec, %{
+          "text" => {:literal, "hello"}
+        })
+
+      run_id = "violation-server-#{:erlang.unique_integer([:positive])}"
+      {:ok, _pid} = Liminara.Run.Server.start(run_id, plan)
+      {:ok, result} = Liminara.Run.Server.await(run_id, 5_000)
+
+      assert result.status == :success
+
+      assert {:ok, events} = Event.Store.read_all(run_id)
+
+      completed =
+        Enum.find(events, fn e ->
+          e["event_type"] == "op_completed" and e["payload"]["node_id"] == "violator"
+        end)
+
+      codes = Enum.map(completed["payload"]["warnings"], & &1["code"])
+      assert "op_warning_contract_violation" in codes
+    end
+
     test "recordable replay preserves warnings alongside stored decisions", ctx do
       plan =
         Plan.new()

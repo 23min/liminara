@@ -173,6 +173,159 @@ defmodule LiminaraWeb.RunsLive.IndexTest do
     end
   end
 
+  # ── Degraded runs (M-WARN-02) ────────────────────────────────────
+
+  describe "degraded run indicator" do
+    test "run row shows a degraded indicator when warning_count > 0 and not failed",
+         %{conn: conn} do
+      # Directly simulate a run event with warning_summary via PubSub.
+      {:ok, view, _html} = live(conn, "/runs")
+
+      run_id = unique_run_id("deg-indicator")
+
+      :pg.get_members(:liminara, :all_runs)
+      |> Enum.each(fn pid ->
+        send(
+          pid,
+          {:run_event, run_id,
+           %{
+             "event_type" => "run_started",
+             "timestamp" => "2026-03-19T14:00:00.000Z",
+             "payload" => %{
+               "run_id" => run_id,
+               "pack_id" => "test_pack",
+               "pack_version" => "0.1.0",
+               "plan_hash" => "sha256:abc"
+             }
+           }}
+        )
+
+        send(
+          pid,
+          {:run_event, run_id,
+           %{
+             "event_type" => "run_completed",
+             "timestamp" => "2026-03-19T14:00:05.000Z",
+             "payload" => %{
+               "run_id" => run_id,
+               "outcome" => "success",
+               "artifact_hashes" => [],
+               "warning_summary" => %{
+                 "warning_count" => 1,
+                 "degraded_node_ids" => ["summarize"]
+               }
+             }
+           }}
+        )
+      end)
+
+      Process.sleep(150)
+      html = render(view)
+
+      assert html =~ "degraded",
+             "Degraded run should carry a visible degraded indicator. HTML:\n#{html}"
+    end
+
+    test "plain-success run does NOT show a degraded indicator", %{conn: conn} do
+      {:ok, view, _html} = live(conn, "/runs")
+
+      run_id = unique_run_id("plain-no-indicator")
+
+      :pg.get_members(:liminara, :all_runs)
+      |> Enum.each(fn pid ->
+        send(
+          pid,
+          {:run_event, run_id,
+           %{
+             "event_type" => "run_started",
+             "timestamp" => "2026-03-19T14:00:00.000Z",
+             "payload" => %{
+               "run_id" => run_id,
+               "pack_id" => "test_pack",
+               "pack_version" => "0.1.0",
+               "plan_hash" => "sha256:abc"
+             }
+           }}
+        )
+
+        send(
+          pid,
+          {:run_event, run_id,
+           %{
+             "event_type" => "run_completed",
+             "timestamp" => "2026-03-19T14:00:05.000Z",
+             "payload" => %{
+               "run_id" => run_id,
+               "outcome" => "success",
+               "artifact_hashes" => [],
+               "warning_summary" => %{"warning_count" => 0, "degraded_node_ids" => []}
+             }
+           }}
+        )
+      end)
+
+      Process.sleep(150)
+      html = render(view)
+
+      # No row for this run should carry status--degraded badge
+      refute html =~ "status--degraded",
+             "Plain-success run should not carry degraded badge. HTML:\n#{html}"
+    end
+
+    test "failed run does NOT show a degraded indicator even with warnings",
+         %{conn: conn} do
+      {:ok, view, _html} = live(conn, "/runs")
+
+      run_id = unique_run_id("failed-warn")
+
+      :pg.get_members(:liminara, :all_runs)
+      |> Enum.each(fn pid ->
+        send(
+          pid,
+          {:run_event, run_id,
+           %{
+             "event_type" => "run_started",
+             "timestamp" => "2026-03-19T14:00:00.000Z",
+             "payload" => %{
+               "run_id" => run_id,
+               "pack_id" => "test_pack",
+               "pack_version" => "0.1.0",
+               "plan_hash" => "sha256:abc"
+             }
+           }}
+        )
+
+        send(
+          pid,
+          {:run_event, run_id,
+           %{
+             "event_type" => "run_failed",
+             "timestamp" => "2026-03-19T14:00:05.000Z",
+             "payload" => %{
+               "run_id" => run_id,
+               "error_type" => "op_failure",
+               "error_message" => "broken",
+               "warning_summary" => %{
+                 "warning_count" => 2,
+                 "degraded_node_ids" => ["a"]
+               }
+             }
+           }}
+        )
+      end)
+
+      Process.sleep(150)
+      html = render(view)
+
+      # Row status should be 'failed' — not 'degraded'.
+      refute html =~ "status--degraded",
+             "Failed run should not show degraded indicator. HTML:\n#{html}"
+
+      assert html =~ "status--failed",
+             "Failed run should show failed status. HTML:\n#{html}"
+    end
+  end
+
   # ── Navigation ───────────────────────────────────────────────────
 
   describe "navigation" do

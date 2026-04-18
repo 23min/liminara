@@ -53,3 +53,13 @@ One paragraph: overall assessment (approve / request changes).
 - **Python**: pytest, `tmp_path` for filesystem ops, fixtures in `conftest.py`
 - **JavaScript**: node:test or vitest, deterministic (no network, no time-dependent)
 - Test names should read as specifications, not describe implementation
+
+## Running Tests from an AI Assistant (operational rules)
+
+These rules exist to avoid wasted sessions waiting on tests that never report. They apply any time an AI assistant runs `mix test` (or another test runner) via a shell tool.
+
+- **Never run the full umbrella `mix test`.** The Liminara umbrella has at least one pre-existing integration-test pathology (A2UI WebSocket / Python port) that causes the aggregate run to hang well past the 10-minute shell timeout, producing no output. Scope every invocation to a single app (`mix test apps/<app>/test`) or a specific file path.
+- **Never use `run_in_background: true` for tests.** Background tasks only deliver completion notifications on the next turn boundary. An assistant that launches a background test and then says "waiting" ends its turn with nothing scheduled — no wake-up happens until the user types the next message. This looks exactly like a stuck session. Run tests in the foreground with an explicit `timeout` that matches the suite's expected wall time (e.g. 120000ms for a per-app suite).
+- **Beware cross-suite test isolation flakes.** Some tests (e.g. `a2ui_provider_test`) pass in isolation but fail when run alongside other apps' suites in one `mix test` invocation. When validating, prefer per-app suites run separately rather than multi-path invocations. If per-app runs are green individually, treat the multi-path failure as a known flake rather than a regression.
+- **If you must poll, use `Monitor` with a specific grep filter, not `sleep`/`run_in_background`.** Long leading `sleep` commands are blocked, and `run_in_background` does not notify mid-turn.
+- **On timeout, pull the partial output and re-run with narrower scope.** Do not re-run the same hanging command with a longer timeout — diagnose what's hanging (typically a single slow file) and run the fast subset first.

@@ -44,6 +44,41 @@
       .status--failed { background: #ffebee; color: #c62828; }
       .status--pending { background: #f5f5f5; color: #757575; }
       .status--waiting { background: #fff3e0; color: #e65100; }
+      /* Degraded: completed-with-warnings. Distinct from failed (red) and
+         completed (green). Amber/yellow signals "worked, but look twice". */
+      .status--degraded { background: #fff8e1; color: #b28600; border: 1px solid #ffd54f; }
+      /* Degraded banner in the run-header area */
+      .degraded-banner {
+        margin-top: 4px;
+        padding: 6px 10px;
+        font-size: 11px;
+        border: 1px solid #ffd54f;
+        border-radius: 4px;
+        background: #fff8e1;
+        color: #78621a;
+      }
+      .degraded-banner code { font-weight: 600; color: #6d4c41; }
+      /* Warnings section in the node inspector */
+      .inspector-warnings .warning-entry {
+        border-left: 2px solid #ffd54f;
+        background: color-mix(in srgb, #fff8e1 60%, transparent);
+        padding: 6px 8px;
+        margin-bottom: 6px;
+      }
+      .inspector-warnings .warning-entry:last-child { margin-bottom: 0; }
+      .warning-entry-severity {
+        display: inline-block;
+        font-size: 9px;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        padding: 1px 5px;
+        border-radius: 3px;
+        background: #fff3cd;
+        color: #856404;
+        margin-right: 6px;
+      }
+      .warning-entry dt { color: var(--dm-muted); font-weight: 500; }
+      .warning-entry dl { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; margin-top: 4px; }
       /* Gate action buttons */
       .gate-actions {
         display: flex;

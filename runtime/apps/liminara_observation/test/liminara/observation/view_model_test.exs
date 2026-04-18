@@ -61,7 +61,8 @@ defmodule Liminara.Observation.ViewModelTest do
         "node_id" => node_id,
         "output_hashes" => output_hashes,
         "cache_hit" => cache_hit,
-        "duration_ms" => duration
+        "duration_ms" => duration,
+        "warnings" => []
       },
       prev_hash: prev,
       timestamp: "2026-03-19T14:00:02.000Z"
@@ -123,17 +124,57 @@ defmodule Liminara.Observation.ViewModelTest do
     }
   end
 
-  defp run_completed_event(run_id) do
+  defp run_completed_event(run_id, opts \\ []) do
+    warning_count = Keyword.get(opts, :warning_count, 0)
+    degraded_node_ids = Keyword.get(opts, :degraded_node_ids, [])
+
     %{
       event_hash: "sha256:run_completed",
       event_type: "run_completed",
       payload: %{
         "run_id" => run_id,
         "outcome" => "success",
-        "artifact_hashes" => ["sha256:out1"]
+        "artifact_hashes" => ["sha256:out1"],
+        "warning_summary" => %{
+          "warning_count" => warning_count,
+          "degraded_node_ids" => degraded_node_ids
+        }
       },
       prev_hash: "sha256:op_completed_a",
       timestamp: "2026-03-19T14:00:05.000Z"
+    }
+  end
+
+  defp warning_map(overrides \\ %{}) do
+    base = %{
+      "code" => "fallback_used",
+      "severity" => "low",
+      "summary" => "a warning happened",
+      "cause" => "api_key_missing",
+      "remediation" => "set ANTHROPIC_API_KEY",
+      "affected_outputs" => ["result"]
+    }
+
+    Map.merge(base, overrides)
+  end
+
+  defp op_completed_event_with_warnings(node_id, warnings, opts \\ []) do
+    prev = Keyword.get(opts, :prev_hash, "sha256:op_started_#{node_id}")
+    duration = Keyword.get(opts, :duration_ms, 42)
+    output_hashes = Keyword.get(opts, :output_hashes, ["sha256:out1"])
+
+    %{
+      event_hash: "sha256:op_completed_#{node_id}",
+      event_type: "op_completed",
+      payload: %{
+        "node_id" => node_id,
+        "output_hashes" => output_hashes,
+        "cache_hit" => false,
+        "duration_ms" => duration,
+        "warnings" => warnings
+      },
+      prev_hash: prev,
+      timestamp: "2026-03-19T14:00:02.000Z"
     }
   end
 
@@ -511,7 +552,8 @@ defmodule Liminara.Observation.ViewModelTest do
           "node_id" => "a",
           "output_hashes" => ["sha256:r1"],
           "cache_hit" => false,
-          "duration_ms" => 10
+          "duration_ms" => 10,
+          "warnings" => []
         },
         "prev_hash" => "sha256:op_started_a",
         "timestamp" => "2026-03-19T14:00:02.000Z"
@@ -861,7 +903,8 @@ defmodule Liminara.Observation.ViewModelTest do
           "run_id" => run_id,
           "error_type" => "run_failure",
           "error_message" => "one or more nodes failed",
-          "failed_nodes" => ["a"]
+          "failed_nodes" => ["a"],
+          "warning_summary" => %{"warning_count" => 0, "degraded_node_ids" => []}
         },
         prev_hash: "sha256:op_failed_a",
         timestamp: "2026-03-19T14:00:06.000Z"
@@ -965,6 +1008,640 @@ defmodule Liminara.Observation.ViewModelTest do
       for {_id, node_view} <- state.nodes do
         assert node_view.output_hashes == [] or is_nil(node_view.output_hashes)
       end
+    end
+  end
+
+  # ── Warnings (per-node projection) ───────────────────────────────
+
+  describe "ViewModel.init/3 — warning fields baseline" do
+    test "each node starts with empty warnings list" do
+      plan = simple_plan()
+      state = ViewModel.init("run-1", plan)
+
+      for {_id, node_view} <- state.nodes do
+        assert node_view.warnings == []
+      end
+    end
+
+    test "each node starts with degraded: false" do
+      plan = simple_plan()
+      state = ViewModel.init("run-1", plan)
+
+      for {_id, node_view} <- state.nodes do
+        assert node_view.degraded == false
+      end
+    end
+
+    test "run-level warning_count starts at 0" do
+      plan = simple_plan()
+      state = ViewModel.init("run-1", plan)
+
+      assert state.warning_count == 0
+    end
+
+    test "run-level degraded_nodes starts as empty list" do
+      plan = simple_plan()
+      state = ViewModel.init("run-1", plan)
+
+      assert state.degraded_nodes == []
+    end
+
+    test "run-level degraded flag starts false" do
+      plan = simple_plan()
+      state = ViewModel.init("run-1", plan)
+
+      assert state.degraded == false
+    end
+  end
+
+  describe "apply_event/2 - op_completed with warnings" do
+    test "single warning populates node warnings list" do
+      run_id = "warn-single"
+      plan = simple_plan()
+      warnings = [warning_map()]
+
+      state =
+        run_id
+        |> ViewModel.init(plan)
+        |> ViewModel.apply_event(run_started_event(run_id))
+        |> ViewModel.apply_event(op_started_event("a"))
+        |> ViewModel.apply_event(op_completed_event_with_warnings("a", warnings))
+
+      assert length(state.nodes["a"].warnings) == 1
+    end
+
+    test "single warning preserves every canonical field verbatim" do
+      run_id = "warn-fields"
+      plan = simple_plan()
+
+      warning = %{
+        "code" => "llm_fallback",
+        "severity" => "degraded",
+        "summary" => "placeholder summary used",
+        "cause" => "ANTHROPIC_API_KEY missing",
+        "remediation" => "export ANTHROPIC_API_KEY",
+        "affected_outputs" => ["summary"]
+      }
+
+      state =
+        run_id
+        |> ViewModel.init(plan)
+        |> ViewModel.apply_event(run_started_event(run_id))
+        |> ViewModel.apply_event(op_started_event("a"))
+        |> ViewModel.apply_event(op_completed_event_with_warnings("a", [warning]))
+
+      stored = hd(state.nodes["a"].warnings)
+      assert stored["code"] == "llm_fallback"
+      assert stored["severity"] == "degraded"
+      assert stored["summary"] == "placeholder summary used"
+      assert stored["cause"] == "ANTHROPIC_API_KEY missing"
+      assert stored["remediation"] == "export ANTHROPIC_API_KEY"
+      assert stored["affected_outputs"] == ["summary"]
+    end
+
+    test "warning-bearing node is marked degraded: true" do
+      run_id = "warn-degraded"
+      plan = simple_plan()
+      warnings = [warning_map()]
+
+      state =
+        run_id
+        |> ViewModel.init(plan)
+        |> ViewModel.apply_event(run_started_event(run_id))
+        |> ViewModel.apply_event(op_started_event("a"))
+        |> ViewModel.apply_event(op_completed_event_with_warnings("a", warnings))
+
+      assert state.nodes["a"].degraded == true
+    end
+
+    test "multiple warnings on one node accumulate into a list of length N" do
+      run_id = "warn-multi"
+      plan = simple_plan()
+
+      warnings = [
+        warning_map(%{"code" => "w1"}),
+        warning_map(%{"code" => "w2"}),
+        warning_map(%{"code" => "w3"})
+      ]
+
+      state =
+        run_id
+        |> ViewModel.init(plan)
+        |> ViewModel.apply_event(run_started_event(run_id))
+        |> ViewModel.apply_event(op_started_event("a"))
+        |> ViewModel.apply_event(op_completed_event_with_warnings("a", warnings))
+
+      assert length(state.nodes["a"].warnings) == 3
+      codes = Enum.map(state.nodes["a"].warnings, & &1["code"])
+      assert codes == ["w1", "w2", "w3"]
+      assert state.nodes["a"].degraded == true
+    end
+
+    test "op_completed with empty warnings list leaves node in baseline shape" do
+      run_id = "warn-empty"
+      plan = simple_plan()
+
+      state =
+        run_id
+        |> ViewModel.init(plan)
+        |> ViewModel.apply_event(run_started_event(run_id))
+        |> ViewModel.apply_event(op_started_event("a"))
+        |> ViewModel.apply_event(op_completed_event_with_warnings("a", []))
+
+      assert state.nodes["a"].warnings == []
+      assert state.nodes["a"].degraded == false
+    end
+
+    test "op_completed missing warnings key raises (contract violation)" do
+      # M-WARN-01 guarantees every op_completed payload carries a "warnings"
+      # list. Missing or malformed is a runtime contract violation, not a
+      # backward-compat case to paper over.
+      run_id = "warn-absent"
+      plan = simple_plan()
+
+      state =
+        run_id
+        |> ViewModel.init(plan)
+        |> ViewModel.apply_event(run_started_event(run_id))
+        |> ViewModel.apply_event(op_started_event("a"))
+
+      event = %{
+        event_hash: "sha256:op_completed_a",
+        event_type: "op_completed",
+        payload: %{
+          "node_id" => "a",
+          "output_hashes" => ["sha256:out1"],
+          "cache_hit" => false,
+          "duration_ms" => 42
+        },
+        prev_hash: "sha256:op_started_a",
+        timestamp: "2026-03-19T14:00:02.000Z"
+      }
+
+      assert_raise ArgumentError, ~r/warnings/, fn ->
+        ViewModel.apply_event(state, event)
+      end
+    end
+
+    test "warnings do not leak between nodes" do
+      run_id = "warn-isolation"
+      plan = simple_plan()
+      warnings = [warning_map()]
+
+      state =
+        run_id
+        |> ViewModel.init(plan)
+        |> ViewModel.apply_event(run_started_event(run_id))
+        |> ViewModel.apply_event(op_started_event("a"))
+        |> ViewModel.apply_event(op_completed_event_with_warnings("a", warnings))
+
+      assert state.nodes["b"].warnings == []
+      assert state.nodes["b"].degraded == false
+    end
+
+    test "warnings remain separate from decisions" do
+      run_id = "warn-vs-decisions"
+      plan = simple_plan()
+      warnings = [warning_map()]
+
+      state =
+        run_id
+        |> ViewModel.init(plan)
+        |> ViewModel.apply_event(run_started_event(run_id))
+        |> ViewModel.apply_event(op_started_event("a"))
+        |> ViewModel.apply_event(decision_recorded_event("a"))
+        |> ViewModel.apply_event(op_completed_event_with_warnings("a", warnings))
+
+      assert length(state.nodes["a"].decisions) == 1
+      assert length(state.nodes["a"].warnings) == 1
+      # Decisions should not contain warning payloads and vice versa
+      refute Enum.any?(state.nodes["a"].decisions, fn d -> Map.has_key?(d, :code) end)
+    end
+  end
+
+  describe "apply_event/2 - op_completed with malformed warnings" do
+    test "raises when a warning entry is missing required field 'code'" do
+      run_id = "warn-bad-code"
+      plan = simple_plan()
+      bad_warning = Map.delete(warning_map(), "code")
+
+      initial =
+        run_id
+        |> ViewModel.init(plan)
+        |> ViewModel.apply_event(run_started_event(run_id))
+        |> ViewModel.apply_event(op_started_event("a"))
+
+      assert_raise ArgumentError, fn ->
+        ViewModel.apply_event(initial, op_completed_event_with_warnings("a", [bad_warning]))
+      end
+    end
+
+    test "raises when a warning entry is missing required field 'severity'" do
+      run_id = "warn-bad-severity"
+      plan = simple_plan()
+      bad_warning = Map.delete(warning_map(), "severity")
+
+      initial =
+        run_id
+        |> ViewModel.init(plan)
+        |> ViewModel.apply_event(run_started_event(run_id))
+        |> ViewModel.apply_event(op_started_event("a"))
+
+      assert_raise ArgumentError, fn ->
+        ViewModel.apply_event(initial, op_completed_event_with_warnings("a", [bad_warning]))
+      end
+    end
+
+    test "raises when a warning entry is missing required field 'summary'" do
+      run_id = "warn-bad-summary"
+      plan = simple_plan()
+      bad_warning = Map.delete(warning_map(), "summary")
+
+      initial =
+        run_id
+        |> ViewModel.init(plan)
+        |> ViewModel.apply_event(run_started_event(run_id))
+        |> ViewModel.apply_event(op_started_event("a"))
+
+      assert_raise ArgumentError, fn ->
+        ViewModel.apply_event(initial, op_completed_event_with_warnings("a", [bad_warning]))
+      end
+    end
+
+    test "raises when warnings key is not a list" do
+      run_id = "warn-bad-shape"
+      plan = simple_plan()
+
+      bad_event = %{
+        event_hash: "sha256:op_completed_a",
+        event_type: "op_completed",
+        payload: %{
+          "node_id" => "a",
+          "output_hashes" => [],
+          "cache_hit" => false,
+          "duration_ms" => 1,
+          "warnings" => "not a list"
+        },
+        prev_hash: "sha256:op_started_a",
+        timestamp: "2026-03-19T14:00:02.000Z"
+      }
+
+      initial =
+        run_id
+        |> ViewModel.init(plan)
+        |> ViewModel.apply_event(run_started_event(run_id))
+        |> ViewModel.apply_event(op_started_event("a"))
+
+      assert_raise ArgumentError, fn ->
+        ViewModel.apply_event(initial, bad_event)
+      end
+    end
+
+    test "raises when a warning entry is not a map (e.g. a raw string)" do
+      run_id = "warn-bad-entry"
+      plan = simple_plan()
+
+      bad_event = %{
+        event_hash: "sha256:op_completed_a",
+        event_type: "op_completed",
+        payload: %{
+          "node_id" => "a",
+          "output_hashes" => [],
+          "cache_hit" => false,
+          "duration_ms" => 1,
+          "warnings" => ["not a map"]
+        },
+        prev_hash: "sha256:op_started_a",
+        timestamp: "2026-03-19T14:00:02.000Z"
+      }
+
+      initial =
+        run_id
+        |> ViewModel.init(plan)
+        |> ViewModel.apply_event(run_started_event(run_id))
+        |> ViewModel.apply_event(op_started_event("a"))
+
+      assert_raise ArgumentError, fn ->
+        ViewModel.apply_event(initial, bad_event)
+      end
+    end
+  end
+
+  # ── Warnings (run-level aggregation) ─────────────────────────────
+
+  describe "apply_event/2 - run_completed with warning_summary" do
+    test "populates warning_count from payload" do
+      run_id = "summary-count"
+      plan = simple_plan()
+
+      state =
+        run_id
+        |> ViewModel.init(plan)
+        |> ViewModel.apply_event(run_started_event(run_id))
+        |> ViewModel.apply_event(op_started_event("a"))
+        |> ViewModel.apply_event(op_completed_event_with_warnings("a", [warning_map()]))
+        |> ViewModel.apply_event(
+          run_completed_event(run_id, warning_count: 1, degraded_node_ids: ["a"])
+        )
+
+      assert state.warning_count == 1
+    end
+
+    test "populates degraded_nodes from payload" do
+      run_id = "summary-nodes"
+      plan = simple_plan()
+
+      state =
+        run_id
+        |> ViewModel.init(plan)
+        |> ViewModel.apply_event(run_started_event(run_id))
+        |> ViewModel.apply_event(
+          run_completed_event(run_id, warning_count: 3, degraded_node_ids: ["a", "b"])
+        )
+
+      assert state.degraded_nodes == ["a", "b"]
+    end
+
+    test "derives run-level degraded: true when warning_count > 0 and run not failed" do
+      run_id = "summary-degraded"
+      plan = simple_plan()
+
+      state =
+        run_id
+        |> ViewModel.init(plan)
+        |> ViewModel.apply_event(run_started_event(run_id))
+        |> ViewModel.apply_event(
+          run_completed_event(run_id, warning_count: 2, degraded_node_ids: ["a"])
+        )
+
+      assert state.degraded == true
+    end
+
+    test "derives run-level degraded: false on plain-success run (warning_count = 0)" do
+      run_id = "summary-plain"
+      plan = simple_plan()
+
+      state =
+        run_id
+        |> ViewModel.init(plan)
+        |> ViewModel.apply_event(run_started_event(run_id))
+        |> ViewModel.apply_event(run_completed_event(run_id))
+
+      assert state.warning_count == 0
+      assert state.degraded_nodes == []
+      assert state.degraded == false
+    end
+
+    test "raises when run_completed payload is missing warning_summary" do
+      run_id = "summary-missing"
+      plan = simple_plan()
+
+      malformed_rc = %{
+        event_hash: "sha256:run_completed",
+        event_type: "run_completed",
+        payload: %{
+          "run_id" => run_id,
+          "outcome" => "success",
+          "artifact_hashes" => []
+        },
+        prev_hash: nil,
+        timestamp: "2026-03-19T14:00:05.000Z"
+      }
+
+      initial =
+        run_id
+        |> ViewModel.init(plan)
+        |> ViewModel.apply_event(run_started_event(run_id))
+
+      assert_raise ArgumentError, fn ->
+        ViewModel.apply_event(initial, malformed_rc)
+      end
+    end
+
+    test "raises when warning_summary is missing warning_count" do
+      run_id = "summary-missing-count"
+      plan = simple_plan()
+
+      malformed_rc = %{
+        event_hash: "sha256:run_completed",
+        event_type: "run_completed",
+        payload: %{
+          "run_id" => run_id,
+          "outcome" => "success",
+          "artifact_hashes" => [],
+          "warning_summary" => %{"degraded_node_ids" => []}
+        },
+        prev_hash: nil,
+        timestamp: "2026-03-19T14:00:05.000Z"
+      }
+
+      initial =
+        run_id
+        |> ViewModel.init(plan)
+        |> ViewModel.apply_event(run_started_event(run_id))
+
+      assert_raise ArgumentError, fn ->
+        ViewModel.apply_event(initial, malformed_rc)
+      end
+    end
+
+    test "raises when warning_summary is missing degraded_node_ids" do
+      run_id = "summary-missing-ids"
+      plan = simple_plan()
+
+      malformed_rc = %{
+        event_hash: "sha256:run_completed",
+        event_type: "run_completed",
+        payload: %{
+          "run_id" => run_id,
+          "outcome" => "success",
+          "artifact_hashes" => [],
+          "warning_summary" => %{"warning_count" => 1}
+        },
+        prev_hash: nil,
+        timestamp: "2026-03-19T14:00:05.000Z"
+      }
+
+      initial =
+        run_id
+        |> ViewModel.init(plan)
+        |> ViewModel.apply_event(run_started_event(run_id))
+
+      assert_raise ArgumentError, fn ->
+        ViewModel.apply_event(initial, malformed_rc)
+      end
+    end
+
+    test "raises when warning_count is not a non-negative integer" do
+      run_id = "summary-bad-count"
+      plan = simple_plan()
+
+      malformed_rc = %{
+        event_hash: "sha256:run_completed",
+        event_type: "run_completed",
+        payload: %{
+          "run_id" => run_id,
+          "outcome" => "success",
+          "artifact_hashes" => [],
+          "warning_summary" => %{"warning_count" => "two", "degraded_node_ids" => []}
+        },
+        prev_hash: nil,
+        timestamp: "2026-03-19T14:00:05.000Z"
+      }
+
+      initial =
+        run_id
+        |> ViewModel.init(plan)
+        |> ViewModel.apply_event(run_started_event(run_id))
+
+      assert_raise ArgumentError, fn ->
+        ViewModel.apply_event(initial, malformed_rc)
+      end
+    end
+
+    test "raises when degraded_node_ids is not a list" do
+      run_id = "summary-bad-ids"
+      plan = simple_plan()
+
+      malformed_rc = %{
+        event_hash: "sha256:run_completed",
+        event_type: "run_completed",
+        payload: %{
+          "run_id" => run_id,
+          "outcome" => "success",
+          "artifact_hashes" => [],
+          "warning_summary" => %{"warning_count" => 1, "degraded_node_ids" => "a"}
+        },
+        prev_hash: nil,
+        timestamp: "2026-03-19T14:00:05.000Z"
+      }
+
+      initial =
+        run_id
+        |> ViewModel.init(plan)
+        |> ViewModel.apply_event(run_started_event(run_id))
+
+      assert_raise ArgumentError, fn ->
+        ViewModel.apply_event(initial, malformed_rc)
+      end
+    end
+
+    test "raises when warning_summary is not a map" do
+      run_id = "summary-bad-shape"
+      plan = simple_plan()
+
+      malformed_rc = %{
+        event_hash: "sha256:run_completed",
+        event_type: "run_completed",
+        payload: %{
+          "run_id" => run_id,
+          "outcome" => "success",
+          "artifact_hashes" => [],
+          "warning_summary" => "not a map"
+        },
+        prev_hash: nil,
+        timestamp: "2026-03-19T14:00:05.000Z"
+      }
+
+      initial =
+        run_id
+        |> ViewModel.init(plan)
+        |> ViewModel.apply_event(run_started_event(run_id))
+
+      assert_raise ArgumentError, fn ->
+        ViewModel.apply_event(initial, malformed_rc)
+      end
+    end
+  end
+
+  describe "apply_event/2 - run_failed does not mark degraded: true" do
+    test "failed run with no warnings stays degraded: false" do
+      run_id = "failed-no-warn"
+      plan = simple_plan()
+
+      run_failed = %{
+        event_hash: "sha256:run_failed",
+        event_type: "run_failed",
+        payload: %{
+          "run_id" => run_id,
+          "error_type" => "run_failure",
+          "error_message" => "broke",
+          "warning_summary" => %{"warning_count" => 0, "degraded_node_ids" => []}
+        },
+        prev_hash: "sha256:op_failed_a",
+        timestamp: "2026-03-19T14:00:06.000Z"
+      }
+
+      state =
+        run_id
+        |> ViewModel.init(plan)
+        |> ViewModel.apply_event(run_started_event(run_id))
+        |> ViewModel.apply_event(run_failed)
+
+      assert state.run_status == :failed
+      assert state.degraded == false
+    end
+
+    test "failed run with warnings keeps degraded: false because status is :failed" do
+      run_id = "failed-with-warn"
+      plan = simple_plan()
+
+      run_failed = %{
+        event_hash: "sha256:run_failed",
+        event_type: "run_failed",
+        payload: %{
+          "run_id" => run_id,
+          "error_type" => "run_failure",
+          "error_message" => "broke",
+          "warning_summary" => %{"warning_count" => 2, "degraded_node_ids" => ["a"]}
+        },
+        prev_hash: "sha256:op_failed_a",
+        timestamp: "2026-03-19T14:00:06.000Z"
+      }
+
+      state =
+        run_id
+        |> ViewModel.init(plan)
+        |> ViewModel.apply_event(run_started_event(run_id))
+        |> ViewModel.apply_event(run_failed)
+
+      assert state.run_status == :failed
+      assert state.warning_count == 2
+      assert state.degraded_nodes == ["a"]
+      # degraded is false because run failed — status takes priority
+      assert state.degraded == false
+    end
+  end
+
+  # ── Rebuild / projection parity ──────────────────────────────────
+
+  describe "projection parity: rebuild from full event log" do
+    test "rebuilt state matches live state for a warning-bearing run" do
+      run_id = "parity-warn"
+      plan = simple_plan()
+      warnings = [warning_map(%{"code" => "w1"}), warning_map(%{"code" => "w2"})]
+
+      events = [
+        run_started_event(run_id),
+        op_started_event("a"),
+        op_completed_event_with_warnings("a", warnings),
+        op_started_event("b", "reverse", "sha256:op_completed_a"),
+        op_completed_event("b", prev_hash: "sha256:op_started_b"),
+        run_completed_event(run_id, warning_count: 2, degraded_node_ids: ["a"])
+      ]
+
+      final_state =
+        Enum.reduce(events, ViewModel.init(run_id, plan), fn event, acc ->
+          ViewModel.apply_event(acc, event)
+        end)
+
+      assert final_state.warning_count == 2
+      assert final_state.degraded_nodes == ["a"]
+      assert final_state.degraded == true
+      assert length(final_state.nodes["a"].warnings) == 2
+      assert final_state.nodes["a"].degraded == true
+      assert final_state.nodes["b"].warnings == []
+      assert final_state.nodes["b"].degraded == false
     end
   end
 end

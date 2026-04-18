@@ -22,7 +22,8 @@ defmodule Liminara.Run.Server do
     Hash,
     Op,
     OpResult,
-    Plan
+    Plan,
+    Warning
   }
 
   alias Liminara.Run.Result
@@ -43,7 +44,9 @@ defmodule Liminara.Run.Server do
     prev_hash: nil,
     event_count: 0,
     awaiting: [],
-    result: nil
+    result: nil,
+    # node_id => warning_count (only nodes with >= 1 warning)
+    node_warning_counts: %{}
   ]
 
   # ── Public API ───────────────────────────────────────────────────
@@ -245,14 +248,19 @@ defmodule Liminara.Run.Server do
           |> Enum.filter(fn {_, s} -> s == :failed end)
           |> Enum.map(fn {id, _} -> id end)
 
-        result = %Result{
-          run_id: state.run_id,
-          status: status,
-          outputs: state.node_outputs,
-          event_count: state.event_count,
-          node_states: state.node_states,
-          failed_nodes: failed_nodes
-        }
+        {warning_count, degraded_nodes} = warning_aggregation(state)
+
+        result =
+          Result.new(%{
+            run_id: state.run_id,
+            status: status,
+            outputs: state.node_outputs,
+            event_count: state.event_count,
+            node_states: state.node_states,
+            failed_nodes: failed_nodes,
+            warning_count: warning_count,
+            degraded_nodes: degraded_nodes
+          })
 
         state = %{state | result: result}
         Process.send_after(self(), :stop, 0)
@@ -289,11 +297,14 @@ defmodule Liminara.Run.Server do
           # Rebuild output hashes from event store artifacts
           # The artifacts are already in the store from the original run
           output_hashes = rebuild_output_hashes(state, node_id, payload)
+          warnings = Map.fetch!(payload, "warnings")
 
           %{
             state
             | node_states: Map.put(state.node_states, node_id, :completed),
-              node_outputs: Map.put(state.node_outputs, node_id, output_hashes)
+              node_outputs: Map.put(state.node_outputs, node_id, output_hashes),
+              node_warning_counts:
+                record_node_warning_count(state.node_warning_counts, node_id, warnings)
           }
 
         "op_started" ->
@@ -499,7 +510,8 @@ defmodule Liminara.Run.Server do
         %{
           "node_id" => node_id,
           "cache_hit" => true,
-          "duration_ms" => 0
+          "duration_ms" => 0,
+          "warnings" => []
         }
         |> Map.merge(output_hash_payload(%{}))
       )
@@ -542,7 +554,9 @@ defmodule Liminara.Run.Server do
       %{
         state
         | node_states: Map.put(state.node_states, node_id, :completed),
-          node_outputs: Map.put(state.node_outputs, node_id, output_hashes)
+          node_outputs: Map.put(state.node_outputs, node_id, output_hashes),
+          node_warning_counts:
+            record_node_warning_count(state.node_warning_counts, node_id, warnings)
       }
     else
       {:error, :not_found} ->
@@ -588,7 +602,8 @@ defmodule Liminara.Run.Server do
         %{
           "node_id" => node_id,
           "cache_hit" => false,
-          "duration_ms" => 0
+          "duration_ms" => 0,
+          "warnings" => []
         }
         |> Map.merge(output_hash_payload(output_hashes))
       )
@@ -626,7 +641,8 @@ defmodule Liminara.Run.Server do
         %{
           "node_id" => node_id,
           "cache_hit" => true,
-          "duration_ms" => 0
+          "duration_ms" => 0,
+          "warnings" => []
         }
         |> Map.merge(output_hash_payload(output_hashes))
       )
@@ -641,6 +657,8 @@ defmodule Liminara.Run.Server do
   # ── Node success / failure ───────────────────────────────────────
 
   defp handle_node_success(state, node_id, %OpResult{} = result, duration_ms) do
+    spec = node_execution_spec(state, node_id)
+    result = enforce_warning_contract(result, spec)
     {output_hashes, state} = store_outputs(state, result.outputs)
 
     # Record decisions and output_hashes for replay
@@ -669,7 +687,9 @@ defmodule Liminara.Run.Server do
     %{
       state
       | node_states: Map.put(state.node_states, node_id, :completed),
-        node_outputs: Map.put(state.node_outputs, node_id, output_hashes)
+        node_outputs: Map.put(state.node_outputs, node_id, output_hashes),
+        node_warning_counts:
+          record_node_warning_count(state.node_warning_counts, node_id, result.warnings)
     }
   end
 
@@ -760,13 +780,17 @@ defmodule Liminara.Run.Server do
       |> Enum.filter(fn {_, s} -> s == :failed end)
       |> Enum.map(fn {id, _} -> id end)
 
+    {warning_count, degraded_nodes} = warning_aggregation(state)
+    warning_summary = warning_summary_payload(warning_count, degraded_nodes)
+
     payload =
       case status do
         :success ->
           %{
             "run_id" => state.run_id,
             "outcome" => "success",
-            "artifact_hashes" => artifact_hashes
+            "artifact_hashes" => artifact_hashes,
+            "warning_summary" => warning_summary
           }
 
         _ ->
@@ -774,7 +798,8 @@ defmodule Liminara.Run.Server do
             "run_id" => state.run_id,
             "error_type" => "run_failure",
             "error_message" => "one or more nodes failed",
-            "failed_nodes" => failed_nodes
+            "failed_nodes" => failed_nodes,
+            "warning_summary" => warning_summary
           }
       end
 
@@ -785,14 +810,17 @@ defmodule Liminara.Run.Server do
       Event.Store.write_seal(state.run_id)
     end
 
-    result = %Result{
-      run_id: state.run_id,
-      status: status,
-      outputs: state.node_outputs,
-      event_count: state.event_count,
-      node_states: state.node_states,
-      failed_nodes: failed_nodes
-    }
+    result =
+      Result.new(%{
+        run_id: state.run_id,
+        status: status,
+        outputs: state.node_outputs,
+        event_count: state.event_count,
+        node_states: state.node_states,
+        failed_nodes: failed_nodes,
+        warning_count: warning_count,
+        degraded_nodes: degraded_nodes
+      })
 
     # Notify all waiting callers
     for caller <- state.awaiting do
@@ -974,18 +1002,42 @@ defmodule Liminara.Run.Server do
         |> Enum.filter(fn {_, state} -> state == :failed end)
         |> Enum.map(fn {node_id, _} -> node_id end)
 
+      {warning_count, degraded_nodes} = warning_aggregation_from_events(events)
+
       {:ok,
-       %Result{
+       Result.new(%{
          run_id: run_id,
          status: status,
          outputs: outputs,
          event_count: length(events),
          node_states: node_states,
-         failed_nodes: failed_nodes
-       }}
+         failed_nodes: failed_nodes,
+         warning_count: warning_count,
+         degraded_nodes: degraded_nodes
+       })}
     else
       _ -> {:error, :not_found}
     end
+  end
+
+  defp warning_aggregation_from_events(events) do
+    counts =
+      Enum.reduce(events, %{}, fn event, acc ->
+        case event["event_type"] do
+          "op_completed" ->
+            payload = event["payload"]
+            node_id = Map.fetch!(payload, "node_id")
+            warnings = Map.fetch!(payload, "warnings")
+            record_node_warning_count(acc, node_id, warnings)
+
+          _ ->
+            acc
+        end
+      end)
+
+    total = counts |> Map.values() |> Enum.sum()
+    degraded_nodes = counts |> Map.keys() |> Enum.sort()
+    {total, degraded_nodes}
   end
 
   defp rebuild_node_states(initial_states, events) do
@@ -1136,6 +1188,42 @@ defmodule Liminara.Run.Server do
 
   defp warning_payload(%_{} = warning), do: Map.from_struct(warning)
   defp warning_payload(warning) when is_map(warning), do: warning
+
+  defp enforce_warning_contract(%OpResult{warnings: warnings} = result, spec) do
+    may_emit? = warning_contract_may_emit?(spec)
+    %{result | warnings: Warning.enforce_contract(warnings, may_emit?)}
+  end
+
+  defp warning_contract_may_emit?(%{contracts: %{warnings: %{may_emit: may_emit}}})
+       when is_boolean(may_emit),
+       do: may_emit
+
+  defp warning_contract_may_emit?(_spec), do: false
+
+  defp node_execution_spec(state, node_id) do
+    node = Plan.get_node(state.plan, node_id)
+    Op.execution_spec(node.op_module)
+  end
+
+  defp record_node_warning_count(counts, _node_id, []), do: counts
+
+  defp record_node_warning_count(counts, node_id, warnings) when is_list(warnings) do
+    Map.put(counts, node_id, length(warnings))
+  end
+
+  defp warning_aggregation(state) do
+    counts = state.node_warning_counts
+    total = counts |> Map.values() |> Enum.sum()
+    degraded_nodes = counts |> Map.keys() |> Enum.sort()
+    {total, degraded_nodes}
+  end
+
+  defp warning_summary_payload(warning_count, degraded_node_ids) do
+    %{
+      "warning_count" => warning_count,
+      "degraded_node_ids" => degraded_node_ids
+    }
+  end
 
   defp maybe_execution_context(_op_module, spec, execution_context) do
     if spec.execution.requires_execution_context do

@@ -248,20 +248,19 @@ defmodule Liminara.Executor.Port do
     }
   end
 
-  defp normalize_warning(%Warning{} = warning), do: warning
+  @doc false
+  def normalize_warning(%Warning{} = warning), do: warning
 
-  defp normalize_warning(warning) when is_map(warning) do
-    warning =
-      Enum.reduce(warning, %{}, fn {key, value}, acc ->
-        case normalize_warning_key(key) do
-          nil -> acc
-          normalized_key -> Map.put(acc, normalized_key, value)
-        end
-      end)
-
-    warning = Map.update(warning, :severity, nil, &normalize_severity/1)
-
-    struct(Warning, warning)
+  def normalize_warning(warning) when is_map(warning) do
+    warning
+    |> Enum.reduce(%{}, fn {key, value}, acc ->
+      case normalize_warning_key(key) do
+        nil -> acc
+        normalized_key -> Map.put(acc, normalized_key, value)
+      end
+    end)
+    |> Map.update(:severity, nil, &normalize_severity/1)
+    |> Warning.new()
   end
 
   defp normalize_warning_key(key)
@@ -278,6 +277,7 @@ defmodule Liminara.Executor.Port do
   defp normalize_warning_key(_key), do: nil
 
   defp normalize_severity(severity) when is_atom(severity), do: severity
+  defp normalize_severity("info"), do: :info
   defp normalize_severity("low"), do: :low
   defp normalize_severity("medium"), do: :medium
   defp normalize_severity("high"), do: :high
