@@ -220,17 +220,19 @@ These rules exist to avoid wasted sessions waiting on tests that never report. T
 
 ### Active milestone
 
-**M-WARN-01: Runtime Warning Contract** — **complete** (ratification milestone — runtime work had pre-landed under E-20)
-- Spec: `work/epics/E-19-warnings-degraded-outcomes/M-WARN-01-runtime-warning-contract.md`
-- Tracking: `work/epics/E-19-warnings-degraded-outcomes/M-WARN-01-tracking.md`
-- Targeted test suite: 70 tests, 0 failures
+**M-WARN-01: Runtime Warning Contract** — **complete** (committed as `d39cb3e` along with M-WARN-02; ratification + runtime tightening that closed the absent-`warnings`-key gap on three Run.Server + two Run paths)
 
-**Next up: M-WARN-02: Observation + UI surfacing** (status: approved, ready to start)
+**M-WARN-02: Observation + UI Surfacing** — **complete** (committed as `d39cb3e`)
 - Spec: `work/epics/E-19-warnings-degraded-outcomes/M-WARN-02-observation-ui-surfacing.md`
-- Scope: project warnings + warning_summary through `Liminara.Observation.ViewModel`; render degraded badges on the runs dashboard DAG, a warnings section in the node inspector, and degraded indicators on the runs list; surface degraded runs in `mix radar.run` / `mix demo_run` CLI output
-- No backward-compatibility fallback — projection raises on missing/malformed warning payloads (M-WARN-01 guarantees the shape)
-- Depends on: M-WARN-01 (complete)
-- Downstream: M-WARN-03 (Radar briefing annotation), E-21a ADR-OPSPEC-01
+- Tracking: `work/epics/E-19-warnings-degraded-outcomes/M-WARN-02-tracking.md`
+
+**M-WARN-03: Radar adoption** — **implementation complete, awaiting commit approval**
+- Spec: `work/epics/E-19-warnings-degraded-outcomes/M-WARN-03-radar-adoption.md`
+- Tracking: `work/epics/E-19-warnings-degraded-outcomes/M-WARN-03-tracking.md`
+- Delivered: `radar_summarize.py` emits per-cluster `degraded` / `degradation_code` / `degradation_note` on every summary (explicit `false` / `nil` / `nil` on success); `ComposeBriefing` `Map.fetch!`es every summary field (including pre-existing `summary` / `key_takeaways`, harmonised strict-fetch across the whole artifact contract) and adds root `degraded` + sorted `degraded_cluster_ids`; `RenderHtml` renders a count-prefixed banner (`⚠ N of M cluster summaries are degraded`) with deduplicated notes, plus a per-cluster pill that falls back to the label "Degraded" when `degradation_note` is nil; new `degradation_pipeline_test.exs` + extended replay suite prove the full chain.
+- No backward-compat fallback — `ComposeBriefing` raises via `Map.fetch!` on any missing summary field.
+- Validation: liminara_radar 97/0, liminara_observation 272/0, liminara_web 198/0, liminara_core (run+contracts) 216/0, Python 79/0. Credo and dialyzer unchanged from M-WARN-02 baseline.
+- `radar_dedup` safe-default and fetch-error HTML surfacing explicitly deferred (see tracking Deferrals section).
 
 ### Where things stand
 

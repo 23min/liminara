@@ -84,7 +84,7 @@ Sequencing note: this epic consumes the canonical execution/result contract defi
 |----|-------|---------|------------|--------|
 | M-WARN-01 | Runtime warning contract | Extend execution/event model with structured warnings, node/run aggregation, and tests for degraded-success semantics | M-TRUTH-03 | complete |
 | M-WARN-02 | Observation + UI surfacing | Preserve warnings in observation projection, show badges/counts, and render cause/severity/remediation in the run inspector and timeline summaries | M-WARN-01 | approved |
-| M-WARN-03 | Radar adoption | Convert known Radar silent fallback paths to explicit warnings, annotate briefings, and add pack-level tests for degraded-but-successful outcomes | M-WARN-02, M-TRUTH-03 | not started |
+| M-WARN-03 | Radar adoption | Convert known Radar silent fallback paths to explicit warnings, annotate briefings, and add pack-level tests for degraded-but-successful outcomes | M-WARN-02, M-TRUTH-03 | approved |
 
 ## Technical Direction
 

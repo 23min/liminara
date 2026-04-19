@@ -54,6 +54,11 @@ class TestSummarize:
         assert summaries[0]["cluster_id"] == "c0"
         assert "summary" in summaries[0]
         assert "key_takeaways" in summaries[0]
+        assert summaries[0]["degraded"] is True
+        assert summaries[0]["degradation_code"] == "radar_summarize_placeholder"
+        assert summaries[0]["degradation_note"] == (
+            "Using placeholder summaries because Anthropic access is unavailable"
+        )
 
         decisions = result["decisions"]
         assert decisions == []
@@ -76,6 +81,14 @@ class TestSummarize:
 
         with patch.dict("os.environ", {"ANTHROPIC_API_KEY": "test-key"}, clear=True):
             result = summarize_execute({"clusters": json.dumps(clusters)})
+
+        summaries = json.loads(result["outputs"]["summaries"])
+        assert len(summaries) == 1
+        assert summaries[0]["degraded"] is True
+        assert summaries[0]["degradation_code"] == "radar_summarize_placeholder"
+        assert summaries[0]["degradation_note"] == (
+            "Using placeholder summaries because Anthropic access is unavailable"
+        )
 
         assert result["decisions"] == []
         assert result["warnings"] == [
@@ -120,7 +133,7 @@ class TestSummarize:
 
     @patch("ops.radar_summarize.anthropic")
     def test_summary_structure(self, mock_anthropic):
-        """Summary has cluster_id, summary, key_takeaways."""
+        """Summary has cluster_id, summary, key_takeaways, and explicit non-degraded fields."""
         mock_client = MagicMock()
         mock_anthropic.Anthropic.return_value = mock_client
 
@@ -140,6 +153,11 @@ class TestSummarize:
         assert s["cluster_id"] == "c0"
         assert s["summary"] == "A good summary."
         assert s["key_takeaways"] == ["First", "Second"]
+        # Non-degraded success emits explicit false/None — same "no duct tape"
+        # principle as M-WARN-01.
+        assert s["degraded"] is False
+        assert s["degradation_code"] is None
+        assert s["degradation_note"] is None
 
     @patch("ops.radar_summarize.anthropic")
     def test_decision_recording(self, mock_anthropic):
@@ -165,7 +183,7 @@ class TestSummarize:
 
     @patch("ops.radar_summarize.anthropic")
     def test_llm_error_returns_fallback(self, mock_anthropic):
-        """LLM error → fallback summary, no crash."""
+        """LLM error → fallback summary, per-summary degraded fields, no crash."""
         mock_client = MagicMock()
         mock_anthropic.Anthropic.return_value = mock_client
         mock_client.messages.create.side_effect = Exception("API error")
@@ -178,6 +196,11 @@ class TestSummarize:
         summaries = json.loads(result["outputs"]["summaries"])
         assert len(summaries) == 1
         assert "summary" in summaries[0]
+        assert summaries[0]["degraded"] is True
+        assert summaries[0]["degradation_code"] == "radar_summarize_llm_error"
+        assert summaries[0]["degradation_note"] == (
+            "Fell back to a placeholder summary after an LLM error"
+        )
 
         decisions = result["decisions"]
         assert decisions == []
@@ -195,3 +218,49 @@ class TestSummarize:
                 "affected_outputs": ["summaries"],
             }
         ]
+
+    @patch("ops.radar_summarize.anthropic")
+    def test_mixed_llm_success_and_error_per_summary_flags(self, mock_anthropic):
+        """Mixed clusters: one success and one LLM error → per-summary flags match each."""
+        mock_client = MagicMock()
+        mock_anthropic.Anthropic.return_value = mock_client
+
+        success_response = MagicMock()
+        success_response.content = [
+            MagicMock(text='{"summary": "Clean summary.", "key_takeaways": ["OK"]}')
+        ]
+        mock_client.messages.create.side_effect = [
+            success_response,
+            Exception("boom"),
+        ]
+
+        clusters = [
+            _make_cluster("c0", [_make_item("a1", "Alpha")]),
+            _make_cluster("c1", [_make_item("b1", "Beta")]),
+        ]
+
+        with patch.dict("os.environ", {"ANTHROPIC_API_KEY": "test-key"}):
+            result = summarize_execute({"clusters": json.dumps(clusters)})
+
+        summaries = json.loads(result["outputs"]["summaries"])
+        assert len(summaries) == 2
+
+        # First cluster succeeded — explicit non-degraded.
+        assert summaries[0]["cluster_id"] == "c0"
+        assert summaries[0]["degraded"] is False
+        assert summaries[0]["degradation_code"] is None
+        assert summaries[0]["degradation_note"] is None
+
+        # Second cluster hit an LLM error — per-summary flags set.
+        assert summaries[1]["cluster_id"] == "c1"
+        assert summaries[1]["degraded"] is True
+        assert summaries[1]["degradation_code"] == "radar_summarize_llm_error"
+        assert summaries[1]["degradation_note"] == (
+            "Fell back to a placeholder summary after an LLM error"
+        )
+
+        # Only the failing cluster records a warning; the successful one records a decision.
+        assert len(result["decisions"]) == 1
+        assert result["decisions"][0]["cluster_id"] == "c0"
+        assert len(result["warnings"]) == 1
+        assert result["warnings"][0]["code"] == "radar_summarize_llm_error"
