@@ -1,7 +1,7 @@
 ---
 id: M-WARN-03-radar-adoption
 epic: E-19-warnings-degraded-outcomes
-status: approved
+status: complete
 depends_on: M-WARN-02-observation-ui-surfacing
 ---
 

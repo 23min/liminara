@@ -70,10 +70,10 @@ Tightly scoped to capabilities Radar has already proven it needs for production 
   - [x] M-TRUTH-01 Execution spec + outcome design
   - [x] M-TRUTH-02 Core runtime contract migration
   - [x] M-TRUTH-03 Radar semantic cleanup
-- [ ] E-19 Warnings & Degraded Outcomes
-  - [ ] First-class warning/degraded-success contract for ops and runs
-  - [ ] Observation + UI surfacing of cause, severity, remediation, and output impact
-  - [ ] Radar adoption for placeholder/fallback paths and briefing annotations
+- [x] E-19 Warnings & Degraded Outcomes
+  - [x] M-WARN-01 Runtime warning contract — first-class warning/degraded-success contract for ops and runs
+  - [x] M-WARN-02 Observation + UI surfacing of cause, severity, remediation, and output impact
+  - [x] M-WARN-03 Radar adoption for placeholder/fallback paths and briefing annotations
 - [ ] E-21 Pack Contribution Contract [planning]
   - Four sub-epics turn Liminara into a language-agnostic runtime + observation host. Packs are external repos contributing via a data contract (manifest + executable units), not library imports.
   - [ ] **E-21a Contract Design** — ADRs, CUE schemas, fixtures, `design-contract` skill, `cue vet` CI (2 milestones; docs only; critical-path gate)

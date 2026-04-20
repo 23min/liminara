@@ -145,11 +145,18 @@ defmodule Liminara.Warning do
 
   defp validate_optional_binary!(attrs, field) do
     case Map.fetch(attrs, field) do
-      {:ok, nil} -> attrs
-      {:ok, value} when is_binary(value) -> attrs
-      {:ok, value} -> raise ArgumentError,
-                             "Warning.new/1 #{field} must be a binary or nil, got: #{inspect(value)}"
-      :error -> attrs
+      {:ok, nil} ->
+        attrs
+
+      {:ok, value} when is_binary(value) ->
+        attrs
+
+      {:ok, value} ->
+        raise ArgumentError,
+              "Warning.new/1 #{field} must be a binary or nil, got: #{inspect(value)}"
+
+      :error ->
+        attrs
     end
   end
 

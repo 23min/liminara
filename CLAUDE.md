@@ -214,6 +214,44 @@ These rules exist to avoid wasted sessions waiting on tests that never report. T
 - **If you must poll, use `Monitor` with a specific grep filter, not `sleep`/`run_in_background`.** Long leading `sleep` commands are blocked, and `run_in_background` does not notify mid-turn.
 - **On timeout, pull the partial output and re-run with narrower scope.** Do not re-run the same hanging command with a longer timeout — diagnose what's hanging (typically a single slow file) and run the fast subset first.
 
+### Subagent heartbeat pattern (mandatory for long-running TDD subagents)
+
+Subagents dispatched via `Agent` run silently from the parent session's perspective — the parent only sees the agent's final report, which can be 10–30 minutes later. That looks identical to a stuck session from a human's perspective, and humans rightly cancel what looks stuck. To prevent that failure mode, every subagent that runs TDD / tests / any multi-phase implementation work must emit a heartbeat that the parent session monitors.
+
+**Parent session obligations (before dispatching a TDD subagent):**
+
+1. Create the progress-log directory: `mkdir -p work/agent-history/<milestone-id>/`
+2. Choose a stable log path: `work/agent-history/<milestone-id>/<phase-or-task>-progress.log`
+3. Start a `Monitor` on that log **before** spawning the subagent:
+   ```
+   tail -f work/agent-history/<milestone-id>/<phase>-progress.log \
+     | grep --line-buffered -E '^[0-9]{4}-[0-9]{2}-[0-9]{2}T'
+   ```
+4. Only then dispatch the subagent with `Agent`. The subagent brief must cite the exact log path and the marker format.
+5. When the subagent returns, stop the Monitor (it exits on its own when the agent finishes writing, but keep a `TaskStop` handy if it lingers).
+
+**Subagent brief obligations:**
+
+- Brief must include the exact log path the subagent is expected to write to.
+- Brief must instruct the subagent to append one ISO-8601-timestamped line per meaningful phase boundary:
+  - RED test written
+  - RED test confirmed failing (with the failure reason)
+  - GREEN edit made (with file:line)
+  - GREEN test passing
+  - per-app suite run with result (`<suite> N/M`)
+  - REVIEW step started/complete
+  - commit-approval prompt reached
+- Brief must include a "write a final marker even on error" instruction, so an agent that hits an exception still produces a last-line signal.
+- Marker format: `YYYY-MM-DDTHH:MM:SSZ <phase|note>: <short message>` (the leading timestamp is the grep anchor).
+
+**Why this is load-bearing:**
+
+- Without heartbeats, the human sees a spinner and cancels a working agent.
+- With heartbeats, each marker becomes a notification in the main chat. The human sees progress; the parent session can intervene if markers stop arriving for too long.
+- This pattern scales to any long-running automation: code-review subagents, research subagents, remote agents.
+
+**Sizing rule of thumb:** dispatch one subagent per bug / phase / focused change rather than one monolithic milestone-size agent. Smaller dispatches mean (a) a stuck one is detected earlier, (b) heartbeat cadence stays informative, (c) the parent session can course-correct between dispatches.
+
 
 ## Current Work
 <!-- Updated by start-milestone and wrap-milestone skills. -->
@@ -226,7 +264,7 @@ These rules exist to avoid wasted sessions waiting on tests that never report. T
 - Spec: `work/epics/E-19-warnings-degraded-outcomes/M-WARN-02-observation-ui-surfacing.md`
 - Tracking: `work/epics/E-19-warnings-degraded-outcomes/M-WARN-02-tracking.md`
 
-**M-WARN-03: Radar adoption** — **implementation complete, awaiting commit approval**
+**M-WARN-03: Radar adoption** — **complete** (committed as `629b902`)
 - Spec: `work/epics/E-19-warnings-degraded-outcomes/M-WARN-03-radar-adoption.md`
 - Tracking: `work/epics/E-19-warnings-degraded-outcomes/M-WARN-03-tracking.md`
 - Delivered: `radar_summarize.py` emits per-cluster `degraded` / `degradation_code` / `degradation_note` on every summary (explicit `false` / `nil` / `nil` on success); `ComposeBriefing` `Map.fetch!`es every summary field (including pre-existing `summary` / `key_takeaways`, harmonised strict-fetch across the whole artifact contract) and adds root `degraded` + sorted `degraded_cluster_ids`; `RenderHtml` renders a count-prefixed banner (`⚠ N of M cluster summaries are degraded`) with deduplicated notes, plus a per-cluster pill that falls back to the label "Degraded" when `degradation_note` is nil; new `degradation_pipeline_test.exs` + extended replay suite prove the full chain.
@@ -234,18 +272,26 @@ These rules exist to avoid wasted sessions waiting on tests that never report. T
 - Validation: liminara_radar 97/0, liminara_observation 272/0, liminara_web 198/0, liminara_core (run+contracts) 216/0, Python 79/0. Credo and dialyzer unchanged from M-WARN-02 baseline.
 - `radar_dedup` safe-default and fetch-error HTML surfacing explicitly deferred (see tracking Deferrals section).
 
+**Next up: M-WARN-04: Post-Review Bugfixes** — **in-progress** (approved 2026-04-20)
+- Spec: `work/epics/E-19-warnings-degraded-outcomes/M-WARN-04-postreview-bugfixes.md`
+- Tracking: `work/epics/E-19-warnings-degraded-outcomes/M-WARN-04-tracking.md`
+- Source: ultrareview `r2fg1c81b` (2026-04-20) produced four findings invalidating reachable E-19 paths: bug_005 (live atom-keyed warning crashes observation server), merged_bug_001 (`:partial` collapsed to `:failed` across all web/observation consumers), bug_004 (runs-index double-counts warnings on duplicate terminal events), bug_009 (event-log fallback drops per-node degraded).
+- Locked design decisions: wire-shape fix for bug_005 (no normalisation), new `"run_partial"` terminal event type for merged_bug_001 (no payload-field discriminator), fixture migration when legacy shape breaks (no backward-compat fallback).
+- Branch: continuing on `epic/E-19-warnings-degraded-outcomes` (same pattern as M-WARN-01/02/03).
+- Blocks E-19 wrap until complete. Downstream: E-21a ADR-OPSPEC-01 will codify `run_partial` alongside `run_completed` / `run_failed` in the event taxonomy.
+
 ### Where things stand
 
 - **Phase 4** (Observation Layer): **complete** — E-09 done, in `work/done/`
 - **Phase 5a** (Radar Correctness): **complete** — E-11 done, in `work/done/`
 - **Phase 5b** (Radar Complete): **complete** — E-10, E-11 done, in `work/done/`
-- **Phase 5c** (Radar Hardening): **in progress** — E-20 done (in `work/done/`); next is E-19 Warnings & Degraded Outcomes, then E-12 Op Sandbox
+- **Phase 5c** (Radar Hardening): **in progress** — E-20 done (in `work/done/`); E-19 complete on epic branch awaiting wrap/merge; next is E-12 Op Sandbox (E-21 pack contract in planning)
 - **Sequencing (D-013):** `Radar correctness -> Radar hardening -> VSME -> platform generalization`
 
 ### Key references
 
 - **Roadmap:** `work/roadmap.md` — full sequencing with status labels
-- **Decisions:** `work/decisions.md` (D-012 through D-022 are the most recent)
+- **Decisions:** `work/decisions.md` (D-022 through D-024 are the most recent)
 - **Truth governance:** `docs/architecture/contracts/00_TRUTH_MODEL.md`, `docs/architecture/contracts/01_CONTRACT_MATRIX.md`, `docs/architecture/contracts/02_SHIM_POLICY.md`
 - **Archived architecture:** `docs/history/architecture/` — moved snapshots and design notes that are no longer current authority
 - **Phase 5c epic specs:** `work/epics/E-19-warnings-degraded-outcomes/epic.md`, `work/epics/E-12-op-sandbox/epic.md`

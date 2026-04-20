@@ -1186,8 +1186,28 @@ defmodule Liminara.Run.Server do
   defp execution_context_payload(%ExecutionContext{} = execution_context),
     do: Map.from_struct(execution_context)
 
-  defp warning_payload(%_{} = warning), do: Map.from_struct(warning)
-  defp warning_payload(warning) when is_map(warning), do: warning
+  # Emit warnings as string-keyed maps with stringified atom values so
+  # the live `:pg` broadcast shape matches the JSON-roundtripped replay
+  # shape. Observation + LiveView consumers require string keys; atom
+  # keys on the live path would crash them (bug_005).
+  defp warning_payload(%_{} = warning) do
+    warning
+    |> Map.from_struct()
+    |> stringify_warning_map()
+  end
+
+  defp warning_payload(warning) when is_map(warning) do
+    stringify_warning_map(warning)
+  end
+
+  defp stringify_warning_map(map) do
+    Map.new(map, fn {k, v} -> {to_string(k), stringify_warning_value(v)} end)
+  end
+
+  defp stringify_warning_value(v) when is_atom(v) and not is_boolean(v) and not is_nil(v),
+    do: Atom.to_string(v)
+
+  defp stringify_warning_value(v), do: v
 
   defp enforce_warning_contract(%OpResult{warnings: warnings} = result, spec) do
     may_emit? = warning_contract_may_emit?(spec)

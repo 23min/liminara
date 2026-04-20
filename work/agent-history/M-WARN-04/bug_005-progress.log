@@ -1,0 +1,19 @@
+2026-04-20T00:00:00Z INIT: M-WARN-04 heartbeat log initialised
+2026-04-20T11:47:42Z START: reading spec + current warning_payload/1 implementation
+2026-04-20T11:47:58Z START: reviewing warning_payload/1 and live-path tests
+2026-04-20T11:48:21Z INFO: prior session already wrote integration test + warning_payload fix (both files); resuming to validate
+2026-04-20T11:48:53Z RED-VERIFY: running live_warning_integration_test against current (already-fixed) codebase to confirm it passes
+2026-04-20T11:49:03Z GREEN: 7/7 tests pass in live_warning_integration_test.exs; fix already present in server.ex:1189-1210 + run.ex:706-727
+2026-04-20T11:49:07Z RED-VERIFY: reverting server.ex warning_payload to pre-fix (atom keys) to prove test catches bug_005
+2026-04-20T11:49:29Z RED: confirmed 5/7 failures with atom-keyed warning_payload; ArgumentError at view_model.ex:205 as expected
+2026-04-20T11:49:55Z GREEN: fix restored; 7/7 passing on live_warning_integration_test.exs
+2026-04-20T11:50:21Z TEST: liminara_observation 279/0
+2026-04-20T11:50:51Z TEST: liminara_core/run 161/0
+2026-04-20T11:51:04Z TEST: liminara_core/contracts 55/0
+2026-04-20T11:51:08Z FIXTURE: auditing for atom-keyed warning payloads in tests/fixtures
+2026-04-20T11:51:48Z FIXTURE: no atom-keyed warning_payload fixtures found; warning_map/1 helpers in view_model_test.exs and warnings_test.exs already string-keyed. No migration required.
+2026-04-20T11:52:27Z REVIEW: branch-coverage audit on warning_payload/1 family — struct head, plain-map head, stringify_warning_map/1, stringify_warning_value/1 atom-convert + fallthrough (nil/string/list) all covered by tests 1-5 of live_warning_integration_test.exs. is_boolean guard in stringify_warning_value is defensive (no Warning field is boolean); documenting as unreachable.
+2026-04-20T11:54:20Z TEST: liminara_web 198/0
+2026-04-20T11:54:20Z TEST: liminara_radar 97/0
+2026-04-20T11:54:48Z VALIDATE: mix format --check-formatted pass; mix credo --strict 7 refactors (unchanged from baseline, all in unrelated files)
+2026-04-20T11:55:16Z DONE: ready for commit approval
