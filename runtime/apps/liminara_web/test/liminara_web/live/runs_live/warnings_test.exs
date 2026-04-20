@@ -414,4 +414,312 @@ defmodule LiminaraWeb.RunsLive.WarningsTest do
       assert html =~ "fallback_used"
     end
   end
+
+  # ── M-WARN-04 merged_bug_001: :partial run projection ────────────
+
+  describe "partial run detail (state_update path)" do
+    test "partial-with-warnings state projects as degraded and shows partial status",
+         %{conn: conn} do
+      run_id = unique_run_id("showpd")
+      warnings = [warning_map()]
+
+      obs_state =
+        mock_obs_state(
+          run_id,
+          %{"warn" => node_with_warnings(warnings)},
+          run_status: :partial,
+          warning_count: 1,
+          degraded_nodes: ["warn"],
+          degraded: true
+        )
+
+      {:ok, view, _html} = live(conn, "/runs/#{run_id}")
+      broadcast_state(run_id, obs_state)
+      Process.sleep(100)
+
+      html = render(view)
+
+      assert html =~ "status--partial",
+             "Partial run must render the 'status--partial' class. HTML:\n#{html}"
+
+      assert html =~ "status--degraded",
+             "Partial run with warnings must render the degraded badge. HTML:\n#{html}"
+    end
+
+    test "partial-with-zero-warnings state projects as partial but not degraded",
+         %{conn: conn} do
+      run_id = unique_run_id("showpp")
+
+      obs_state =
+        mock_obs_state(
+          run_id,
+          %{"ok" => node_with_warnings([])},
+          run_status: :partial,
+          warning_count: 0,
+          degraded_nodes: [],
+          degraded: false
+        )
+
+      {:ok, view, _html} = live(conn, "/runs/#{run_id}")
+      broadcast_state(run_id, obs_state)
+      Process.sleep(100)
+
+      html = render(view)
+
+      assert html =~ "status--partial",
+             "Partial run must render the 'status--partial' class. HTML:\n#{html}"
+
+      refute html =~ "status--degraded",
+             "Partial run with zero warnings must not render degraded badge. HTML:\n#{html}"
+    end
+  end
+
+  describe "partial run detail (run_event path: apply_event_type)" do
+    # Exercises `RunsLive.Show.apply_event_type(_, "run_partial", _, _)`
+    # via the `:run_event` :pg broadcast that Run.Server emits.
+    test "run_partial event with warnings applies degraded: true to the live view model",
+         %{conn: conn} do
+      run_id = unique_run_id("show-partial-rp")
+
+      {:ok, view, _html} = live(conn, "/runs/#{run_id}")
+
+      # Send events directly to the LiveView's :pg group.
+      pids = :pg.get_members(:liminara, {:run, run_id})
+      assert pids != [], "LiveView did not join {:run, run_id} :pg group"
+
+      Enum.each(pids, fn pid ->
+        send(
+          pid,
+          {:run_event, run_id,
+           %{
+             "event_type" => "run_started",
+             "timestamp" => "2026-04-20T14:00:00.000Z",
+             "payload" => %{
+               "run_id" => run_id,
+               "pack_id" => "test_pack",
+               "pack_version" => "0.1.0",
+               "plan_hash" => "sha256:abc"
+             }
+           }}
+        )
+
+        send(
+          pid,
+          {:run_event, run_id,
+           %{
+             "event_type" => "op_started",
+             "timestamp" => "2026-04-20T14:00:01.000Z",
+             "payload" => %{
+               "node_id" => "warn",
+               "op_id" => "warn_op",
+               "op_version" => "1.0",
+               "determinism" => "pure",
+               "input_hashes" => []
+             }
+           }}
+        )
+
+        send(
+          pid,
+          {:run_event, run_id,
+           %{
+             "event_type" => "op_completed",
+             "timestamp" => "2026-04-20T14:00:02.000Z",
+             "payload" => %{
+               "node_id" => "warn",
+               "output_hashes" => [],
+               "cache_hit" => false,
+               "duration_ms" => 10,
+               "warnings" => [warning_map()]
+             }
+           }}
+        )
+
+        send(
+          pid,
+          {:run_event, run_id,
+           %{
+             "event_type" => "run_partial",
+             "timestamp" => "2026-04-20T14:00:05.000Z",
+             "payload" => %{
+               "run_id" => run_id,
+               "error_type" => "run_failure",
+               "error_message" => "one or more nodes failed",
+               "failed_nodes" => ["fail"],
+               "warning_summary" => %{
+                 "warning_count" => 1,
+                 "degraded_node_ids" => ["warn"]
+               }
+             }
+           }}
+        )
+      end)
+
+      Process.sleep(150)
+      html = render(view)
+
+      assert html =~ "status--partial",
+             "Run-event apply_event_type must yield run_status 'partial'. HTML:\n#{html}"
+
+      assert html =~ "status--degraded",
+             "Run-event apply_event_type for run_partial must mark view_model degraded. HTML:\n#{html}"
+
+      refute html =~ "status--failed",
+             "Partial run must not degrade to status 'failed' on live event path. HTML:\n#{html}"
+    end
+  end
+
+  describe "partial run detail (event-log fallback: build_from_events)" do
+    # Exercises `derive_degraded_from_events/1`, `derive_status/1`,
+    # `completed_at/1`, and `warning_summary_from_terminal_event/1` for
+    # a run whose persisted event log ends with "run_partial" but has
+    # no plan.json on disk (which is how this page degrades when the
+    # Observation.Server can't start). We trigger the fallback by
+    # appending events directly via Event.Store without writing a plan.
+    test "event log ending with run_partial projects degraded: true and status partial",
+         %{conn: conn} do
+      run_id = unique_run_id("fb-partial")
+
+      # Append events directly (no plan written) — guarantees
+      # `try_start_obs_server` falls through to `build_view_model`.
+      {:ok, _} =
+        Liminara.Event.Store.append(
+          run_id,
+          "run_started",
+          %{
+            "run_id" => run_id,
+            "pack_id" => "test_pack",
+            "pack_version" => "0.1.0",
+            "plan_hash" => "sha256:abc"
+          },
+          nil
+        )
+
+      {:ok, _} =
+        Liminara.Event.Store.append(
+          run_id,
+          "op_started",
+          %{
+            "node_id" => "warn",
+            "op_id" => "warn_op",
+            "op_version" => "1.0",
+            "determinism" => "pure",
+            "input_hashes" => []
+          },
+          nil
+        )
+
+      {:ok, _} =
+        Liminara.Event.Store.append(
+          run_id,
+          "op_completed",
+          %{
+            "node_id" => "warn",
+            "output_hashes" => [],
+            "cache_hit" => false,
+            "duration_ms" => 10,
+            "warnings" => [warning_map()]
+          },
+          nil
+        )
+
+      {:ok, _} =
+        Liminara.Event.Store.append(
+          run_id,
+          "op_started",
+          %{
+            "node_id" => "fail",
+            "op_id" => "fail_op",
+            "op_version" => "1.0",
+            "determinism" => "pure",
+            "input_hashes" => []
+          },
+          nil
+        )
+
+      {:ok, _} =
+        Liminara.Event.Store.append(
+          run_id,
+          "op_failed",
+          %{
+            "node_id" => "fail",
+            "error_type" => "execution_error",
+            "error_message" => "boom",
+            "duration_ms" => 5
+          },
+          nil
+        )
+
+      {:ok, _} =
+        Liminara.Event.Store.append(
+          run_id,
+          "run_partial",
+          %{
+            "run_id" => run_id,
+            "error_type" => "run_failure",
+            "error_message" => "one or more nodes failed",
+            "failed_nodes" => ["fail"],
+            "warning_summary" => %{
+              "warning_count" => 1,
+              "degraded_node_ids" => ["warn"]
+            }
+          },
+          nil
+        )
+
+      {:ok, _view, html} = live(conn, "/runs/#{run_id}")
+
+      # Partial status badge is rendered as `<span class="status status--partial">`.
+      assert html =~ ~s(class="status status--partial"),
+             "Fallback build_from_events must render the partial status badge. HTML:\n#{html}"
+
+      # Degraded badge is rendered as `<span class="status status--degraded" title="...">`.
+      # (Bare "status--degraded" is also present as a CSS rule in the
+      # layout, so we match the element shape instead of the class name.)
+      assert html =~ ~s(class="status status--degraded" title=),
+             "Fallback build_from_events for partial-with-warnings must render the degraded badge span. HTML:\n#{html}"
+
+      refute html =~ ~s(class="status status--failed"),
+             "Fallback path must not degrade to 'failed' for a :partial run. HTML:\n#{html}"
+    end
+
+    test "event log ending with run_partial and zero warnings projects status partial without degraded badge",
+         %{conn: conn} do
+      run_id = unique_run_id("fb-plain")
+
+      {:ok, _} =
+        Liminara.Event.Store.append(
+          run_id,
+          "run_started",
+          %{
+            "run_id" => run_id,
+            "pack_id" => "test_pack",
+            "pack_version" => "0.1.0",
+            "plan_hash" => "sha256:abc"
+          },
+          nil
+        )
+
+      {:ok, _} =
+        Liminara.Event.Store.append(
+          run_id,
+          "run_partial",
+          %{
+            "run_id" => run_id,
+            "error_type" => "run_failure",
+            "error_message" => "one or more nodes failed",
+            "failed_nodes" => ["fail"],
+            "warning_summary" => %{"warning_count" => 0, "degraded_node_ids" => []}
+          },
+          nil
+        )
+
+      {:ok, _view, html} = live(conn, "/runs/#{run_id}")
+
+      assert html =~ ~s(class="status status--partial")
+
+      refute html =~ ~s(class="status status--degraded" title=),
+             "Fallback path with zero warnings must not render the degraded badge span. HTML:\n#{html}"
+    end
+  end
 end

@@ -1613,6 +1613,128 @@ defmodule Liminara.Observation.ViewModelTest do
     end
   end
 
+  # ── M-WARN-04 merged_bug_001: run_partial event type ─────────────
+
+  describe "apply_event/2 - run_partial" do
+    defp run_partial_event(run_id, opts \\ []) do
+      warning_count = Keyword.get(opts, :warning_count, 1)
+      degraded_node_ids = Keyword.get(opts, :degraded_node_ids, ["a"])
+      failed_nodes = Keyword.get(opts, :failed_nodes, ["b"])
+
+      %{
+        event_hash: "sha256:run_partial",
+        event_type: "run_partial",
+        payload: %{
+          "run_id" => run_id,
+          "error_type" => "run_failure",
+          "error_message" => "one or more nodes failed",
+          "failed_nodes" => failed_nodes,
+          "warning_summary" => %{
+            "warning_count" => warning_count,
+            "degraded_node_ids" => degraded_node_ids
+          }
+        },
+        prev_hash: "sha256:op_failed_b",
+        timestamp: "2026-04-20T14:00:05.000Z"
+      }
+    end
+
+    test "sets run_status :partial" do
+      run_id = "partial-status"
+      plan = simple_plan()
+
+      state =
+        run_id
+        |> ViewModel.init(plan)
+        |> ViewModel.apply_event(run_started_event(run_id))
+        |> ViewModel.apply_event(run_partial_event(run_id))
+
+      assert state.run_status == :partial
+    end
+
+    test "records run_completed_at timestamp" do
+      run_id = "partial-ts"
+      plan = simple_plan()
+
+      state =
+        run_id
+        |> ViewModel.init(plan)
+        |> ViewModel.apply_event(run_started_event(run_id))
+        |> ViewModel.apply_event(run_partial_event(run_id))
+
+      assert state.run_completed_at == "2026-04-20T14:00:05.000Z"
+    end
+
+    test "populates warning_count and degraded_nodes from payload" do
+      run_id = "partial-summary"
+      plan = simple_plan()
+
+      state =
+        run_id
+        |> ViewModel.init(plan)
+        |> ViewModel.apply_event(run_started_event(run_id))
+        |> ViewModel.apply_event(
+          run_partial_event(run_id, warning_count: 3, degraded_node_ids: ["a", "c"])
+        )
+
+      assert state.warning_count == 3
+      assert state.degraded_nodes == ["a", "c"]
+    end
+
+    test "derives degraded: true when warning_count > 0" do
+      run_id = "partial-degraded-true"
+      plan = simple_plan()
+
+      state =
+        run_id
+        |> ViewModel.init(plan)
+        |> ViewModel.apply_event(run_started_event(run_id))
+        |> ViewModel.apply_event(
+          run_partial_event(run_id, warning_count: 2, degraded_node_ids: ["a"])
+        )
+
+      assert state.degraded == true
+    end
+
+    test "derives degraded: false when warning_count == 0 (partial without warnings)" do
+      run_id = "partial-degraded-false"
+      plan = simple_plan()
+
+      state =
+        run_id
+        |> ViewModel.init(plan)
+        |> ViewModel.apply_event(run_started_event(run_id))
+        |> ViewModel.apply_event(
+          run_partial_event(run_id, warning_count: 0, degraded_node_ids: [])
+        )
+
+      assert state.run_status == :partial
+      assert state.degraded == false
+    end
+
+    test "raises when run_partial payload is missing warning_summary" do
+      run_id = "partial-missing-summary"
+      plan = simple_plan()
+
+      malformed = %{
+        event_hash: "sha256:run_partial",
+        event_type: "run_partial",
+        payload: %{"run_id" => run_id, "error_type" => "run_failure"},
+        prev_hash: nil,
+        timestamp: "2026-04-20T14:00:05.000Z"
+      }
+
+      initial =
+        run_id
+        |> ViewModel.init(plan)
+        |> ViewModel.apply_event(run_started_event(run_id))
+
+      assert_raise ArgumentError, fn ->
+        ViewModel.apply_event(initial, malformed)
+      end
+    end
+  end
+
   # ── Rebuild / projection parity ──────────────────────────────────
 
   describe "projection parity: rebuild from full event log" do

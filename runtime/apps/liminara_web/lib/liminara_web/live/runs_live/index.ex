@@ -113,13 +113,16 @@ defmodule LiminaraWeb.RunsLive.Index do
   end
 
   defp update_warning_count(_existing, payload, event_type)
-       when event_type in ["run_completed", "run_failed"] do
+       when event_type in ["run_completed", "run_partial", "run_failed"] do
     warning_count_from_payload(payload)
   end
 
   defp update_warning_count(_existing, _payload, _event_type), do: 0
 
-  defp derive_degraded(event_type, payload) when event_type in ["run_completed"] do
+  # M-WARN-04 merged_bug_001: partial-with-warnings is degraded
+  # (mirrors the run_completed derivation). run_failed is never degraded.
+  defp derive_degraded(event_type, payload)
+       when event_type in ["run_completed", "run_partial"] do
     warning_count_from_payload(payload) > 0
   end
 
@@ -245,7 +248,8 @@ defmodule LiminaraWeb.RunsLive.Index do
       last = if last_line == first_line, do: first, else: Jason.decode!(last_line)
       status = event_type_to_status(last["event_type"])
       warning_count = warning_count_from_payload(last["payload"] || %{})
-      degraded = status == "completed" and warning_count > 0
+      # M-WARN-04 merged_bug_001: partial runs with warnings are degraded.
+      degraded = status in ["completed", "partial"] and warning_count > 0
 
       %{
         run_id: run_id,
@@ -287,10 +291,12 @@ defmodule LiminaraWeb.RunsLive.Index do
   end
 
   defp event_type_to_status("run_completed"), do: "completed"
+  defp event_type_to_status("run_partial"), do: "partial"
   defp event_type_to_status("run_failed"), do: "failed"
   defp event_type_to_status(_), do: "running"
 
   defp update_status(_current, "run_completed"), do: "completed"
+  defp update_status(_current, "run_partial"), do: "partial"
   defp update_status(_current, "run_failed"), do: "failed"
   defp update_status(current, _), do: current
 

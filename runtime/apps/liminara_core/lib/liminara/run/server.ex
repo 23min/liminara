@@ -234,7 +234,7 @@ defmodule Liminara.Run.Server do
     last_type = last_event["event_type"]
 
     cond do
-      last_type in ["run_completed", "run_failed"] ->
+      last_type in ["run_completed", "run_partial", "run_failed"] ->
         # Run was already finished — just report the result
         # Touch events.jsonl so mtime-based run lists reflect recent access
         Event.Store.touch(state.run_id)
@@ -768,7 +768,17 @@ defmodule Liminara.Run.Server do
   end
 
   defp finish_run(state, status) do
-    event_type = if status == :success, do: "run_completed", else: "run_failed"
+    # One event type per `Run.Result.status`:
+    #   :success -> "run_completed", :partial -> "run_partial", :failed -> "run_failed".
+    # (M-WARN-04 merged_bug_001: the previous collapse of :partial
+    # into "run_failed" caused every downstream consumer to lose the
+    # degraded signal.)
+    event_type =
+      case status do
+        :success -> "run_completed"
+        :partial -> "run_partial"
+        :failed -> "run_failed"
+      end
 
     artifact_hashes =
       state.node_outputs
@@ -992,7 +1002,7 @@ defmodule Liminara.Run.Server do
     with {:ok, [_ | _] = events} <- Event.Store.read_all(run_id),
          {:ok, plan} <- Event.Store.read_plan(run_id),
          last <- List.last(events),
-         t when t in ["run_completed", "run_failed"] <- last["event_type"] do
+         t when t in ["run_completed", "run_partial", "run_failed"] <- last["event_type"] do
       node_states = rebuild_node_states(initial_node_states(plan), events)
       outputs = rebuild_outputs_from_events(events)
       status = terminal_status(t, node_states)
@@ -1159,19 +1169,8 @@ defmodule Liminara.Run.Server do
   end
 
   defp terminal_status("run_completed", _node_states), do: :success
-
-  defp terminal_status("run_failed", node_states) do
-    statuses = Map.values(node_states)
-
-    cond do
-      :failed in statuses and :completed in statuses and :pending not in statuses and
-        :running not in statuses and :waiting not in statuses ->
-        :partial
-
-      true ->
-        :failed
-    end
-  end
+  defp terminal_status("run_partial", _node_states), do: :partial
+  defp terminal_status("run_failed", _node_states), do: :failed
 
   defp build_execution_context(run_id, pack_id, pack_version, replay_run_id) do
     %ExecutionContext{

@@ -726,6 +726,8 @@ defmodule LiminaraWeb.RunsLive.Show do
 
     case summary do
       %{"warning_count" => n, "degraded_node_ids" => ids} when is_integer(n) and is_list(ids) ->
+        # :failed takes precedence (never degraded). run_completed and
+        # run_partial are both degraded when warning_count > 0.
         {n, ids, n > 0 and not last_event_failed?(events)}
 
       _ ->
@@ -742,7 +744,7 @@ defmodule LiminaraWeb.RunsLive.Show do
   defp warning_summary_from_terminal_event(event) do
     type = event["event_type"] || event[:event_type]
 
-    if type in ["run_completed", "run_failed"] do
+    if type in ["run_completed", "run_partial", "run_failed"] do
       payload = event["payload"] || event[:payload] || %{}
       payload["warning_summary"] || payload[:warning_summary]
     end
@@ -780,6 +782,19 @@ defmodule LiminaraWeb.RunsLive.Show do
 
     vm
     |> Map.put(:run_status, "completed")
+    |> Map.put(:completed_at, ts)
+    |> Map.put(:warning_count, wc)
+    |> Map.put(:degraded_nodes, ids)
+    |> Map.put(:degraded, wc > 0)
+  end
+
+  # M-WARN-04 merged_bug_001: partial terminal mirrors completed in
+  # derivation (degraded when wc > 0) but projects run_status "partial".
+  defp apply_event_type(vm, "run_partial", payload, ts) do
+    {wc, ids} = extract_summary(payload)
+
+    vm
+    |> Map.put(:run_status, "partial")
     |> Map.put(:completed_at, ts)
     |> Map.put(:warning_count, wc)
     |> Map.put(:degraded_nodes, ids)
@@ -853,13 +868,14 @@ defmodule LiminaraWeb.RunsLive.Show do
   end
 
   defp derive_status("run_completed"), do: "completed"
+  defp derive_status("run_partial"), do: "partial"
   defp derive_status("run_failed"), do: "failed"
   defp derive_status("op_completed"), do: "running"
   defp derive_status("op_started"), do: "running"
   defp derive_status(_), do: "running"
 
   defp completed_at(%{"event_type" => t, "timestamp" => ts})
-       when t in ["run_completed", "run_failed"],
+       when t in ["run_completed", "run_partial", "run_failed"],
        do: ts
 
   defp completed_at(_), do: nil

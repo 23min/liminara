@@ -326,6 +326,191 @@ defmodule LiminaraWeb.RunsLive.IndexTest do
     end
   end
 
+  # ── M-WARN-04 merged_bug_001: :partial-with-warnings ────────────
+
+  describe "partial run (run_partial event)" do
+    test "partial run with warnings renders degraded indicator and partial status",
+         %{conn: conn} do
+      {:ok, view, _html} = live(conn, "/runs")
+
+      run_id = unique_run_id("partial-degraded")
+
+      :pg.get_members(:liminara, :all_runs)
+      |> Enum.each(fn pid ->
+        send(
+          pid,
+          {:run_event, run_id,
+           %{
+             "event_type" => "run_started",
+             "timestamp" => "2026-04-20T14:00:00.000Z",
+             "payload" => %{
+               "run_id" => run_id,
+               "pack_id" => "test_pack",
+               "pack_version" => "0.1.0",
+               "plan_hash" => "sha256:abc"
+             }
+           }}
+        )
+
+        send(
+          pid,
+          {:run_event, run_id,
+           %{
+             "event_type" => "run_partial",
+             "timestamp" => "2026-04-20T14:00:05.000Z",
+             "payload" => %{
+               "run_id" => run_id,
+               "error_type" => "run_failure",
+               "error_message" => "one or more nodes failed",
+               "failed_nodes" => ["fail"],
+               "warning_summary" => %{
+                 "warning_count" => 1,
+                 "degraded_node_ids" => ["warn"]
+               }
+             }
+           }}
+        )
+      end)
+
+      Process.sleep(150)
+      html = render(view)
+
+      assert html =~ "status--partial",
+             "Partial run should render the partial status badge. HTML:\n#{html}"
+
+      assert html =~ "status--degraded",
+             "Partial run with warnings should render the degraded indicator. HTML:\n#{html}"
+
+      assert html =~ ~r/\b1\b/,
+             "Expected warning count 1 to appear. HTML:\n#{html}"
+
+      refute html =~ "status--failed",
+             "Partial run must not be shown as failed. HTML:\n#{html}"
+    end
+
+    test "on-disk partial run (build_run_summary) renders partial+degraded on mount",
+         %{conn: conn} do
+      # Exercises `build_run_summary/3` on-disk load path for a run
+      # whose persisted event log ends with "run_partial". This is the
+      # path hit at page mount when Phoenix loads the runs list from
+      # `load_runs_from_store/0`.
+      #
+      # Isolation: we point `runs_root` at a per-test tmp dir so the
+      # polluting test artefact doesn't leak into other Index tests.
+      tmp_dir =
+        Path.join(System.tmp_dir!(), "liminara-idx-#{:erlang.unique_integer([:positive])}")
+
+      File.mkdir_p!(tmp_dir)
+      prev_runs = Application.get_env(:liminara_core, :runs_root)
+      Application.put_env(:liminara_core, :runs_root, tmp_dir)
+
+      on_exit(fn ->
+        if prev_runs,
+          do: Application.put_env(:liminara_core, :runs_root, prev_runs),
+          else: Application.delete_env(:liminara_core, :runs_root)
+
+        File.rm_rf!(tmp_dir)
+      end)
+
+      run_id = "run-partial-mount-#{:erlang.unique_integer([:positive])}"
+
+      {:ok, _} =
+        Liminara.Event.Store.append(
+          tmp_dir,
+          run_id,
+          "run_started",
+          %{
+            "run_id" => run_id,
+            "pack_id" => "my_real_pack",
+            "pack_version" => "0.1.0",
+            "plan_hash" => "sha256:abc"
+          },
+          nil
+        )
+
+      {:ok, _} =
+        Liminara.Event.Store.append(
+          tmp_dir,
+          run_id,
+          "run_partial",
+          %{
+            "run_id" => run_id,
+            "error_type" => "run_failure",
+            "error_message" => "one or more nodes failed",
+            "failed_nodes" => ["fail"],
+            "warning_summary" => %{
+              "warning_count" => 2,
+              "degraded_node_ids" => ["warn"]
+            }
+          },
+          nil
+        )
+
+      {:ok, _view, html} = live(conn, "/runs")
+
+      assert html =~ run_id
+
+      assert html =~ ~s(class="status status--partial"),
+             "build_run_summary must map run_partial to status 'partial'. HTML:\n#{html}"
+
+      assert html =~ ~s(class="status status--degraded" title="Completed with warnings"),
+             "build_run_summary must mark a partial-with-warnings run as degraded. HTML:\n#{html}"
+    end
+
+    test "partial run with zero warnings renders partial status without degraded badge",
+         %{conn: conn} do
+      {:ok, view, _html} = live(conn, "/runs")
+
+      run_id = unique_run_id("partial-plain")
+
+      :pg.get_members(:liminara, :all_runs)
+      |> Enum.each(fn pid ->
+        send(
+          pid,
+          {:run_event, run_id,
+           %{
+             "event_type" => "run_started",
+             "timestamp" => "2026-04-20T14:00:00.000Z",
+             "payload" => %{
+               "run_id" => run_id,
+               "pack_id" => "test_pack",
+               "pack_version" => "0.1.0",
+               "plan_hash" => "sha256:abc"
+             }
+           }}
+        )
+
+        send(
+          pid,
+          {:run_event, run_id,
+           %{
+             "event_type" => "run_partial",
+             "timestamp" => "2026-04-20T14:00:05.000Z",
+             "payload" => %{
+               "run_id" => run_id,
+               "error_type" => "run_failure",
+               "error_message" => "one or more nodes failed",
+               "failed_nodes" => ["fail"],
+               "warning_summary" => %{
+                 "warning_count" => 0,
+                 "degraded_node_ids" => []
+               }
+             }
+           }}
+        )
+      end)
+
+      Process.sleep(150)
+      html = render(view)
+
+      assert html =~ "status--partial",
+             "Partial run should carry the partial status. HTML:\n#{html}"
+
+      refute html =~ "status--degraded",
+             "Partial run with zero warnings must not render degraded badge. HTML:\n#{html}"
+    end
+  end
+
   # ── Navigation ───────────────────────────────────────────────────
 
   describe "navigation" do

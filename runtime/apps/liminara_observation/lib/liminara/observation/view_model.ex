@@ -151,6 +151,24 @@ defmodule Liminara.Observation.ViewModel do
     }
   end
 
+  # M-WARN-04 merged_bug_001: "run_partial" is a first-class terminal
+  # event type. It mirrors "run_completed" in derivation (degraded when
+  # warning_count > 0) but projects run_status: :partial so downstream
+  # consumers can distinguish a partial-with-warnings run from both
+  # plain success and true failure.
+  defp apply_typed(state, "run_partial", ts, pl) do
+    {warning_count, degraded_nodes} = extract_warning_summary!(pl)
+
+    %{
+      state
+      | run_status: :partial,
+        run_completed_at: ts,
+        warning_count: warning_count,
+        degraded_nodes: degraded_nodes,
+        degraded: derive_degraded(:partial, warning_count)
+    }
+  end
+
   defp apply_typed(state, "run_failed", ts, pl) do
     {warning_count, degraded_nodes} = extract_warning_summary!(pl)
 
@@ -214,9 +232,9 @@ defmodule Liminara.Observation.ViewModel do
     raise ArgumentError, "warning entry must be a map, got: #{inspect(other)}"
   end
 
-  # run_completed and run_failed both carry warning_summary (M-WARN-01
-  # guarantees the key is present on every run, with stable shape).
-  # Missing or malformed is a contract violation.
+  # run_completed / run_partial / run_failed all carry warning_summary
+  # (M-WARN-01 guarantees the key is present on every terminal event,
+  # with stable shape). Missing or malformed is a contract violation.
   defp extract_warning_summary!(payload) do
     summary = fetch_summary_map!(payload)
     warning_count = fetch_non_neg_integer!(summary, "warning_count")
@@ -234,7 +252,7 @@ defmodule Liminara.Observation.ViewModel do
 
       :error ->
         raise ArgumentError,
-              "run_completed/run_failed payload missing required key \"warning_summary\""
+              "run_completed/run_partial/run_failed payload missing required key \"warning_summary\""
     end
   end
 

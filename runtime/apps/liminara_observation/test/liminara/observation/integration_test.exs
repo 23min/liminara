@@ -160,7 +160,13 @@ defmodule Liminara.Observation.IntegrationTest do
       GenServer.stop(obs_pid)
     end
 
-    test "failing run: failed node marked :failed, run_status :failed" do
+    test "failing run: failed node marked :failed, run_status :partial (one completed + one failed)" do
+      # M-WARN-04 merged_bug_001: with the new 1:1 event-type -> status
+      # mapping, a linear `ok -> fail` plan produces :partial (ok
+      # completed, fail failed, nothing pending). Previously the terminal
+      # event was always "run_failed" and the heuristic in
+      # `terminal_status/2` rewrote status to :partial at the Result
+      # boundary; now the event type itself discriminates.
       run_id = unique_run_id()
       plan = failing_plan()
 
@@ -169,11 +175,12 @@ defmodule Liminara.Observation.IntegrationTest do
       Run.Server.start(run_id, plan)
       {:ok, run_result} = Run.Server.await(run_id)
 
-      assert run_result.status in [:failed, :partial]
+      assert run_result.status == :partial
 
-      state = await_observation(obs_pid, fn s -> s.run_status == :failed end)
+      state = await_observation(obs_pid, fn s -> s.run_status == :partial end)
 
       assert state.nodes["fail"].status == :failed
+      assert state.nodes["ok"].status == :completed
 
       GenServer.stop(obs_pid)
     end
