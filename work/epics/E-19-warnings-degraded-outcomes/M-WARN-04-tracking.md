@@ -3,28 +3,26 @@
 **Started:** 2026-04-20
 **Branch:** `epic/E-19-warnings-degraded-outcomes` (continuing epic branch per E-19 pattern; milestones M-WARN-01/02/03 were all committed directly here without a separate milestone branch)
 **Spec:** `work/epics/E-19-warnings-degraded-outcomes/M-WARN-04-postreview-bugfixes.md`
-**Status:** in-progress (3/6 ACs landed; 3 gaps open — see below)
+**Status:** in-progress (4/6 ACs landed; 2 gaps open — see below)
 **Source of bugs:** ultrareview task `r2fg1c81b` (2026-04-20)
 
 ## Remaining Gaps (2026-04-21 audit)
 
-Milestone is 3/6 ACs landed (AC1 Phase 1 committed `3e43f8a`; AC2 Phase 2 committed `8c445e3`; AC3 Phase 3 complete but **uncommitted in working tree** — `index.ex`, `runs_live_index_test.exs`, `warnings_test.exs`, this tracking doc, plus untracked `work/agent-history/M-WARN-04/bug_004-progress.log`).
+Milestone is 4/6 ACs landed (AC1 Phase 1 committed `3e43f8a`; AC2 Phase 2 committed `8c445e3`; AC3 Phase 3 committed `e68aa98`; AC4 Phase 4 complete but **uncommitted in working tree** — `show.ex`, `warnings_test.exs`, this tracking doc, plus untracked `work/agent-history/M-WARN-04/bug_009-progress.log`).
 
-These three gaps block E-19 wrap. All belong in M-WARN-04; none should be deferred.
+These two gaps block E-19 wrap. Both belong in M-WARN-04; neither should be deferred.
 
 | Gap | AC | Phase | Evidence in code |
 |---|---|---|---|
-| **bug_009: event-log fallback drops per-node degraded** | AC4 | 4 | `runtime/apps/liminara_web/lib/liminara_web/live/runs_live/show.ex:883-908` — `build_nodes/1` only sets `%{node_id, op_name, status}`; never reads `event["payload"]["warnings"]`; never populates `:warnings` / `:degraded`. Shape disagrees with `observation_state_to_view_model/1` at lines 910-934 (which does set `degraded:` per node). |
-| **Consolidated cross-layer consistency test module** | AC5 | 5 | No file exists that exercises all four fixed paths together. Existing coverage is split across `live_warning_integration_test.exs` (AC1 only), `partial_run_integration_test.exs` (AC2 only), `runs_live_index_test.exs` idempotence describe (AC3 only). |
-| **Wrap-time validation sweep** | AC6 | — | "Validation Pipeline" section below still reads "*To be filled at wrap time.*" Per-app suites green individually as of Phase 3, but the full baseline sweep (per-app suites + ruff + format + credo + dialyzer) has not been run against the combined Phase 1+2+3+4+5 state. |
+| **Consolidated cross-layer consistency test module** | AC5 | 5 | No file exists that exercises all four fixed paths together. Existing coverage is split across `live_warning_integration_test.exs` (AC1 only), `partial_run_integration_test.exs` (AC2 only), `runs_live_index_test.exs` idempotence describe (AC3 only), `warnings_test.exs` fallback describe (AC4 only). |
+| **Wrap-time validation sweep** | AC6 | — | "Validation Pipeline" section below still reads "*To be filled at wrap time.*" Per-app suites green individually as of Phase 4 (liminara_web 212/0), but the full baseline sweep (per-app suites + ruff + format + credo + dialyzer) has not been run against the combined Phase 1+2+3+4+5 state. |
 
 ### Exit criteria for closing the gaps
 
-1. Commit Phase 3 (bug_004) with approval.
-2. Phase 4: extend `build_nodes/1` to read `event["payload"]["warnings"]` on `op_completed`, populate `:warnings` + `:degraded` matching `observation_state_to_view_model/1`'s shape. RED-first forced-fallback test asserting per-node DAG pill + inspector Warnings section.
-3. Phase 5: single new test module exercising all four paths in one place (live warning broadcast, `:partial`-with-warnings, terminal replay, event-log fallback).
-4. AC6: fill in the Validation Pipeline section with per-app suite counts, ruff/format results, credo/dialyzer deltas from M-WARN-03 baseline.
-5. Commit Phase 4 + Phase 5 (+ tracking doc updates) with approval. E-19 then ready to wrap.
+1. Commit Phase 4 (bug_009) with approval.
+2. Phase 5: single new test module exercising all four paths in one place (live warning broadcast, `:partial`-with-warnings, terminal replay, event-log fallback).
+3. AC6: fill in the Validation Pipeline section with per-app suite counts, ruff/format results, credo/dialyzer deltas from M-WARN-03 baseline.
+4. Commit Phase 5 (+ tracking doc updates) with approval. E-19 then ready to wrap.
 
 ## Summary
 
@@ -62,9 +60,13 @@ Closes four ultrareview findings against commits `d39cb3e` (M-WARN-01 + M-WARN-0
     4. **zero-warning idempotence**: duplicate terminal with `warning_count: 0` leaves no degraded badge on the target row (row-scoped regex assertion to stay robust against unrelated leaked rows)
   - RED verified: pre-fix run produced `degraded (4)` and `degraded (6)` against expected `(2)` / `(3)` respectively — the documented bug_004 signature.
   - Fixture migration: none triggered by the bug_004 fix itself. However adding 4 tests to the web suite perturbed ExUnit's per-seed module shuffle, exposing a pre-existing cross-test leak: `warnings_test.exs`'s `partial run detail (event-log fallback)` describe block persists `fb-partial-*` / `fb-plain-*` runs into the shared supervised-store `runs_root` (`/tmp/liminara_runs/`) without cleanup, causing later `RunsLive.IndexTest` `refute html =~ "status--degraded"` assertions to see sibling-test rows and fail. Fixed in place: added a `setup` block that captures the supervised store's `runs_root` and an `on_exit` per test that deletes the test's own run directory (`File.rm_rf!(Path.join(runs_root, run_id))`). The supervised `Event.Store` reads its `runs_root` once at startup, so `Application.put_env` at setup time doesn't reach it — per-run-dir cleanup is the minimal fix.
-- [ ] **AC4: Event-log fallback path preserves per-node degraded state**
-  - `RunsLive.Show.build_nodes/1` reads `event["payload"]["warnings"]` on `op_completed`; sets `:warnings` and `:degraded` to match `observation_state_to_view_model/1`'s shape
-  - Targeted fallback-path test renders DAG with `degraded: true` on warning-emitting nodes and inspector Warnings section
+- [x] **AC4: Event-log fallback path preserves per-node degraded state** (Phase 4 — 2026-04-21)
+  - `RunsLive.Show.build_nodes/1` at `runtime/apps/liminara_web/lib/liminara_web/live/runs_live/show.ex:883-912` now reads `event["payload"]["warnings"]` on `op_completed` and sets `:warnings` (list of string-keyed warning maps, as stored on the wire post-bug_005) and `:degraded` (boolean, `warnings != []`) on the per-node map. The view_model nodes list is a subset of the primary obs path: `:degraded` drives the DAG pill (via `nodes_only_dag_json` at line 575-593), and `:warnings` lets `find_in_view_model/2` supply the inspector Warnings section when `obs_nodes` is empty on the fallback path.
+  - Two new tests in `apps/liminara_web/test/liminara_web/live/runs_live/warnings_test.exs` `describe "partial run detail (event-log fallback: build_from_events)"`:
+    1. `event log op_completed with warnings marks per-node degraded in DAG data on fallback` — 2-node fallback run (warn + plain). Decodes the `data-dag` attribute via `extract_dag_json!/1` helper (replaces `&quot;` → `"` then Jason.decode!), asserts `warn["degraded"] == true` and `plain["degraded"] != true`.
+    2. `event log op_completed warnings render in inspector Warnings section on fallback` — persists an op_completed with a full canonical warning, renders `/runs/:id`, `render_click(view, "select_node", %{"node-id" => "summarize"})`, asserts the Warnings header plus `code`, `summary`, `cause`, `remediation` all appear.
+  - RED verified: pre-fix run produced exactly the documented bug_009 signature — the data-dag JSON lacked `"degraded":true` for the warn node, and the inspector rendered Fields/status but no Warnings section (and `llm_fallback`/`summary`/`cause`/`remediation` strings absent).
+  - Fixture migration: none. The `extract_dag_json!/1` helper is a new test utility, not a migration of existing fixtures.
 - [ ] **AC5: Cross-layer consistency tests**
   - New test module exercises all four fixed paths in one place (live broadcast, `:partial`-with-warnings, terminal replay, event-log fallback)
 - [ ] **AC6: Validation pipeline stays at baseline**
@@ -111,6 +113,16 @@ Closes four ultrareview findings against commits `d39cb3e` (M-WARN-01 + M-WARN-0
   - No other fixtures required migration. All test helpers that construct terminal events by hand (e.g. `run_completed_event/2`, `run_failed` in view_model_test) were checked — none previously emitted `"run_failed"` for a `:partial` run. The one `run_partial_event/2` helper added in view_model_test is new, not a migration.
 - **Formatting**: `mix format` applied after the fix; `mix format --check-formatted` clean.
 - **Credo**: `mix credo --strict` produces the same 7 pre-existing refactoring opportunities (unchanged from M-WARN-03 baseline).
+
+### Phase 4 (bug_009)
+
+- **Added** to existing file `apps/liminara_web/test/liminara_web/live/runs_live/warnings_test.exs`:
+  - 2 new tests inside the existing `"partial run detail (event-log fallback: build_from_events)"` describe block (see AC4 above for titles).
+  - 1 new helper `extract_dag_json!/1` at module top (extracts the `data-dag` attribute, unescapes `&quot;`/`&amp;`, `Jason.decode!`s).
+- **Modified** `apps/liminara_web/lib/liminara_web/live/runs_live/show.ex`: `build_nodes/1` op_completed arm replaced from a single `status: "completed"` struct-update to a three-step pipeline setting `:status`, `:warnings` (from payload, default `[]`), `:degraded` (`warnings != []`).
+- **Per-app suite run** (post-fix, foreground):
+  - `liminara_web`: 212 tests / 0 failures (was 210 after Phase 3 — +2 from Phase 4's fallback tests)
+- **Formatting**: `mix format --check-formatted` clean on the modified files.
 
 ### Phase 3 (bug_004)
 
@@ -180,6 +192,21 @@ The additive `Map.get(existing, :warning_count, 0) + update_warning_count(existi
 | Rebuild-rebroadcast of non-terminal events (from `Run.Server` lines 236-242) | Same real-RunServer flow as above; `Run.Server` `rebuild_from_events` re-broadcasts all atom-keyed events including intermediate `op_*` events, and `apply_run_event/3` passes atom-keyed maps through the same `Map.get(event, "event_type") || Map.get(event, :event_type)` path |
 
 The removed helper `update_warning_count/3` had two heads (terminal guard + fallthrough). Both behaviours are now inline in the `if/else` above. No dangling defensive branch.
+
+### Phase 4: `build_nodes/1` op_completed arm (bug_009)
+
+The op_completed arm of `RunsLive.Show.build_nodes/1` now sets three fields (`:status`, `:warnings`, `:degraded`) instead of one. Coverage:
+
+| Branch | Covered by |
+|--------|------------|
+| `op_completed` with non-empty `payload["warnings"]` — `:degraded => true` | `event log op_completed with warnings marks per-node degraded in DAG data on fallback` (warn node) + `event log op_completed warnings render in inspector Warnings section on fallback` |
+| `op_completed` with absent `payload["warnings"]` — `warnings = []`, `:degraded => false` | `event log op_completed with warnings marks per-node degraded in DAG data on fallback` (plain node; op_completed payload omits the `"warnings"` key entirely) + pre-existing `build_from_events` event-log fallback tests |
+| `op_completed` with explicit `payload["warnings"] = []` | Collapses into the same arm as absent-key; contract-indistinguishable. Not separately tested — the `\|\| []` default makes the two paths produce identical node state. |
+| `nodes_only_dag_json` node with `:degraded => true` put onto base | DAG test decodes `data-dag` and asserts `warn["degraded"] == true` |
+| `nodes_only_dag_json` node with `:degraded => false` (default not applied) | DAG test asserts `plain["degraded"] != true` (key absent per `nodes_only_dag_json` line 585's `if degraded` guard) |
+| `find_in_view_model/2` fallback returning a view_model node with `:warnings` populated | Inspector test asserts `Warnings` header + `code`/`summary`/`cause`/`remediation` strings present after `select_node` |
+
+No unreachable branches introduced. The op_started/op_failed arms are unchanged and continue to carry their pre-existing coverage (existing `build_from_events` event-log fallback tests).
 
 ## Validation Pipeline
 

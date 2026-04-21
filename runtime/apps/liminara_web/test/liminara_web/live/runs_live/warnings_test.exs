@@ -80,6 +80,15 @@ defmodule LiminaraWeb.RunsLive.WarningsTest do
     )
   end
 
+  defp extract_dag_json!(html) do
+    [_, raw] = Regex.run(~r/data-dag="([^"]*)"/, html)
+
+    raw
+    |> String.replace("&quot;", "\"")
+    |> String.replace("&amp;", "&")
+    |> Jason.decode!()
+  end
+
   # ── Run header degraded badge ────────────────────────────────────
 
   describe "run header degraded badge" do
@@ -741,6 +750,208 @@ defmodule LiminaraWeb.RunsLive.WarningsTest do
 
       refute html =~ ~s(class="status status--degraded" title=),
              "Fallback path with zero warnings must not render the degraded badge span. HTML:\n#{html}"
+    end
+
+    # ── bug_009 / AC4: per-node degraded preserved on fallback path ──
+    #
+    # The event-log fallback path (no plan.json on disk) must surface
+    # per-node warnings and degraded state, just like the primary
+    # observation path does via `observation_state_to_view_model/1`.
+    # build_nodes/1 reduces op_completed events; it must carry
+    # payload["warnings"] onto the per-node map so that:
+    #   - nodes_only_dag_json tags the warning-emitting node with
+    #     degraded: true (DAG pill),
+    #   - find_in_view_model -> inspector Warnings section renders
+    #     the warning's canonical fields.
+
+    test "event log op_completed with warnings marks per-node degraded in DAG data on fallback",
+         %{conn: conn, supervised_runs_root: runs_root} do
+      run_id = unique_run_id("fb-dag-deg")
+      on_exit(fn -> File.rm_rf!(Path.join(runs_root, run_id)) end)
+
+      {:ok, _} =
+        Liminara.Event.Store.append(
+          run_id,
+          "run_started",
+          %{
+            "run_id" => run_id,
+            "pack_id" => "test_pack",
+            "pack_version" => "0.1.0",
+            "plan_hash" => "sha256:abc"
+          },
+          nil
+        )
+
+      {:ok, _} =
+        Liminara.Event.Store.append(
+          run_id,
+          "op_started",
+          %{
+            "node_id" => "warn",
+            "op_id" => "warn_op",
+            "op_version" => "1.0",
+            "determinism" => "pure",
+            "input_hashes" => []
+          },
+          nil
+        )
+
+      {:ok, _} =
+        Liminara.Event.Store.append(
+          run_id,
+          "op_completed",
+          %{
+            "node_id" => "warn",
+            "output_hashes" => [],
+            "cache_hit" => false,
+            "duration_ms" => 10,
+            "warnings" => [warning_map()]
+          },
+          nil
+        )
+
+      {:ok, _} =
+        Liminara.Event.Store.append(
+          run_id,
+          "op_started",
+          %{
+            "node_id" => "plain",
+            "op_id" => "plain_op",
+            "op_version" => "1.0",
+            "determinism" => "pure",
+            "input_hashes" => []
+          },
+          nil
+        )
+
+      {:ok, _} =
+        Liminara.Event.Store.append(
+          run_id,
+          "op_completed",
+          %{
+            "node_id" => "plain",
+            "output_hashes" => [],
+            "cache_hit" => false,
+            "duration_ms" => 5
+          },
+          nil
+        )
+
+      {:ok, _} =
+        Liminara.Event.Store.append(
+          run_id,
+          "run_completed",
+          %{
+            "run_id" => run_id,
+            "warning_summary" => %{
+              "warning_count" => 1,
+              "degraded_node_ids" => ["warn"]
+            }
+          },
+          nil
+        )
+
+      {:ok, _view, html} = live(conn, "/runs/#{run_id}")
+
+      # data-dag is interpolated as an HTML attribute; HEEx escapes double
+      # quotes to &quot;. Extract the raw JSON, unescape, and decode so we
+      # can assert per-node structure directly instead of fighting the
+      # escape form with regex.
+      dag = extract_dag_json!(html)
+
+      warn_node = Enum.find(dag["nodes"], fn n -> n["id"] == "warn" end)
+      plain_node = Enum.find(dag["nodes"], fn n -> n["id"] == "plain" end)
+
+      assert warn_node, "Expected 'warn' node in fallback DAG. DAG:\n#{inspect(dag)}"
+      assert plain_node, "Expected 'plain' node in fallback DAG. DAG:\n#{inspect(dag)}"
+
+      assert warn_node["degraded"] == true,
+             "'warn' node must carry degraded:true on fallback DAG. node:\n#{inspect(warn_node)}"
+
+      refute plain_node["degraded"] == true,
+             "'plain' node must not carry degraded:true on fallback DAG. node:\n#{inspect(plain_node)}"
+    end
+
+    test "event log op_completed warnings render in inspector Warnings section on fallback",
+         %{conn: conn, supervised_runs_root: runs_root} do
+      run_id = unique_run_id("fb-ins-warn")
+      on_exit(fn -> File.rm_rf!(Path.join(runs_root, run_id)) end)
+
+      warning = %{
+        "code" => "llm_fallback",
+        "severity" => "degraded",
+        "summary" => "placeholder summary used",
+        "cause" => "ANTHROPIC_API_KEY missing",
+        "remediation" => "export ANTHROPIC_API_KEY then rerun",
+        "affected_outputs" => ["summary"]
+      }
+
+      {:ok, _} =
+        Liminara.Event.Store.append(
+          run_id,
+          "run_started",
+          %{
+            "run_id" => run_id,
+            "pack_id" => "test_pack",
+            "pack_version" => "0.1.0",
+            "plan_hash" => "sha256:abc"
+          },
+          nil
+        )
+
+      {:ok, _} =
+        Liminara.Event.Store.append(
+          run_id,
+          "op_started",
+          %{
+            "node_id" => "summarize",
+            "op_id" => "summarize",
+            "op_version" => "1.0",
+            "determinism" => "recordable",
+            "input_hashes" => []
+          },
+          nil
+        )
+
+      {:ok, _} =
+        Liminara.Event.Store.append(
+          run_id,
+          "op_completed",
+          %{
+            "node_id" => "summarize",
+            "output_hashes" => [],
+            "cache_hit" => false,
+            "duration_ms" => 10,
+            "warnings" => [warning]
+          },
+          nil
+        )
+
+      {:ok, _} =
+        Liminara.Event.Store.append(
+          run_id,
+          "run_completed",
+          %{
+            "run_id" => run_id,
+            "warning_summary" => %{
+              "warning_count" => 1,
+              "degraded_node_ids" => ["summarize"]
+            }
+          },
+          nil
+        )
+
+      {:ok, view, _html} = live(conn, "/runs/#{run_id}")
+      render_click(view, "select_node", %{"node-id" => "summarize"})
+      html = render(view)
+
+      assert html =~ "Warnings",
+             "Expected inspector Warnings section header. HTML:\n#{html}"
+
+      assert html =~ "llm_fallback", "code missing: #{html}"
+      assert html =~ "placeholder summary used", "summary missing: #{html}"
+      assert html =~ "ANTHROPIC_API_KEY missing", "cause missing: #{html}"
+      assert html =~ "export ANTHROPIC_API_KEY then rerun", "remediation missing: #{html}"
     end
   end
 end

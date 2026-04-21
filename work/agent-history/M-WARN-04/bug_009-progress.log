@@ -1,0 +1,8 @@
+2026-04-21T09:14:34Z phase4-start: beginning Phase 4 (AC4/bug_009) TDD
+2026-04-21T09:15:14Z RED test written: 2 tests in warnings_test.exs fallback describe (DAG degraded + inspector Warnings)
+2026-04-21T09:15:38Z RED confirmed: 2 new tests fail — DAG data-dag lacks degraded:true; inspector Warnings section absent on fallback path
+2026-04-21T09:15:52Z GREEN edit: show.ex:build_nodes/1 now adds :warnings + :degraded on op_completed
+2026-04-21T09:16:57Z GREEN passing: fallback describe 4/4 tests (incl 2 new)
+2026-04-21T09:17:30Z liminara_web suite 212/0 green after Phase 4
+2026-04-21T09:19:05Z tracking doc updated: AC4 marked complete, Remaining Gaps reduced to AC5+AC6
+2026-04-21T09:19:05Z commit-approval prompt reached

@@ -893,7 +893,12 @@ defmodule LiminaraWeb.RunsLive.Show do
             %{current | op_name: op_name, status: "running"}
 
           "op_completed" ->
-            %{current | status: "completed"}
+            warnings = event["payload"]["warnings"] || []
+
+            current
+            |> Map.put(:status, "completed")
+            |> Map.put(:warnings, warnings)
+            |> Map.put(:degraded, warnings != [])
 
           "op_failed" ->
             %{current | status: "failed"}
