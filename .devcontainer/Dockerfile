@@ -15,6 +15,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     git \
     inotify-tools \
+    jq \
     python3 \
     python3-venv \
     sudo \
