@@ -272,26 +272,28 @@ Subagents dispatched via `Agent` run silently from the parent session's perspect
 - Validation: liminara_radar 97/0, liminara_observation 272/0, liminara_web 198/0, liminara_core (run+contracts) 216/0, Python 79/0. Credo and dialyzer unchanged from M-WARN-02 baseline.
 - `radar_dedup` safe-default and fetch-error HTML surfacing explicitly deferred (see tracking Deferrals section).
 
-**Next up: M-WARN-04: Post-Review Bugfixes** — **in-progress** (approved 2026-04-20)
+**M-WARN-04: Post-Review Bugfixes** — **complete** (closed 2026-04-21; 5 commits: `3e43f8a`, `8c445e3`, `e68aa98`, `93792f4`, `fac07bd`)
 - Spec: `work/epics/E-19-warnings-degraded-outcomes/M-WARN-04-postreview-bugfixes.md`
 - Tracking: `work/epics/E-19-warnings-degraded-outcomes/M-WARN-04-tracking.md`
-- Source: ultrareview `r2fg1c81b` (2026-04-20) produced four findings invalidating reachable E-19 paths: bug_005 (live atom-keyed warning crashes observation server), merged_bug_001 (`:partial` collapsed to `:failed` across all web/observation consumers), bug_004 (runs-index double-counts warnings on duplicate terminal events), bug_009 (event-log fallback drops per-node degraded).
-- Locked design decisions: wire-shape fix for bug_005 (no normalisation), new `"run_partial"` terminal event type for merged_bug_001 (no payload-field discriminator), fixture migration when legacy shape breaks (no backward-compat fallback).
-- Branch: continuing on `epic/E-19-warnings-degraded-outcomes` (same pattern as M-WARN-01/02/03).
-- Blocks E-19 wrap until complete. Downstream: E-21a ADR-OPSPEC-01 will codify `run_partial` alongside `run_completed` / `run_failed` in the event taxonomy.
+- Source: ultrareview `r2fg1c81b` (2026-04-20) produced four findings invalidating reachable E-19 paths.
+- Delivered: (1) `Run.Server.warning_payload/1` + synchronous `Liminara.Run.warning_payload/1` emit string-keyed wire-shape (bug_005); (2) new `"run_partial"` terminal event type with 1:1 event-type → `Run.Result.status` mapping and matching consumer clauses in `Run.Server`, `Observation.ViewModel`, `RunsLive.Show`, `RunsLive.Index` (merged_bug_001); (3) `RunsLive.Index.update_existing_run/3` direct-assigns `warning_count` from terminal payload, removed `update_warning_count/3` helper (bug_004); (4) `RunsLive.Show.build_nodes/1` reads `payload["warnings"]` on `op_completed` and populates per-node `:warnings` + `:degraded` so DAG pill and inspector Warnings section render on the event-log fallback path (bug_009); (5) new `warning_cross_layer_test.exs` regression guard exercises all four fixes in one file.
+- Validation: liminara_radar 97/0, liminara_observation 291/0, liminara_web 216/0, liminara_core (run + contracts) 182/55/0. Python ruff + format clean. Credo 7 (unchanged from M-WARN-03 baseline). Dialyzer 2 (both pre-existing, unchanged).
+- Decisions recorded: D-2026-04-20-025 (`run_partial` terminal event type), D-2026-04-20-026 (no backward-compat shims for in-flight contract fixes).
+
+**E-19 Warnings & Degraded Outcomes** — **complete** (all 4 milestones closed). Awaiting wrap: squash-merge into `main`, move epic folder to `work/done/`, update E-19 entry in roadmap index.
 
 ### Where things stand
 
 - **Phase 4** (Observation Layer): **complete** — E-09 done, in `work/done/`
 - **Phase 5a** (Radar Correctness): **complete** — E-11 done, in `work/done/`
 - **Phase 5b** (Radar Complete): **complete** — E-10, E-11 done, in `work/done/`
-- **Phase 5c** (Radar Hardening): **in progress** — E-20 done (in `work/done/`); E-19 complete on epic branch awaiting wrap/merge; next is E-12 Op Sandbox (E-21 pack contract in planning)
+- **Phase 5c** (Radar Hardening): **in progress** — E-20, E-19 done (E-19 awaiting merge); next is E-21 Pack Contribution Contract (planning — four sub-epics) and E-12 Op Sandbox
 - **Sequencing (D-013):** `Radar correctness -> Radar hardening -> VSME -> platform generalization`
 
 ### Key references
 
 - **Roadmap:** `work/roadmap.md` — full sequencing with status labels
-- **Decisions:** `work/decisions.md` (D-022 through D-024 are the most recent)
+- **Decisions:** `work/decisions.md` (D-022 through D-026 are the most recent)
 - **Truth governance:** `docs/architecture/contracts/00_TRUTH_MODEL.md`, `docs/architecture/contracts/01_CONTRACT_MATRIX.md`, `docs/architecture/contracts/02_SHIM_POLICY.md`
 - **Archived architecture:** `docs/history/architecture/` — moved snapshots and design notes that are no longer current authority
 - **Phase 5c epic specs:** `work/epics/E-19-warnings-degraded-outcomes/epic.md`, `work/epics/E-12-op-sandbox/epic.md`

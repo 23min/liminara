@@ -3,23 +3,21 @@
 **Started:** 2026-04-20
 **Branch:** `epic/E-19-warnings-degraded-outcomes` (continuing epic branch per E-19 pattern; milestones M-WARN-01/02/03 were all committed directly here without a separate milestone branch)
 **Spec:** `work/epics/E-19-warnings-degraded-outcomes/M-WARN-04-postreview-bugfixes.md`
-**Status:** complete pending commit (6/6 ACs landed; Phase 5 + AC6 uncommitted in working tree)
+**Status:** **complete** (6/6 ACs landed; all 5 phases committed — `3e43f8a`, `8c445e3`, `e68aa98`, `93792f4`, `fac07bd`)
+**Completed:** 2026-04-21
 **Source of bugs:** ultrareview task `r2fg1c81b` (2026-04-20)
 
 ## Resolved Gaps (2026-04-21)
 
-All six ACs landed:
+All six ACs landed and committed:
 
-- AC1 Phase 1 (bug_005) — committed `3e43f8a`
-- AC2 Phase 2 (merged_bug_001) — committed `8c445e3`
-- AC3 Phase 3 (bug_004) — committed `e68aa98`
-- AC4 Phase 4 (bug_009) — committed `93792f4`
-- AC5 Phase 5 (cross-layer consistency test module) — **uncommitted** in working tree (new file `apps/liminara_web/test/liminara_web/live/runs_live/warning_cross_layer_test.exs`, 4 tests / 0 failures, plus this tracking doc)
-- AC6 wrap-time validation — **uncommitted**; see Validation Pipeline section below
+- AC1 Phase 1 (bug_005) — `3e43f8a`
+- AC2 Phase 2 (merged_bug_001) — `8c445e3`
+- AC3 Phase 3 (bug_004) — `e68aa98`
+- AC4 Phase 4 (bug_009) — `93792f4`
+- AC5 Phase 5 + AC6 wrap validation — `fac07bd`
 
-### Final commit to close M-WARN-04
-
-Commit the working-tree Phase 5 file + tracking-doc updates + untracked progress log, then E-19 is ready to wrap.
+M-WARN-04 closes E-19. No deferred items from this milestone.
 
 ## Summary
 

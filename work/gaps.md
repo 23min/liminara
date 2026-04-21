@@ -94,3 +94,12 @@ Discovered work items deferred for later.
 - Remove `Liminara.Op.derive_execution_spec/1` after non-Radar test/support modules stop exporting legacy callback-derived specs
 - Current known users: `runtime/apps/liminara_core/test/support/test_port_ops.ex` and `runtime/apps/liminara_core/test/liminara/executor/dispatch_test.exs`
 
+## Radar briefing HTML — `radar_dedup` safe-default and fetch-error surfacing
+**Discovered:** 2026-04-20 (M-WARN-03 wrap)
+**Relates to:** E-19, E-21a ADR-CONTENT-01 (briefing contract)
+**Severity:** UI gap — runtime-level degraded signals from these paths continue to surface via the observation layer (M-WARN-02), but the rendered HTML briefing does not yet reflect them.
+**Items:**
+- `radar_dedup` safe-default surfacing: `radar_dedup` operates on items before clustering; its degraded signal would need an item-level degraded flag that propagates through `Cluster` / `Rank` into `ComposeBriefing`. That is a briefing-contract schema decision (surface degraded items as a section? tag clusters containing degraded items?) and crosses into E-21a ADR-CONTENT-01 territory.
+- Fetch-error partial-ingestion surfacing: source-level concern; the briefing already has a `source_health` section showing errors. Extending that to a top-level banner would require deciding how per-source errors compose with per-cluster placeholder summaries in the same banner — another UX + schema decision.
+- Both extensions were deferred from M-WARN-03 because they cost >1h and the spec explicitly said to defer in that case. Consider re-opening when E-21a ADR-CONTENT-01 codifies the briefing contract, or earlier if operator feedback calls for them.
+

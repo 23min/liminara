@@ -1,8 +1,9 @@
 ---
 id: E-19-warnings-degraded-outcomes
 phase: 5
-status: active
+status: complete
 depends_on: E-20-execution-truth
+completed: 2026-04-21
 ---
 
 # E-19: Warnings & Degraded Outcomes
@@ -85,7 +86,7 @@ Sequencing note: this epic consumes the canonical execution/result contract defi
 | M-WARN-01 | Runtime warning contract | Extend execution/event model with structured warnings, node/run aggregation, and tests for degraded-success semantics | M-TRUTH-03 | complete |
 | M-WARN-02 | Observation + UI surfacing | Preserve warnings in observation projection, show badges/counts, and render cause/severity/remediation in the run inspector and timeline summaries | M-WARN-01 | complete |
 | M-WARN-03 | Radar adoption | Convert known Radar silent fallback paths to explicit warnings, annotate briefings, and add pack-level tests for degraded-but-successful outcomes | M-WARN-02, M-TRUTH-03 | complete |
-| M-WARN-04 | Post-review bugfixes | Fix four ultrareview findings (live atom-keyed warning crash, `:partial`-collapsed-to-`:failed` cross-layer disagreement, runs-index double-count on duplicate terminal events, event-log fallback drops per-node degraded) before wrapping E-19 | M-WARN-03 | in-progress |
+| M-WARN-04 | Post-review bugfixes | Fix four ultrareview findings (live atom-keyed warning crash, `:partial`-collapsed-to-`:failed` cross-layer disagreement, runs-index double-count on duplicate terminal events, event-log fallback drops per-node degraded) before wrapping E-19 | M-WARN-03 | complete |
 
 ## Technical Direction
 
