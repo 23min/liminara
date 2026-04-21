@@ -261,20 +261,20 @@ Subagents dispatched via `Agent` run silently from the parent session's perspect
 **M-WARN-01: Runtime Warning Contract** — **complete** (committed as `d39cb3e` along with M-WARN-02; ratification + runtime tightening that closed the absent-`warnings`-key gap on three Run.Server + two Run paths)
 
 **M-WARN-02: Observation + UI Surfacing** — **complete** (committed as `d39cb3e`)
-- Spec: `work/epics/E-19-warnings-degraded-outcomes/M-WARN-02-observation-ui-surfacing.md`
-- Tracking: `work/epics/E-19-warnings-degraded-outcomes/M-WARN-02-tracking.md`
+- Spec: `work/done/E-19-warnings-degraded-outcomes/M-WARN-02-observation-ui-surfacing.md`
+- Tracking: `work/done/E-19-warnings-degraded-outcomes/M-WARN-02-tracking.md`
 
 **M-WARN-03: Radar adoption** — **complete** (committed as `629b902`)
-- Spec: `work/epics/E-19-warnings-degraded-outcomes/M-WARN-03-radar-adoption.md`
-- Tracking: `work/epics/E-19-warnings-degraded-outcomes/M-WARN-03-tracking.md`
+- Spec: `work/done/E-19-warnings-degraded-outcomes/M-WARN-03-radar-adoption.md`
+- Tracking: `work/done/E-19-warnings-degraded-outcomes/M-WARN-03-tracking.md`
 - Delivered: `radar_summarize.py` emits per-cluster `degraded` / `degradation_code` / `degradation_note` on every summary (explicit `false` / `nil` / `nil` on success); `ComposeBriefing` `Map.fetch!`es every summary field (including pre-existing `summary` / `key_takeaways`, harmonised strict-fetch across the whole artifact contract) and adds root `degraded` + sorted `degraded_cluster_ids`; `RenderHtml` renders a count-prefixed banner (`⚠ N of M cluster summaries are degraded`) with deduplicated notes, plus a per-cluster pill that falls back to the label "Degraded" when `degradation_note` is nil; new `degradation_pipeline_test.exs` + extended replay suite prove the full chain.
 - No backward-compat fallback — `ComposeBriefing` raises via `Map.fetch!` on any missing summary field.
 - Validation: liminara_radar 97/0, liminara_observation 272/0, liminara_web 198/0, liminara_core (run+contracts) 216/0, Python 79/0. Credo and dialyzer unchanged from M-WARN-02 baseline.
 - `radar_dedup` safe-default and fetch-error HTML surfacing explicitly deferred (see tracking Deferrals section).
 
 **M-WARN-04: Post-Review Bugfixes** — **complete** (closed 2026-04-21; 5 commits: `3e43f8a`, `8c445e3`, `e68aa98`, `93792f4`, `fac07bd`)
-- Spec: `work/epics/E-19-warnings-degraded-outcomes/M-WARN-04-postreview-bugfixes.md`
-- Tracking: `work/epics/E-19-warnings-degraded-outcomes/M-WARN-04-tracking.md`
+- Spec: `work/done/E-19-warnings-degraded-outcomes/M-WARN-04-postreview-bugfixes.md`
+- Tracking: `work/done/E-19-warnings-degraded-outcomes/M-WARN-04-tracking.md`
 - Source: ultrareview `r2fg1c81b` (2026-04-20) produced four findings invalidating reachable E-19 paths.
 - Delivered: (1) `Run.Server.warning_payload/1` + synchronous `Liminara.Run.warning_payload/1` emit string-keyed wire-shape (bug_005); (2) new `"run_partial"` terminal event type with 1:1 event-type → `Run.Result.status` mapping and matching consumer clauses in `Run.Server`, `Observation.ViewModel`, `RunsLive.Show`, `RunsLive.Index` (merged_bug_001); (3) `RunsLive.Index.update_existing_run/3` direct-assigns `warning_count` from terminal payload, removed `update_warning_count/3` helper (bug_004); (4) `RunsLive.Show.build_nodes/1` reads `payload["warnings"]` on `op_completed` and populates per-node `:warnings` + `:degraded` so DAG pill and inspector Warnings section render on the event-log fallback path (bug_009); (5) new `warning_cross_layer_test.exs` regression guard exercises all four fixes in one file.
 - Validation: liminara_radar 97/0, liminara_observation 291/0, liminara_web 216/0, liminara_core (run + contracts) 182/55/0. Python ruff + format clean. Credo 7 (unchanged from M-WARN-03 baseline). Dialyzer 2 (both pre-existing, unchanged).
@@ -296,6 +296,6 @@ Subagents dispatched via `Agent` run silently from the parent session's perspect
 - **Decisions:** `work/decisions.md` (D-022 through D-026 are the most recent)
 - **Truth governance:** `docs/architecture/contracts/00_TRUTH_MODEL.md`, `docs/architecture/contracts/01_CONTRACT_MATRIX.md`, `docs/architecture/contracts/02_SHIM_POLICY.md`
 - **Archived architecture:** `docs/history/architecture/` — moved snapshots and design notes that are no longer current authority
-- **Phase 5c epic specs:** `work/epics/E-19-warnings-degraded-outcomes/epic.md`, `work/epics/E-12-op-sandbox/epic.md`
+- **Phase 5c epic specs:** `work/done/E-19-warnings-degraded-outcomes/epic.md`, `work/epics/E-12-op-sandbox/epic.md`
 - **Completed E-20:** `work/done/E-20-execution-truth/` (epic + milestone specs + tracking)
 - **Known gaps:** `work/gaps.md` (sandbox spec, dag-map interactivity, remaining non-Radar execution-spec bridge cleanup)
