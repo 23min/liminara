@@ -87,9 +87,17 @@ defmodule LiminaraWeb.RunsLive.Index do
   defp update_existing_run(existing, event_type, payload) do
     status = update_status(existing.status, event_type)
 
+    # M-WARN-04 bug_004: assign warning_count directly from the terminal
+    # payload (mirroring build_run_summary/3). The payload carries the
+    # full aggregate — not a delta — so any re-delivery (mount-race or
+    # Run.Server rebuild re-broadcast) would otherwise inflate the count
+    # to 2N, 3N, etc. Non-terminal events preserve the existing value.
     updated_warning_count =
-      Map.get(existing, :warning_count, 0) +
-        update_warning_count(existing, payload, event_type)
+      if event_type in ["run_completed", "run_partial", "run_failed"] do
+        warning_count_from_payload(payload)
+      else
+        Map.get(existing, :warning_count, 0)
+      end
 
     updated_degraded =
       derive_degraded(event_type, payload) or Map.get(existing, :degraded, false)
@@ -111,13 +119,6 @@ defmodule LiminaraWeb.RunsLive.Index do
       _ -> 0
     end
   end
-
-  defp update_warning_count(_existing, payload, event_type)
-       when event_type in ["run_completed", "run_partial", "run_failed"] do
-    warning_count_from_payload(payload)
-  end
-
-  defp update_warning_count(_existing, _payload, _event_type), do: 0
 
   # M-WARN-04 merged_bug_001: partial-with-warnings is degraded
   # (mirrors the run_completed derivation). run_failed is never degraded.

@@ -3,8 +3,28 @@
 **Started:** 2026-04-20
 **Branch:** `epic/E-19-warnings-degraded-outcomes` (continuing epic branch per E-19 pattern; milestones M-WARN-01/02/03 were all committed directly here without a separate milestone branch)
 **Spec:** `work/epics/E-19-warnings-degraded-outcomes/M-WARN-04-postreview-bugfixes.md`
-**Status:** in-progress
+**Status:** in-progress (3/6 ACs landed; 3 gaps open — see below)
 **Source of bugs:** ultrareview task `r2fg1c81b` (2026-04-20)
+
+## Remaining Gaps (2026-04-21 audit)
+
+Milestone is 3/6 ACs landed (AC1 Phase 1 committed `3e43f8a`; AC2 Phase 2 committed `8c445e3`; AC3 Phase 3 complete but **uncommitted in working tree** — `index.ex`, `runs_live_index_test.exs`, `warnings_test.exs`, this tracking doc, plus untracked `work/agent-history/M-WARN-04/bug_004-progress.log`).
+
+These three gaps block E-19 wrap. All belong in M-WARN-04; none should be deferred.
+
+| Gap | AC | Phase | Evidence in code |
+|---|---|---|---|
+| **bug_009: event-log fallback drops per-node degraded** | AC4 | 4 | `runtime/apps/liminara_web/lib/liminara_web/live/runs_live/show.ex:883-908` — `build_nodes/1` only sets `%{node_id, op_name, status}`; never reads `event["payload"]["warnings"]`; never populates `:warnings` / `:degraded`. Shape disagrees with `observation_state_to_view_model/1` at lines 910-934 (which does set `degraded:` per node). |
+| **Consolidated cross-layer consistency test module** | AC5 | 5 | No file exists that exercises all four fixed paths together. Existing coverage is split across `live_warning_integration_test.exs` (AC1 only), `partial_run_integration_test.exs` (AC2 only), `runs_live_index_test.exs` idempotence describe (AC3 only). |
+| **Wrap-time validation sweep** | AC6 | — | "Validation Pipeline" section below still reads "*To be filled at wrap time.*" Per-app suites green individually as of Phase 3, but the full baseline sweep (per-app suites + ruff + format + credo + dialyzer) has not been run against the combined Phase 1+2+3+4+5 state. |
+
+### Exit criteria for closing the gaps
+
+1. Commit Phase 3 (bug_004) with approval.
+2. Phase 4: extend `build_nodes/1` to read `event["payload"]["warnings"]` on `op_completed`, populate `:warnings` + `:degraded` matching `observation_state_to_view_model/1`'s shape. RED-first forced-fallback test asserting per-node DAG pill + inspector Warnings section.
+3. Phase 5: single new test module exercising all four paths in one place (live warning broadcast, `:partial`-with-warnings, terminal replay, event-log fallback).
+4. AC6: fill in the Validation Pipeline section with per-app suite counts, ruff/format results, credo/dialyzer deltas from M-WARN-03 baseline.
+5. Commit Phase 4 + Phase 5 (+ tracking doc updates) with approval. E-19 then ready to wrap.
 
 ## Summary
 
@@ -33,9 +53,15 @@ Closes four ultrareview findings against commits `d39cb3e` (M-WARN-01 + M-WARN-0
   - End-to-end `partial_run_integration_test.exs` asserts `:partial` terminal, `degraded: true` on `Run.Result`, ViewModel, runs-index row, run-detail view. Replay parity + `result_from_event_log` recognition covered. Edge cases: partial-with-zero-warnings → not degraded; pure single-node failure → remains `:failed` with `degraded: false` (AC2 rule preserved).
   - `seal` file write preserved for `:partial` runs (untouched in `finish_run/2`).
   - RED verified: reverted the `finish_run` status-to-event-type dispatch to produce 11 failures (4 integration, 6 view_model unit, 2 Index live partial, 2+2 warnings_test run_event/fallback paths).
-- [ ] **AC3: `RunsLive.Index` assigns `warning_count` from the terminal payload, never accumulates**
-  - `update_existing_run/3` uses direct assignment mirroring `build_run_summary/3`
-  - Two delivery paths covered by tests: mount-time race and Run.Server rebuild re-broadcast — both leave `warning_count == N`, not `2N`
+- [x] **AC3: `RunsLive.Index` assigns `warning_count` from the terminal payload, never accumulates** (Phase 3 — 2026-04-20)
+  - `RunsLive.Index.update_existing_run/3` now assigns `warning_count` directly from the terminal payload (`warning_count_from_payload(payload)` when `event_type in ["run_completed", "run_partial", "run_failed"]`), else preserves `Map.get(existing, :warning_count, 0)` so non-terminal events (`op_started`, `op_completed`, etc. delivered during Run.Server rebuild re-broadcast) don't zero out an existing count. Mirrors `build_run_summary/3`'s direct assignment on the disk-load path. The now-unreachable helper `update_warning_count/3` was removed (single-use, no external callers).
+  - Four tests in new `describe "warning_count idempotence on re-delivered terminal events"` block in `apps/liminara_web/test/liminara_web/live/runs_live_index_test.exs`:
+    1. **baseline happy-path**: single terminal delivery populates `warning_count = N` (passes trivially — bug only manifests on re-delivery)
+    2. **mount-race**: on-disk summary prefetched (`load_runs_from_store` → `build_run_summary`), then same terminal arrives via `:pg` broadcast — uses per-test tmp `runs_root` for disk isolation; asserts `degraded (2)` and `refute degraded (4)`
+    3. **rebuild-rebroadcast**: same terminal event sent twice via `:pg` — asserts `degraded (3)` and `refute degraded (6)` / `refute degraded (9)`
+    4. **zero-warning idempotence**: duplicate terminal with `warning_count: 0` leaves no degraded badge on the target row (row-scoped regex assertion to stay robust against unrelated leaked rows)
+  - RED verified: pre-fix run produced `degraded (4)` and `degraded (6)` against expected `(2)` / `(3)` respectively — the documented bug_004 signature.
+  - Fixture migration: none triggered by the bug_004 fix itself. However adding 4 tests to the web suite perturbed ExUnit's per-seed module shuffle, exposing a pre-existing cross-test leak: `warnings_test.exs`'s `partial run detail (event-log fallback)` describe block persists `fb-partial-*` / `fb-plain-*` runs into the shared supervised-store `runs_root` (`/tmp/liminara_runs/`) without cleanup, causing later `RunsLive.IndexTest` `refute html =~ "status--degraded"` assertions to see sibling-test rows and fail. Fixed in place: added a `setup` block that captures the supervised store's `runs_root` and an `on_exit` per test that deletes the test's own run directory (`File.rm_rf!(Path.join(runs_root, run_id))`). The supervised `Event.Store` reads its `runs_root` once at startup, so `Application.put_env` at setup time doesn't reach it — per-run-dir cleanup is the minimal fix.
 - [ ] **AC4: Event-log fallback path preserves per-node degraded state**
   - `RunsLive.Show.build_nodes/1` reads `event["payload"]["warnings"]` on `op_completed`; sets `:warnings` and `:degraded` to match `observation_state_to_view_model/1`'s shape
   - Targeted fallback-path test renders DAG with `degraded: true` on warning-emitting nodes and inspector Warnings section
@@ -86,6 +112,20 @@ Closes four ultrareview findings against commits `d39cb3e` (M-WARN-01 + M-WARN-0
 - **Formatting**: `mix format` applied after the fix; `mix format --check-formatted` clean.
 - **Credo**: `mix credo --strict` produces the same 7 pre-existing refactoring opportunities (unchanged from M-WARN-03 baseline).
 
+### Phase 3 (bug_004)
+
+- **Added** to existing file `apps/liminara_web/test/liminara_web/live/runs_live_index_test.exs`: 4 new tests in `describe "warning_count idempotence on re-delivered terminal events"` (baseline, mount-race, rebuild-rebroadcast, zero-warning).
+- **Modified** (test-isolation, Phase-3-exposed regression fix) `apps/liminara_web/test/liminara_web/live/runs_live/warnings_test.exs`: `describe "partial run detail (event-log fallback: build_from_events)"` now has a `setup` block capturing the supervised-store `runs_root` and each test does `on_exit(fn -> File.rm_rf!(Path.join(runs_root, run_id)) end)` to prevent persisted `fb-partial-*` / `fb-plain-*` runs from leaking into later tests that mount `/runs`.
+- **Per-app suite runs** (post-fix, foreground, per-app):
+  - `liminara_web`: 210 tests / 0 failures, verified stable across seeds 0, 1, 42, 99, 7777 (was 206 after Phase 2 — +4 from Phase 3's idempotence tests)
+  - `liminara_observation`: 291 tests / 0 failures (unchanged from Phase 2)
+  - `liminara_core/test/liminara/run`: 161 tests / 0 failures
+  - `liminara_core` execution contracts: 55 tests / 0 failures
+  - `liminara_radar`: 97 tests / 0 failures
+- **Fixture migration**: none required by the fix itself. Modified warnings_test.exs fallback describe block as a test-isolation fix (described above), not a fixture content migration — the event payloads those tests write are unchanged.
+- **Helper removed**: `update_warning_count/3` in `index.ex` deleted; its only caller was the additive expression that the bug_004 fix replaces. `rg update_warning_count runtime/` returns zero references. No branch-coverage loss — its terminal arm's behaviour is now the explicit terminal clause in `update_existing_run/3`, and the `_, _, _` fallthrough head is now the `else` clause that preserves `existing.warning_count`.
+- **Formatting**: `mix format --check-formatted` clean.
+
 ## Coverage notes
 
 ### Phase 1: `warning_payload/1` family (bug_005)
@@ -128,6 +168,18 @@ Closes four ultrareview findings against commits `d39cb3e` (M-WARN-01 + M-WARN-0
 | `RunsLive.Index.build_run_summary/3` degraded filter `in ["completed", "partial"]` | `runs_live_index_test.exs` on-disk mount test |
 
 No genuinely unreachable branches introduced in Phase 2. The `Observation.Server.publish_state/2` `:partial` in the broadcast filter is exercised by every partial-run test that observes ViewModel state via `get_state` (the same broadcast pathway that drives `runs:index` subscribers is used to refresh the live state the tests poll).
+
+### Phase 3: `update_existing_run/3` (bug_004)
+
+The additive `Map.get(existing, :warning_count, 0) + update_warning_count(existing, payload, event_type)` expression is replaced by a two-branch `if`. Coverage:
+
+| Branch | Covered by |
+|--------|------------|
+| `event_type in ["run_completed", "run_partial", "run_failed"]` — terminal direct-assign | (run_completed) baseline happy-path + mount-race + rebuild-rebroadcast + zero-warning idempotence tests + pre-existing `degraded run indicator` tests; (run_partial) Phase 2 `partial run (run_partial event)` tests where `run_started` precedes the terminal `run_partial`; (run_failed) pre-existing `failed run does NOT show a degraded indicator even with warnings` test |
+| else branch — non-terminal event preserves `existing.warning_count` | Pre-existing `shows run_id/pack_id/status for each run`, `real-time updates`, `multiple runs appear in list as they complete` tests flow a real `RunServer.start` plan whose `op_started`/`op_completed` events are broadcast to `:all_runs` and hit this branch for an already-initialised entry |
+| Rebuild-rebroadcast of non-terminal events (from `Run.Server` lines 236-242) | Same real-RunServer flow as above; `Run.Server` `rebuild_from_events` re-broadcasts all atom-keyed events including intermediate `op_*` events, and `apply_run_event/3` passes atom-keyed maps through the same `Map.get(event, "event_type") || Map.get(event, :event_type)` path |
+
+The removed helper `update_warning_count/3` had two heads (terminal guard + fallthrough). Both behaviours are now inline in the `if/else` above. No dangling defensive branch.
 
 ## Validation Pipeline
 

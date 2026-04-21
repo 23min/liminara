@@ -511,6 +511,292 @@ defmodule LiminaraWeb.RunsLive.IndexTest do
     end
   end
 
+  # ── M-WARN-04 bug_004: warning_count idempotence on re-delivered terminal events ──
+
+  describe "warning_count idempotence on re-delivered terminal events" do
+    # bug_004: RunsLive.Index.update_existing_run/3 used to add the terminal
+    # payload's warning_count to the existing accumulator, but the payload
+    # carries the full aggregate — not a delta. Any re-delivery (mount-race
+    # between :pg.join and load_runs_from_store, or Run.Server rebuild
+    # re-broadcast) inflated warning_count to 2N, 3N, etc.
+    #
+    # The fix is direct assignment from the terminal payload (mirroring
+    # build_run_summary/3 on the disk-load path).
+
+    test "single terminal delivery populates warning_count = N (baseline happy path)",
+         %{conn: conn} do
+      {:ok, view, _html} = live(conn, "/runs")
+
+      run_id = unique_run_id("idem-single")
+
+      :pg.get_members(:liminara, :all_runs)
+      |> Enum.each(fn pid ->
+        send(
+          pid,
+          {:run_event, run_id,
+           %{
+             "event_type" => "run_started",
+             "timestamp" => "2026-04-20T14:00:00.000Z",
+             "payload" => %{
+               "run_id" => run_id,
+               "pack_id" => "test_pack",
+               "pack_version" => "0.1.0",
+               "plan_hash" => "sha256:abc"
+             }
+           }}
+        )
+
+        send(
+          pid,
+          {:run_event, run_id,
+           %{
+             "event_type" => "run_completed",
+             "timestamp" => "2026-04-20T14:00:05.000Z",
+             "payload" => %{
+               "run_id" => run_id,
+               "outcome" => "success",
+               "artifact_hashes" => [],
+               "warning_summary" => %{
+                 "warning_count" => 3,
+                 "degraded_node_ids" => ["a", "b", "c"]
+               }
+             }
+           }}
+        )
+      end)
+
+      Process.sleep(150)
+      html = render(view)
+
+      assert html =~ "status--degraded",
+             "Single-delivery completed run with warnings must render degraded badge. HTML:\n#{html}"
+
+      assert html =~ "degraded (3)",
+             "Single delivery must show exactly warning_count=3. HTML:\n#{html}"
+
+      refute html =~ "degraded (6)",
+             "warning_count must not be doubled on a single delivery. HTML:\n#{html}"
+    end
+
+    test "mount-race: terminal event delivery after prefetched summary leaves warning_count = N",
+         %{conn: conn} do
+      # Simulates the mount-time race between :pg.join and
+      # load_runs_from_store: an on-disk summary is already in assigns
+      # (warning_count = N), then a live terminal event with the same
+      # aggregate arrives. Before the fix, update_existing_run/3 would
+      # add N to the existing N, inflating to 2N.
+      #
+      # We reproduce the race deterministically by persisting the event
+      # log under a tmp runs_root, so load_runs_from_store/0 on mount
+      # fills assigns.runs[run_id].warning_count = N; then we send a
+      # duplicate terminal :run_event over :pg.
+
+      tmp_dir =
+        Path.join(System.tmp_dir!(), "liminara-idx-idem-#{:erlang.unique_integer([:positive])}")
+
+      File.mkdir_p!(tmp_dir)
+      prev_runs = Application.get_env(:liminara_core, :runs_root)
+      Application.put_env(:liminara_core, :runs_root, tmp_dir)
+
+      on_exit(fn ->
+        if prev_runs,
+          do: Application.put_env(:liminara_core, :runs_root, prev_runs),
+          else: Application.delete_env(:liminara_core, :runs_root)
+
+        File.rm_rf!(tmp_dir)
+      end)
+
+      run_id = "run-idem-mount-#{:erlang.unique_integer([:positive])}"
+
+      {:ok, _} =
+        Liminara.Event.Store.append(
+          tmp_dir,
+          run_id,
+          "run_started",
+          %{
+            "run_id" => run_id,
+            "pack_id" => "my_real_pack",
+            "pack_version" => "0.1.0",
+            "plan_hash" => "sha256:abc"
+          },
+          nil
+        )
+
+      {:ok, _} =
+        Liminara.Event.Store.append(
+          tmp_dir,
+          run_id,
+          "run_completed",
+          %{
+            "run_id" => run_id,
+            "outcome" => "success",
+            "artifact_hashes" => [],
+            "warning_summary" => %{
+              "warning_count" => 2,
+              "degraded_node_ids" => ["w1", "w2"]
+            }
+          },
+          nil
+        )
+
+      # Mount: load_runs_from_store populates assigns.runs[run_id]
+      # with warning_count = 2.
+      {:ok, view, html_mount} = live(conn, "/runs")
+
+      assert html_mount =~ "degraded (2)",
+             "On-disk mount summary must report warning_count=2. HTML:\n#{html_mount}"
+
+      # Simulate the race: the same terminal event now arrives via :pg.
+      :pg.get_members(:liminara, :all_runs)
+      |> Enum.each(fn pid ->
+        send(
+          pid,
+          {:run_event, run_id,
+           %{
+             "event_type" => "run_completed",
+             "timestamp" => "2026-04-20T14:00:05.000Z",
+             "payload" => %{
+               "run_id" => run_id,
+               "outcome" => "success",
+               "artifact_hashes" => [],
+               "warning_summary" => %{
+                 "warning_count" => 2,
+                 "degraded_node_ids" => ["w1", "w2"]
+               }
+             }
+           }}
+        )
+      end)
+
+      Process.sleep(150)
+      html_after = render(view)
+
+      assert html_after =~ "degraded (2)",
+             "Duplicate terminal delivery must leave warning_count=2, not 4. HTML:\n#{html_after}"
+
+      refute html_after =~ "degraded (4)",
+             "warning_count must not be doubled by mount-race re-delivery. HTML:\n#{html_after}"
+    end
+
+    test "rebuild-rebroadcast: duplicate terminal event leaves warning_count = N",
+         %{conn: conn} do
+      # Simulates Run.Server rebuild re-broadcast: the same terminal
+      # event is delivered twice to the same LiveView. Before the fix
+      # update_existing_run/3 would double the count.
+      {:ok, view, _html} = live(conn, "/runs")
+
+      run_id = unique_run_id("idem-rebuild")
+
+      terminal_event = %{
+        "event_type" => "run_completed",
+        "timestamp" => "2026-04-20T14:00:05.000Z",
+        "payload" => %{
+          "run_id" => run_id,
+          "outcome" => "success",
+          "artifact_hashes" => [],
+          "warning_summary" => %{
+            "warning_count" => 3,
+            "degraded_node_ids" => ["a", "b", "c"]
+          }
+        }
+      }
+
+      :pg.get_members(:liminara, :all_runs)
+      |> Enum.each(fn pid ->
+        send(
+          pid,
+          {:run_event, run_id,
+           %{
+             "event_type" => "run_started",
+             "timestamp" => "2026-04-20T14:00:00.000Z",
+             "payload" => %{
+               "run_id" => run_id,
+               "pack_id" => "test_pack",
+               "pack_version" => "0.1.0",
+               "plan_hash" => "sha256:abc"
+             }
+           }}
+        )
+
+        send(pid, {:run_event, run_id, terminal_event})
+        send(pid, {:run_event, run_id, terminal_event})
+      end)
+
+      Process.sleep(150)
+      html = render(view)
+
+      assert html =~ "degraded (3)",
+             "Rebuild-rebroadcast must leave warning_count=3, not 6. HTML:\n#{html}"
+
+      refute html =~ "degraded (6)",
+             "Duplicate terminal event must not double warning_count. HTML:\n#{html}"
+
+      refute html =~ "degraded (9)",
+             "Duplicate terminal event must not triple warning_count. HTML:\n#{html}"
+    end
+
+    test "zero-warning run: duplicate terminal event leaves warning_count = 0 (not degraded)",
+         %{conn: conn} do
+      # Zero-warning baseline: both delivery paths must leave
+      # warning_count = 0 and no degraded badge. Guards against a fix
+      # that accidentally inflates an absent payload field.
+      {:ok, view, _html} = live(conn, "/runs")
+
+      run_id = unique_run_id("idem-zero")
+
+      terminal_event = %{
+        "event_type" => "run_completed",
+        "timestamp" => "2026-04-20T14:00:05.000Z",
+        "payload" => %{
+          "run_id" => run_id,
+          "outcome" => "success",
+          "artifact_hashes" => [],
+          "warning_summary" => %{
+            "warning_count" => 0,
+            "degraded_node_ids" => []
+          }
+        }
+      }
+
+      :pg.get_members(:liminara, :all_runs)
+      |> Enum.each(fn pid ->
+        send(
+          pid,
+          {:run_event, run_id,
+           %{
+             "event_type" => "run_started",
+             "timestamp" => "2026-04-20T14:00:00.000Z",
+             "payload" => %{
+               "run_id" => run_id,
+               "pack_id" => "test_pack",
+               "pack_version" => "0.1.0",
+               "plan_hash" => "sha256:abc"
+             }
+           }}
+        )
+
+        send(pid, {:run_event, run_id, terminal_event})
+        send(pid, {:run_event, run_id, terminal_event})
+      end)
+
+      Process.sleep(150)
+      html = render(view)
+
+      # Assert this specific run's row has no degraded badge. Using
+      # a run-id-scoped regex rather than a bare `refute html =~
+      # "status--degraded"` to stay robust against any unrelated runs
+      # persisted to the shared default runs_root by sibling tests
+      # (a known pre-existing test-isolation issue in the web suite).
+      row_regex = ~r|<tr[^>]*>\s*<td[^>]*>\s*<a[^>]*href="/runs/#{run_id}".*?</tr>|s
+
+      assert html =~ run_id, "Run row must be rendered. HTML:\n#{html}"
+      assert [row] = Regex.run(row_regex, html) |> List.wrap()
+
+      refute row =~ "status--degraded",
+             "Zero-warning run's own row must not render degraded badge. ROW:\n#{row}"
+    end
+  end
+
   # ── Navigation ───────────────────────────────────────────────────
 
   describe "navigation" do

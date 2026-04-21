@@ -576,9 +576,29 @@ defmodule LiminaraWeb.RunsLive.WarningsTest do
     # no plan.json on disk (which is how this page degrades when the
     # Observation.Server can't start). We trigger the fallback by
     # appending events directly via Event.Store without writing a plan.
+    #
+    # These tests write into the supervised Event.Store's runs_root
+    # (default `/tmp/liminara_runs/`). Without cleanup the persisted
+    # fb-partial/fb-plain runs leak into any later test that mounts
+    # `/runs` (e.g. RunsLive.IndexTest → load_runs_from_store), which
+    # then observes a degraded/partial row from a sibling test and
+    # fails its `refute html =~ "status--degraded"` assertion. We
+    # cannot swap runs_root via `Application.put_env` because the
+    # supervised store reads it once at startup; we clean the run
+    # directory after each test instead.
+
+    setup do
+      runs_root =
+        Application.get_env(:liminara_core, :runs_root) ||
+          Path.join(System.tmp_dir!(), "liminara_runs")
+
+      {:ok, supervised_runs_root: runs_root}
+    end
+
     test "event log ending with run_partial projects degraded: true and status partial",
-         %{conn: conn} do
+         %{conn: conn, supervised_runs_root: runs_root} do
       run_id = unique_run_id("fb-partial")
+      on_exit(fn -> File.rm_rf!(Path.join(runs_root, run_id)) end)
 
       # Append events directly (no plan written) — guarantees
       # `try_start_obs_server` falls through to `build_view_model`.
@@ -684,8 +704,9 @@ defmodule LiminaraWeb.RunsLive.WarningsTest do
     end
 
     test "event log ending with run_partial and zero warnings projects status partial without degraded badge",
-         %{conn: conn} do
+         %{conn: conn, supervised_runs_root: runs_root} do
       run_id = unique_run_id("fb-plain")
+      on_exit(fn -> File.rm_rf!(Path.join(runs_root, run_id)) end)
 
       {:ok, _} =
         Liminara.Event.Store.append(
