@@ -55,3 +55,5 @@ runtime/data/
 agent_runtime_specs.zip
 .claude/worktrees/
 .claude-sessions-backup/
+.claude/statusline.sh
+.codex/instructions.md

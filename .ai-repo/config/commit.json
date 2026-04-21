@@ -1,0 +1,7 @@
+{
+  "coAuthors": {
+    "claude":  "Claude <noreply@anthropic.com>",
+    "copilot": "GitHub Copilot <noreply@github.com>",
+    "codex":   "OpenAI Codex <noreply@openai.com>"
+  }
+}

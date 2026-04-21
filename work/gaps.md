@@ -2,7 +2,16 @@
 
 Discovered work items deferred for later.
 
-## Python op isolation — E-12 epic needed
+## Milestone/tracking template drift — consolidate at next milestone start
+**Discovered:** 2026-04-21 (post-framework-update doc-gardening pass)
+**Relates to:** `.ai/templates/`, `work/_templates/`
+**Severity:** Low — real specs work fine; templates just aren't helpful starting points anymore
+**Context:** Neither template set matches current practice. Framework templates (`.ai/templates/milestone-spec.md`, `tracking-doc.md`) are structurally close but lack YAML frontmatter, `depends_on`, and Constraints/Decisions/Design sections that real E-19/E-20 specs use. Repo templates (`work/_templates/milestone.md`, `milestone-log.md`) use a status vocabulary (`draft|ready|active|review|done`) that nobody adopted and an obsolete "test-agent / impl-agent / review" TDD sequence that's since moved into the `wf-tdd-cycle` skill. `work/_templates/milestone-log.md` has zero usage.
+**Items:**
+- Delete `work/_templates/milestone.md` and `work/_templates/milestone-log.md`
+- Create `.ai-repo/templates/milestone-spec.md` and `.ai-repo/templates/tracking-doc.md` as repo overrides — start from the framework versions, add YAML frontmatter (`id`, `epic`, `status: draft|approved|in-progress|complete`, `depends_on`), plus Constraints / Decisions / Design sections
+- Keep `work/_templates/ADR.md` and `work/_templates/epic.md` until we have evidence they need updating (only 2 ADRs in the repo — low signal)
+**Trigger:** do this at the start of the next milestone (likely E-21a) — write the spec first, retrofit the template from it rather than designing speculatively
 **Discovered:** 2026-04-02 (M-RAD-03, live run exposed VIRTUAL_ENV leakage)
 **Relates to:** D-2026-04-02-011, E-10 Port Executor
 **Severity:** Architectural gap — not blocking Radar dev (all ops are ours) but blocks production use and untrusted ops

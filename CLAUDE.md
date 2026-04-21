@@ -8,6 +8,17 @@ Keep it assistant-neutral.
 Generated assistant adapter files under `.github/` and `.claude/` are local build outputs by default.
 Keep their source of truth in `.ai/` and `.ai-repo/`, and regenerate them locally with `bash .ai/sync.sh`.
 
+## Session Start
+
+At the start of every session, pick up accumulated context:
+
+- `work/decisions.md` — shared decision log across all agents
+- `work/agent-history/<role>.md` — your role's accumulated learnings (read only the file matching the active agent)
+- `work/gaps.md` — deferred work items
+- `## Current Work` section below — active epic + milestone
+
+After `/compact` or a fresh session, this file is re-available via the system prompt. If rules or project config changed mid-session, say **"refresh context"** to trigger a full re-read (see generated adapter files for the full refresh checklist).
+
 ## Hard Rules (summary — full rules in `.ai/rules.md`)
 
 - **NEVER commit or push without explicit human approval** — "continue" / "ok" do not count
@@ -22,10 +33,10 @@ Keep their source of truth in `.ai/` and `.ai-repo/`, and regenerate them locall
 
 | Intent | Agent | Read first |
 |--------|-------|------------|
-| build, implement, code, start, fix, patch | **builder** | `.ai/agents/builder.md` + relevant skill |
-| plan, design, scope, epic, architecture | **planner** | `.ai/agents/planner.md` + relevant skill |
-| review, check, validate, wrap, finish | **reviewer** | `.ai/agents/reviewer.md` + relevant skill |
-| release, deploy, tag, publish | **deployer** | `.ai/agents/deployer.md` + relevant skill |
+| build, implement, code, start, fix, patch | **builder** | `.claude/agents/builder.md` + relevant skill |
+| plan, design, scope, epic, architecture | **planner** | `.claude/agents/planner.md` + relevant skill |
+| review, check, validate, wrap, finish | **reviewer** | `.claude/agents/reviewer.md` + relevant skill |
+| release, deploy, tag, publish | **deployer** | `.claude/agents/deployer.md` + relevant skill |
 
 ## Framework Sources
 
@@ -33,8 +44,8 @@ Keep their source of truth in `.ai/` and `.ai-repo/`, and regenerate them locall
 |--------|---------|
 | `.ai/rules.md` | Full rules and enforcement levels |
 | `.ai/paths.md` | Artifact layout defaults |
-| `.ai/agents/` | Agent definitions (→ `.claude/agents/`, `.github/chatmodes/`) |
-| `.ai/skills/` | Skill workflows (→ `.claude/skills/`, `.github/skills/`) |
+| `.ai/agents/` | Agent source definitions (generated into `.claude/agents/` — read those at invocation time) |
+| `.ai/skills/` | Skill source workflows (generated into `.claude/skills/` and `.github/skills/`) |
 | `.ai/templates/` | Document templates |
 | `.ai-repo/rules/` | **Project-specific rules** — read before starting work |
 | `.ai-repo/config/` | Artifact layout overrides |
@@ -54,6 +65,8 @@ These values are resolved from framework defaults in .ai/paths.md and repo overr
 | `completedEpicPathTemplate` | `work/done/<epic>/` | Completed epic archive template |
 | `epicIdPattern` | `E-{NN}[optional-letter]` | Epic ID naming pattern |
 | `milestoneIdPattern` | `M-<TRACK>-<NN>` | Milestone ID naming pattern |
+| `frameworkSkillPrefix` | `wf` | Prefix for framework skill slash-commands (e.g. `/wf-patch`) |
+| `repoSkillPrefix` | `` | Prefix for repo-specific skill slash-commands (e.g. `/wf-li-app-legibility`) |
 
 ## Project-Specific Rules
 
@@ -280,14 +293,14 @@ Subagents dispatched via `Agent` run silently from the parent session's perspect
 - Validation: liminara_radar 97/0, liminara_observation 291/0, liminara_web 216/0, liminara_core (run + contracts) 182/55/0. Python ruff + format clean. Credo 7 (unchanged from M-WARN-03 baseline). Dialyzer 2 (both pre-existing, unchanged).
 - Decisions recorded: D-2026-04-20-025 (`run_partial` terminal event type), D-2026-04-20-026 (no backward-compat shims for in-flight contract fixes).
 
-**E-19 Warnings & Degraded Outcomes** — **complete** (all 4 milestones closed). Awaiting wrap: squash-merge into `main`, move epic folder to `work/done/`, update E-19 entry in roadmap index.
+**E-19 Warnings & Degraded Outcomes** — **complete** (merged to `main` as `3986f27`; archived to `work/done/` as `d8e7312`; roadmap updated).
 
 ### Where things stand
 
 - **Phase 4** (Observation Layer): **complete** — E-09 done, in `work/done/`
 - **Phase 5a** (Radar Correctness): **complete** — E-11 done, in `work/done/`
 - **Phase 5b** (Radar Complete): **complete** — E-10, E-11 done, in `work/done/`
-- **Phase 5c** (Radar Hardening): **in progress** — E-20, E-19 done (E-19 awaiting merge); next is E-21 Pack Contribution Contract (planning — four sub-epics) and E-12 Op Sandbox
+- **Phase 5c** (Radar Hardening): **in progress** — E-20 and E-19 done (both merged and archived); next is E-21 Pack Contribution Contract (planning — four sub-epics) and E-12 Op Sandbox
 - **Sequencing (D-013):** `Radar correctness -> Radar hardening -> VSME -> platform generalization`
 
 ### Key references
