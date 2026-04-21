@@ -15,7 +15,7 @@ Ship everything an external pack author installs and uses. When E-21c is done, a
 Concretely this sub-epic produces:
 - **`liminara-pack-sdk`** on PyPI — the primary SDK.
 - **`liminara_pack_sdk`** on Hex — small optional sugar for Elixir-authored packs.
-- **`liminara_ui`** — the generic A2UI widget library (Elixir Catalog + JS bundle) with data_grid, pdf_viewer, timeline, json_viewer, dag_map embedder, each with a working demo, none referencing Liminara domain types.
+- **`liminara_ui`** — the generic A2UI widget library (Elixir Catalog + JS bundle) with `data_grid`, `json_viewer`, and `dag_map` embedder, each with a working demo, none referencing Liminara domain types. `pdf_viewer` and `timeline` are deferred until a named consumer (admin-pack receipts, process-mining pack) demands them — see the parent epic's "Explicitly deferred" table.
 - **`liminara-new-pack`** — pipx-installable scaffolder that emits a conventional pack repo layout per ADR-LAYOUT-01.
 - **`liminara-test-harness`** — pipx-installable CLI that boots a local Liminara runtime with a local pack mounted from an arbitrary path. Supports `run` (drive integration tests) and `dev` (launch UI for interactive debugging).
 - **`LiminaraTest.Harness` + `A2UICapture`** — Elixir-side test helpers used by the runtime's own tests and by pack-repo in-tree Elixir tests (for mixed-language packs).
@@ -39,7 +39,7 @@ The sub-epic is organized around the audience: a pack author in their own GitHub
 
 - **`liminara-pack-sdk` (Python, PyPI-shape)**: op runner protocol client (speaks the wire protocol from ADR-WIRE-01), typed artifact helpers, plan builder DSL, content-type helpers (namespace construction + validation), `test` submodule with fake `ExecutionContext`, `run_op` helper, `assert_decision`, `assert_warning` matchers, `tmp_pack_instance` fixture. Versioned independently of the Liminara runtime; follows semver.
 - **`liminara_pack_sdk` (Elixir, Hex-shape)**: `use LiminaraPackSdk.Plan` for ergonomic plan-building in Elixir; `ok/1`, `ok_with_warnings/2`, `error/1` result sugar; `LiminaraPackSdk.Test` with fake context + assertions. **Deliberately small.** Optional for packs that choose to author plans/ops in Elixir. Packs can equivalently use `@behaviour Liminara.Pack.API.Op` + hand-written callbacks.
-- **`liminara_ui` (Elixir Catalog + JS renderer bundle)**: generic A2UI custom components. MVP widgets: `data_grid`, `pdf_viewer`, `timeline`, `json_viewer`, `dag_map` embedder. Each widget ships with a working demo surface and no reference to Liminara domain types (Artifact, Run, Decision). Scope rule enforced by Credo + review.
+- **`liminara_ui` (Elixir Catalog + JS renderer bundle)**: generic A2UI custom components. MVP widgets: `data_grid`, `json_viewer`, `dag_map` embedder. Each widget ships with a working demo surface and no reference to Liminara domain types (Artifact, Run, Decision). Scope rule enforced by Credo + review. `pdf_viewer` and `timeline` are deferred per the parent epic's "Explicitly deferred" table — they are added when a named consumer demands them.
 - **`liminara-new-pack` (Python CLI, pipx-installable)**: scaffolds a pack repo conforming to ADR-LAYOUT-01. Emits `pack.yaml`, `pyproject.toml`, `src/<pack_name>/ops/`, `src/<pack_name>/plan.py`, `surfaces/dashboard.yaml`, `tests/`, `fixtures/`, `README.md`. Runs `liminara-test-harness run` successfully out of the box. Templates live in the CLI package's own `data/` directory, not in a runtime dep.
 - **`liminara-test-harness` (Python CLI, pipx-installable)**: boots a local Liminara runtime — either by downloading a pinned release binary or via a Docker image — with a pack from the current working directory mounted. Two modes: `run -- <command>` (spin up runtime, run command against it, tear down) for CI and scripted tests; `dev` (spin up runtime + web UI, browser opens, interactive) for manual debugging. Supports `trigger --input '<json>'` for manually firing a plan.
 - **`LiminaraTest.Harness` + `A2UICapture` (Elixir)**: test helpers that runtime tests and mixed-language pack tests use. `LiminaraTest.Harness` starts a Liminara supervision tree in a test process with a configured pack; `A2UICapture` attaches to the A2UI socket and records wire messages for assertion. Used by the `e2e-harness` skill's reference scenario.
@@ -52,7 +52,7 @@ The sub-epic is organized around the audience: a pack author in their own GitHub
 - Moving Radar to a submodule — E-21d.
 - Admin-pack — E-22.
 - Additional SDK languages (Rust, Go, Java, TypeScript) — demand-driven.
-- Additional widgets beyond the MVP five — demand-driven.
+- Additional widgets beyond the MVP three (including deferred `pdf_viewer` and `timeline`) — demand-driven.
 - A published pack marketplace or registry — out of scope indefinitely.
 - Pack-shipped custom JS bundle examples — the runtime supports them (E-21b honors the manifest reference); an example bundle can be deferred.
 
@@ -70,7 +70,7 @@ Shared E-21 constraints apply. Sub-epic-specific:
 
 - [ ] `liminara-pack-sdk` (Python) published to a test index and importable; its test suite passes; a minimal op file written against it runs end-to-end via the harness.
 - [ ] `liminara_pack_sdk` (Elixir) published to a test Hex index; an Elixir pack authored with it runs end-to-end; the sugar is documented with hand-written-callback equivalents in the README.
-- [ ] `liminara_ui` builds as an Elixir library + JS bundle; each of the five widgets has a working demo surface; none reference Liminara domain types (verified by Credo + JS lint).
+- [ ] `liminara_ui` builds as an Elixir library + JS bundle; each of the three MVP widgets (`data_grid`, `json_viewer`, `dag_map` embedder) has a working demo surface; none reference Liminara domain types (verified by Credo + JS lint).
 - [ ] `liminara-new-pack` installs via `pipx` and scaffolds a pack that passes `liminara-test-harness run -- pytest` immediately.
 - [ ] `liminara-test-harness` installs via `pipx`; `run` mode drives a pack's integration test and returns a proper exit code; `dev` mode opens a browser on a pack's surfaces.
 - [ ] `examples/file_watch_demo` in-tree, passes CI, is referenced from the pack authoring guide as the canonical `:file_watch` reference.
@@ -83,7 +83,7 @@ Shared E-21 constraints apply. Sub-epic-specific:
 | ID | Title | Summary |
 |---|---|---|
 | **M-PACK-C-01** | Python SDK + Elixir sugar | `liminara-pack-sdk` (Python) + `liminara_pack_sdk` (Elixir) shipped. Includes wire-protocol client, artifact helpers, plan builder, content-type helpers, test submodule with fake context + assertions. Both published to test indices. |
-| **M-PACK-C-02** | `liminara_ui` widgets + Elixir test harness | `liminara_ui` Elixir Catalog + JS bundle with the five MVP widgets; each has a working demo. `LiminaraTest.Harness` + `A2UICapture` land. `e2e-harness` skill documented with a reference scenario. |
+| **M-PACK-C-02** | `liminara_ui` widgets + Elixir test harness | `liminara_ui` Elixir Catalog + JS bundle with the three MVP widgets (`data_grid`, `json_viewer`, `dag_map` embedder); each has a working demo. `LiminaraTest.Harness` + `A2UICapture` land. `e2e-harness` skill documented with a reference scenario. |
 | **M-PACK-C-03** | Scaffolder + test harness CLI + file_watch demo | `liminara-new-pack` and `liminara-test-harness` CLIs, both pipx-installable. `examples/file_watch_demo` pure-Python pack lands + passes CI. The scaffolder-to-harness-to-passing-test loop is validated end-to-end. |
 
 ## Technical direction
@@ -118,7 +118,7 @@ Shared E-21 constraints apply. Sub-epic-specific:
 E-21d uses E-21c's outputs:
 - Radar's extracted form will use `liminara_pack_sdk` (Elixir) for plan ergonomics.
 - Radar's Python ops continue to use the same protocol; `liminara-pack-sdk` (Python) is available but Radar's existing op code doesn't require it.
-- Radar's surfaces become YAML declarations rendered by `liminara_ui` widgets (the MVP five cover Radar's needs; `dag_map` embedder is the critical one).
+- Radar's surfaces become YAML declarations rendered by `liminara_ui` widgets (the MVP three cover Radar's needs; `dag_map` embedder is the critical one).
 - Radar's tests use `LiminaraTest.Harness` + `A2UICapture`.
 - The pack authoring guide (drafted here, finalized in E-21d) cites Radar as a "mixed-language advanced pack" alongside `file_watch_demo` as the "pure-Python simple pack."
 

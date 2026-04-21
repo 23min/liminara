@@ -65,7 +65,7 @@ All shared constraints from E-21's parent epic apply. Sub-epic-specific:
 - [ ] A "read this first" index exists at `docs/architecture/contracts/pack-contract-index.md` linking each ADR, schema, and fixture set.
 - [ ] Downstream sub-epic specs (E-21b, E-21c, E-21d) reference specific ADRs for every design choice they inherit.
 
-## ADRs produced (16)
+## ADRs produced (17)
 
 Each ADR ships with: CUE schema, valid fixtures, invalid fixtures (demonstrating what `cue vet` rejects), worked example (one or two realistic pack snippets), and a named reference implementation citation.
 
@@ -74,10 +74,11 @@ Each ADR ships with: CUE schema, valid fixtures, invalid fixtures (demonstrating
 | **ADR-LA-01** | Language-agnostic pack contribution | Radar (mixed), admin-pack (Python) | — |
 | **ADR-MANIFEST-01** | Pack manifest schema (YAML + CUE) | Radar generated manifest | admin-pack manifest sketch |
 | **ADR-PLAN-01** | Plan representation (language-agnostic data) | Radar plan output | admin-pack plan sketch |
-| **ADR-OPSPEC-01** | Op execution spec CUE schema (codifies M-TRUTH-01) | Radar ops | admin-pack op sketches |
+| **ADR-OPSPEC-01** | Op execution spec CUE schema (codifies M-TRUTH-01; includes terminal event taxonomy `run_completed` / `run_partial` / `run_failed` per D-2026-04-20-025) | Radar ops | admin-pack op sketches |
 | **ADR-WIRE-01** | Port wire protocol schema | Radar Python ops today | — |
 | **ADR-SURFACE-01** | Surface declaration schema + widget catalog | Radar runs_dashboard | admin-pack period view |
 | **ADR-TRIGGER-01** | Trigger declaration (`:cron`, `:file_watch`, `:manual`) | Radar scheduler | admin-pack intake |
+| **ADR-FILEWATCH-01** | File-watch trigger semantics (debounce, coalesce, scan-on-startup, dedup, in-memory queue + rescan-on-restart) | `examples/file_watch_demo` (E-21c) | admin-pack receipt intake |
 | **ADR-FSSCOPE-01** | Pack-instance FS-scope declaration | Radar (lancedb_path) | admin-pack data_root |
 | **ADR-SECRETS-01** | Secrets declaration + `SecretSource` behaviour | Radar API keys | admin-pack Gmail creds |
 | **ADR-CONTENT-01** | Artifact content-type namespace rules | Radar content types | admin-pack item types |
@@ -95,7 +96,9 @@ Each ADR lives under `docs/decisions/` following the existing ADR convention; th
 | ID | Title | Summary |
 |---|---|---|
 | **M-PACK-A-01** | Contract-TDD tooling | Ship the `design-contract` skill, `contract-design` rule, CUE in devcontainer, `cue vet` CI check, ADR template extensions. One-sitting milestone. |
-| **M-PACK-A-02** | Contract schemas + ADRs | Produce the 16 ADRs + CUE schemas + fixtures + worked examples, plus the schema-evolution CI check. The big milestone of this sub-epic. |
+| **M-PACK-A-02a** | Foundational contracts (4 ADRs) | Ship ADR-MANIFEST-01, ADR-PLAN-01, ADR-OPSPEC-01, ADR-WIRE-01 with CUE schemas + fixtures + worked examples. These are the hot path — every other sub-epic blocks on their shape. Ship the schema-evolution CI check in this milestone (it runs against these first schemas and every one that follows). |
+| **M-PACK-A-02b** | Packs-as-running-systems (5 ADRs) | Ship ADR-SURFACE-01, ADR-TRIGGER-01, ADR-FILEWATCH-01, ADR-FSSCOPE-01, ADR-SECRETS-01 with CUE schemas + fixtures + worked examples. These define how a loaded pack interacts with the world (UI, triggers, filesystem, secrets). Unblocks the bulk of E-21b's runtime plumbing. |
+| **M-PACK-A-02c** | Governance (8 ADRs) | Ship ADR-REGISTRY-01, ADR-MULTIPLAN-01, ADR-EXECUTOR-01, ADR-EVOLUTION-01, ADR-LAYOUT-01, ADR-BOUNDARY-01, ADR-CONTENT-01, ADR-LA-01 with CUE schemas + fixtures + worked examples. These govern how packs are registered, composed, extended, and bounded. Can be reviewed in parallel with M-PACK-A-02b once M-PACK-A-02a's foundational shapes are frozen. The `docs/architecture/contracts/pack-contract-index.md` lands in this milestone. |
 
 ## Technical direction
 
@@ -109,7 +112,7 @@ Each ADR lives under `docs/decisions/` following the existing ADR convention; th
 
 | Risk | Impact | Mitigation |
 |---|---|---|
-| 16 ADRs is a lot to merge sequentially | Med | ADRs are batched into logical groups (manifest+plan+opspec, surfaces+widget-catalog, triggers+FS-scope+secrets, executor-taxonomy+evolution+layout, registry+multiplan+boundary+content+LA+wire). Groups can be reviewed as clusters. |
+| 17 ADRs is a lot to merge sequentially | Low | Split across three clustered milestones (M-PACK-A-02a foundational, M-PACK-A-02b running-systems, M-PACK-A-02c governance). M-PACK-A-02b and M-PACK-A-02c can be reviewed in parallel once M-PACK-A-02a's foundational shapes are frozen. No one milestone carries more than eight ADRs. |
 | ADRs pushed to close the sub-epic before admin-pack's needs are honestly reflected | High | Explicit success criterion that each pack-level ADR names both a Radar citation and an admin-pack citation. Reviewer checks the secondary citation is substantive, not ceremonial. |
 | CUE toolchain learning curve slows ADR authoring | Low | M-PACK-A-01 ships the `design-contract` skill that embodies the workflow; authors follow the skill's checklist rather than re-deriving. |
 | Schema-evolution test fails on historical fixtures | Low | Fixtures written during E-21a start as the historical baseline; every schema change runs the test. No prior fixtures exist to be incompatible with at M-PACK-A-02 landing time. |
@@ -122,7 +125,7 @@ Each ADR lives under `docs/decisions/` following the existing ADR convention; th
 
 ## What downstream sub-epics get from E-21a
 
-- **E-21b** (runtime) inherits: ADR-MANIFEST-01, ADR-PLAN-01, ADR-WIRE-01, ADR-TRIGGER-01, ADR-FSSCOPE-01, ADR-SECRETS-01, ADR-EXECUTOR-01, ADR-REGISTRY-01, ADR-SURFACE-01, ADR-MULTIPLAN-01. These constrain PackLoader, TriggerManager, SurfaceRenderer, SecretSource, etc.
+- **E-21b** (runtime) inherits: ADR-MANIFEST-01, ADR-PLAN-01, ADR-WIRE-01, ADR-TRIGGER-01, ADR-FILEWATCH-01, ADR-FSSCOPE-01, ADR-SECRETS-01, ADR-EXECUTOR-01, ADR-REGISTRY-01, ADR-SURFACE-01, ADR-MULTIPLAN-01. These constrain PackLoader, TriggerManager, SurfaceRenderer, SecretSource, etc.
 - **E-21c** (DX) inherits: ADR-MANIFEST-01, ADR-PLAN-01, ADR-OPSPEC-01, ADR-WIRE-01, ADR-SURFACE-01, ADR-LAYOUT-01, ADR-CONTENT-01. These constrain the Python SDK shape, widget catalog, scaffolder output.
 - **E-21d** (extraction) inherits: ADR-LAYOUT-01, ADR-BOUNDARY-01, ADR-REGISTRY-01, plus effectively all others (Radar's extracted form must be a valid pack per every schema).
 

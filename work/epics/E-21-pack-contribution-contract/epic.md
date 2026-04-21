@@ -98,12 +98,12 @@ These apply to every sub-epic:
 
 ## Milestone totals
 
-- **E-21a** — 2 milestones (M-PACK-A-01, M-PACK-A-02)
+- **E-21a** — 4 milestones (M-PACK-A-01, M-PACK-A-02a, M-PACK-A-02b, M-PACK-A-02c)
 - **E-21b** — 3 milestones (M-PACK-B-01, M-PACK-B-02, M-PACK-B-03)
 - **E-21c** — 3 milestones (M-PACK-C-01, M-PACK-C-02, M-PACK-C-03)
 - **E-21d** — 2 milestones (M-PACK-D-01, M-PACK-D-02)
 
-Total: **10 milestones across 4 sub-epics**.
+Total: **12 milestones across 4 sub-epics**.
 
 ## Dependency shape (runtime)
 
@@ -180,6 +180,9 @@ These surface repeatedly across the sub-epics' scopes; capturing them once here:
 | Per-item durable queues between ops (streaming semantics) | Not planned; reconsider if a streaming workload surfaces |
 | Port executor process pooling | Tracked in `work/gaps.md`; future runtime work, not E-21 |
 | Additional language SDKs (Rust, Go, Java, TS) | Demand-driven |
+| `liminara_ui` `pdf_viewer` widget | E-22 (admin-pack receipts/statements) or earlier if a named consumer demands it |
+| `liminara_ui` `timeline` widget | Demand-driven (no current consumer; process-mining pack is the likely trigger) |
+| Pack-registered custom LiveView routes (UI escape hatch) | Demand-driven; E-21 requires declarative surfaces rendered by `SurfaceRenderer`. If a view cannot be expressed with `liminara_ui` widgets, amend E-21c to add the missing widget rather than open this hatch. |
 | Provider op libraries (pdf, llm, gmail, etc.) | Post-extraction of Radar and admin-pack |
 | Gate-queue UI as runtime primitive | Pack-level in E-21; may become framework-level later |
 | Bundle abstraction as runtime primitive | Pack-level in E-21; may become framework-level later |

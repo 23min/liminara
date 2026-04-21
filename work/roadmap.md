@@ -77,9 +77,9 @@ Tightly scoped to capabilities Radar has already proven it needs for production 
   - [x] M-WARN-04 Post-review bugfixes — bug_005 live warning key-shape, merged_bug_001 `"run_partial"` terminal event type, bug_004 runs-index idempotence, bug_009 event-log fallback per-node degraded
 - [ ] E-21 Pack Contribution Contract [planning]
   - Four sub-epics turn Liminara into a language-agnostic runtime + observation host. Packs are external repos contributing via a data contract (manifest + executable units), not library imports.
-  - [ ] **E-21a Contract Design** — ADRs, CUE schemas, fixtures, `design-contract` skill, `cue vet` CI (2 milestones; docs only; critical-path gate)
+  - [ ] **E-21a Contract Design** — 17 ADRs, CUE schemas, fixtures, `design-contract` skill, `cue vet` CI (4 milestones: tooling + foundational contracts + packs-as-running-systems + governance; docs only; critical-path gate)
   - [ ] **E-21b Runtime Pack Infrastructure** — `PackLoader`, `PackRegistry`, `SurfaceRenderer`, `SecretSource` (+ env-var adapter), `TriggerManager` (`:cron`, `:file_watch`, `:manual`), A2UI MultiProvider in `ex_a2ui`, advisory FS-scope enforcement (3 milestones; validated by loading Radar through the generic loader)
-  - [ ] **E-21c Pack Developer Experience** — `liminara-pack-sdk` (Python, PyPI), `liminara_pack_sdk` (Elixir, Hex), `liminara_ui` widgets (data_grid, pdf_viewer, timeline, json_viewer, dag_map embedder), `liminara-new-pack` + `liminara-test-harness` CLIs (pipx), `e2e-harness` skill, `examples/file_watch_demo` reference pack (3 milestones)
+  - [ ] **E-21c Pack Developer Experience** — `liminara-pack-sdk` (Python, PyPI), `liminara_pack_sdk` (Elixir, Hex), `liminara_ui` MVP widgets (`data_grid`, `json_viewer`, `dag_map` embedder; `pdf_viewer` + `timeline` deferred), `liminara-new-pack` + `liminara-test-harness` CLIs (pipx), `e2e-harness` skill, `examples/file_watch_demo` reference pack (3 milestones)
   - [ ] **E-21d Radar Extraction + Migration** — Radar moves to external `radar-pack` submodule; pack authoring guide; admin-pack-ready checkpoint; schema-evolution doc (2 milestones; capstone)
 - [ ] E-12 Op Sandbox (Layers 2-3) — audit hooks, Landlock, capability declarations in execution spec `isolation` section, sandbox metadata in run events
   - [ ] M-ISO-01 Executor isolation (audit hooks, Landlock)
