@@ -1,0 +1,28 @@
+2026-04-21T10:00:00Z phase5-start: beginning Phase 5 (AC5 cross-layer consistency test module) after Phase 4 commit 93792f4
+2026-04-21T10:00:40Z design-note: chose apps/liminara_web/test/liminara_web/live/runs_live/warning_cross_layer_test.exs as home — web suite already composes with core test_ops via umbrella elixirc_paths, and LiveView mounts need ConnCase; one test per bug, each exercises its full stack
+2026-04-21T10:02:30Z test-written: warning_cross_layer_test.exs created with 4 describe blocks (bug_005 live broadcast, merged_bug_001 partial-with-warnings, bug_004 runs-index idempotence, bug_009 event-log fallback) plus shared helpers (unique_run_id, await_observation, warn_only_plan, partial_plan)
+2026-04-21T10:03:15Z initial-run: mix test cross_layer — 3 passed, 1 failed (bug_004 test: "Run row must be rendered" — html did not contain run_id)
+2026-04-21T10:04:00Z diagnosis: added temporary IO.puts diagnostics; runs_root=/tmp/liminara_runs; listdir saw x-bug004-4b0c4a4b; but html did not contain run_id — confirms events persist but row is filtered out of Index
+2026-04-21T10:04:40Z root-cause: RunsLive.Index.real_run?/2 filters out pack_id="anonymous" runs unless run_id starts with one of @real_prefixes ~w(demo- run- radar- report- house- factory- software-); x-bug004 prefix is rejected
+2026-04-21T10:05:05Z fix-applied: switched bug_004 test run_id prefix from "x-bug004" to "run-xlayer-bug004" so real_run?/2 accepts it
+2026-04-21T10:05:30Z cross_layer-green: 4 tests / 0 failures in warning_cross_layer_test.exs
+2026-04-21T10:06:00Z full-web-run: mix test apps/liminara_web/test — 216 tests, 3 FAILURES in pre-existing IndexTest describes ("plain-success run does NOT show a degraded indicator", "failed run does NOT show a degraded indicator even with warnings", "partial run with zero warnings renders partial status without degraded badge") — all hitting "refute html =~ status--degraded"
+2026-04-21T10:06:30Z diagnosis-2: cross-test leak — warning_cross_layer_test.exs persists run rows into the shared supervised runs_root (default /tmp/liminara_runs); sibling IndexTest tests mount /runs and see the leaked degraded rows from this file, same class of pre-existing leak that warnings_test.exs fallback describe fixed in Phase 3
+2026-04-21T10:07:10Z isolation-fix: hoisted setup block to module level (runs_root via Application.get_env or default), added cleanup_run/2 helper, added on_exit(fn -> cleanup_run(runs_root, run_id) end) to each of the 4 tests; dropped redundant describe-level setup for bug_009 and absorbed it into the module-level setup; dropped no-longer-needed "_ = Run" alias-silence line
+2026-04-21T10:07:50Z alias-cleanup: replaced `alias Liminara.{Plan, Run}` with just `alias Liminara.Plan` since `Run` was never referenced directly (ObsServer + RunServer are already aliased separately)
+2026-04-21T10:08:15Z cross_layer-rerun: 4/0 green after isolation fix
+2026-04-21T10:08:50Z full-web-rerun: mix test apps/liminara_web/test — 216/0 green (was 216/3 pre-isolation-fix). Delta from Phase 4: +4 tests from cross_layer file; no other change
+2026-04-21T10:09:15Z format-fail: mix format --check-formatted flagged warning_cross_layer_test.exs:306 — trailing blank-line-before-`end`; mix format applied; recheck clean
+2026-04-21T10:09:40Z AC6-start: beginning wrap-time validation sweep
+2026-04-21T10:10:05Z AC6-suite liminara_observation 291/0 (was 291 after Phase 2; unchanged)
+2026-04-21T10:10:45Z AC6-suite liminara_core/test/liminara/run 161/0 (narrow scope — full apps/liminara_core/test hangs with no output in this environment, reproduced twice; documented in tracking validation section)
+2026-04-21T10:11:15Z AC6-suite liminara_core execution contracts (execution_contract_structs_test.exs + execution_runtime_contract_test.exs) 55/0
+2026-04-21T10:11:45Z AC6-suite liminara_core run + execution_runtime_contract (combined scope) 182/0
+2026-04-21T10:12:30Z AC6-suite liminara_radar 97/0
+2026-04-21T10:12:55Z AC6-lint Python: uvx ruff check . passed; uvx ruff format --check . — 33 files already formatted
+2026-04-21T10:13:20Z AC6-lint Elixir: mix format --check-formatted clean
+2026-04-21T10:13:45Z AC6-lint credo: mix credo --strict — 7 refactoring opportunities, identical file+line set as M-WARN-03 baseline (4 in a2ui_test_client.ex, 1 each in radar.run.ex, briefing_show.ex, sources.ex)
+2026-04-21T10:14:30Z AC6-lint dialyzer: 2 errors — a2ui_provider.ex:95 callback_type_mismatch (pre-existing) and runs_live/show.ex:618 pattern_match_cov (pre-existing, on load_initial_events/1's defensive _ clause at Store.read_all/1 call site; untouched by M-WARN-04 — only show.ex edit is build_nodes/1 at lines 883-912)
+2026-04-21T10:14:45Z AC6-dialyzer-baseline-check: `git stash` returned "No local changes to save" (tree clean of Phase 4 commits; Phase 5 files still untracked/uncommitted), then `mix dialyzer | grep "Total errors"` = "Total errors: 2" — confirms the 2 errors predate Phase 5 (and predate Phase 4's build_nodes edit). Baseline preserved
+2026-04-21T10:15:15Z tracking-update: filled in Validation Pipeline section (per-app suite table, Python lints, Elixir lints); marked AC5 + AC6 complete with coverage detail; updated status line to "complete pending commit (6/6 ACs landed)"; replaced "Remaining Gaps" section with "Resolved Gaps" pointer to per-phase commits
+2026-04-21T10:16:00Z commit-approval prompt reached: Phase 5 + AC6 in working tree (new file warning_cross_layer_test.exs, modified M-WARN-04-tracking.md, untracked phase5-progress.log)

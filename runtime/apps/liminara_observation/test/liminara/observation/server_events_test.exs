@@ -71,7 +71,8 @@ defmodule Liminara.Observation.ServerEventsTest do
         "node_id" => node_id,
         "output_hashes" => ["sha256:out_#{node_id}"],
         "cache_hit" => false,
-        "duration_ms" => 10
+        "duration_ms" => 10,
+        "warnings" => []
       },
       prev_hash: "sha256:os_#{node_id}",
       timestamp: "2026-03-19T14:00:02.000Z"
@@ -99,7 +100,8 @@ defmodule Liminara.Observation.ServerEventsTest do
       payload: %{
         "run_id" => run_id,
         "outcome" => "success",
-        "artifact_hashes" => []
+        "artifact_hashes" => [],
+        "warning_summary" => %{"warning_count" => 0, "degraded_node_ids" => []}
       },
       prev_hash: "sha256:oc_a",
       timestamp: "2026-03-19T14:00:05.000Z"

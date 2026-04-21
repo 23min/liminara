@@ -1,6 +1,6 @@
 # LiminaraRadar
 
-**TODO: Add description**
+Radar pack — daily intelligence briefing pipeline. Fetches ~47 sources, extracts and embeds articles, clusters by topic, ranks by recency and relevance, and renders an HTML briefing. Python ops run via the `:port` executor; orchestration and replay live in Elixir. See `work/done/E-11-radar/` for the epic spec.
 
 ## Installation
 

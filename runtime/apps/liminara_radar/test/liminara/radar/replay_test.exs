@@ -163,5 +163,52 @@ defmodule Liminara.Radar.ReplayTest do
         assert String.contains?(d_html, "<!DOCTYPE html>")
       end)
     end
+
+    @tag timeout: 60_000
+    test "replay preserves degraded annotation in briefing and Run.Result", ctx do
+      without_api_key(fn ->
+        {:ok, discovery} =
+          Liminara.run(Liminara.RadarReplayTestPack, :ignored,
+            store_root: ctx.store_root,
+            runs_root: ctx.runs_root
+          )
+
+        # Sanity: discovery should be degraded because Anthropic is disabled.
+        assert discovery.status == :success
+        assert discovery.degraded == true
+        assert discovery.warning_count >= 1
+        assert "summarize" in discovery.degraded_nodes
+
+        {:ok, replay} =
+          Liminara.replay(
+            Liminara.RadarReplayTestPack,
+            :ignored,
+            discovery.run_id,
+            store_root: ctx.store_root,
+            runs_root: ctx.runs_root
+          )
+
+        # Replay reproduces the same quality signal — warnings persist and
+        # are re-emitted, and the result's derived degraded flag matches.
+        assert replay.status == :success
+        assert replay.degraded == true
+        assert replay.warning_count == discovery.warning_count
+        assert Enum.sort(replay.degraded_nodes) == Enum.sort(discovery.degraded_nodes)
+
+        # Briefing artifact is identical (content-addressed), and the degraded
+        # annotation in the JSON is preserved.
+        {:ok, d_briefing_json} =
+          Artifact.Store.get(ctx.store_root, discovery.outputs["compose_briefing"]["briefing"])
+
+        {:ok, r_briefing_json} =
+          Artifact.Store.get(ctx.store_root, replay.outputs["compose_briefing"]["briefing"])
+
+        assert d_briefing_json == r_briefing_json
+
+        d_briefing = Jason.decode!(d_briefing_json)
+        assert d_briefing["degraded"] == true
+        assert d_briefing["degraded_cluster_ids"] != []
+      end)
+    end
   end
 end

@@ -367,7 +367,7 @@ defmodule LiminaraWeb.RunsLive.TimelineTest do
       broadcast_event(run_id, %{
         event_hash: "sha256:oc_m",
         event_type: "op_completed",
-        payload: %{"node_id" => "upcase", "duration_ms" => 10},
+        payload: %{"node_id" => "upcase", "duration_ms" => 10, "warnings" => []},
         prev_hash: "sha256:os_m",
         timestamp: "2026-03-19T14:00:02.000Z"
       })
@@ -437,8 +437,12 @@ defmodule LiminaraWeb.RunsLive.TimelineTest do
       for {hash, etype, payload} <- [
             {"sha256:rs_f", "run_started", %{"run_id" => run_id}},
             {"sha256:os_f", "op_started", %{"node_id" => "upcase"}},
-            {"sha256:oc_f", "op_completed", %{"node_id" => "upcase"}},
-            {"sha256:rc_f", "run_completed", %{"run_id" => run_id}}
+            {"sha256:oc_f", "op_completed", %{"node_id" => "upcase", "warnings" => []}},
+            {"sha256:rc_f", "run_completed",
+             %{
+               "run_id" => run_id,
+               "warning_summary" => %{"warning_count" => 0, "degraded_node_ids" => []}
+             }}
           ] do
         broadcast_event(run_id, %{
           event_hash: hash,
@@ -494,7 +498,7 @@ defmodule LiminaraWeb.RunsLive.TimelineTest do
       broadcast_event(run_id, %{
         event_hash: "sha256:oc_c",
         event_type: "op_completed",
-        payload: %{"node_id" => "upcase"},
+        payload: %{"node_id" => "upcase", "warnings" => []},
         prev_hash: "sha256:rs_c",
         timestamp: "2026-03-19T14:00:02.000Z"
       })

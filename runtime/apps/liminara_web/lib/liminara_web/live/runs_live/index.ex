@@ -72,15 +72,62 @@ defmodule LiminaraWeb.RunsLive.Index do
             run_id: run_id,
             pack_id: pack_id,
             status: event_type_to_status(event_type),
-            started_at: ts
+            started_at: ts,
+            warning_count: warning_count_from_payload(payload),
+            degraded: derive_degraded(event_type, payload)
           }
 
         existing ->
-          %{existing | status: update_status(existing.status, event_type)}
+          update_existing_run(existing, event_type, payload)
       end
 
     Map.put(runs, run_id, updated_run)
   end
+
+  defp update_existing_run(existing, event_type, payload) do
+    status = update_status(existing.status, event_type)
+
+    # M-WARN-04 bug_004: assign warning_count directly from the terminal
+    # payload (mirroring build_run_summary/3). The payload carries the
+    # full aggregate — not a delta — so any re-delivery (mount-race or
+    # Run.Server rebuild re-broadcast) would otherwise inflate the count
+    # to 2N, 3N, etc. Non-terminal events preserve the existing value.
+    updated_warning_count =
+      if event_type in ["run_completed", "run_partial", "run_failed"] do
+        warning_count_from_payload(payload)
+      else
+        Map.get(existing, :warning_count, 0)
+      end
+
+    updated_degraded =
+      derive_degraded(event_type, payload) or Map.get(existing, :degraded, false)
+
+    run = %{
+      existing
+      | status: status,
+        warning_count: updated_warning_count,
+        degraded: updated_degraded
+    }
+
+    # Failed runs never display as degraded; the failure takes precedence.
+    if run.status == "failed", do: %{run | degraded: false}, else: run
+  end
+
+  defp warning_count_from_payload(payload) do
+    case payload["warning_summary"] do
+      %{"warning_count" => n} when is_integer(n) -> n
+      _ -> 0
+    end
+  end
+
+  # M-WARN-04 merged_bug_001: partial-with-warnings is degraded
+  # (mirrors the run_completed derivation). run_failed is never degraded.
+  defp derive_degraded(event_type, payload)
+       when event_type in ["run_completed", "run_partial"] do
+    warning_count_from_payload(payload) > 0
+  end
+
+  defp derive_degraded(_event_type, _payload), do: false
 
   @impl true
   def terminate(_reason, _socket) do
@@ -127,6 +174,11 @@ defmodule LiminaraWeb.RunsLive.Index do
                 </td>
                 <td style="padding:8px 12px;">
                   <span class={"status status--#{run.status}"}>{run.status}</span>
+                  <%= if Map.get(run, :degraded, false) do %>
+                    <span class="status status--degraded" title="Completed with warnings">
+                      degraded ({Map.get(run, :warning_count, 0)})
+                    </span>
+                  <% end %>
                 </td>
                 <td style="padding:8px 12px; color:var(--dm-muted);">
                   {format_timestamp(run.started_at)}
@@ -181,26 +233,33 @@ defmodule LiminaraWeb.RunsLive.Index do
     path = Path.join([runs_root, run_id, "events.jsonl"])
 
     case read_first_and_last_line(path) do
-      {nil, nil} ->
-        nil
+      {nil, nil} -> nil
+      {first_line, last_line} -> build_run_summary(run_id, first_line, last_line)
+    end
+  end
 
-      {first_line, last_line} ->
-        first = Jason.decode!(first_line)
-        pack_id = get_in(first, ["payload", "pack_id"]) || "unknown"
+  defp build_run_summary(run_id, first_line, last_line) do
+    first = Jason.decode!(first_line)
+    pack_id = get_in(first, ["payload", "pack_id"]) || "unknown"
 
-        # Only show runs that begin with run_started — skip test artifacts
-        if first["event_type"] != "run_started" or not real_run?(run_id, pack_id) do
-          nil
-        else
-          last = if last_line == first_line, do: first, else: Jason.decode!(last_line)
+    # Only show runs that begin with run_started — skip test artifacts
+    if first["event_type"] != "run_started" or not real_run?(run_id, pack_id) do
+      nil
+    else
+      last = if last_line == first_line, do: first, else: Jason.decode!(last_line)
+      status = event_type_to_status(last["event_type"])
+      warning_count = warning_count_from_payload(last["payload"] || %{})
+      # M-WARN-04 merged_bug_001: partial runs with warnings are degraded.
+      degraded = status in ["completed", "partial"] and warning_count > 0
 
-          %{
-            run_id: run_id,
-            pack_id: pack_id,
-            status: event_type_to_status(last["event_type"]),
-            started_at: first["timestamp"]
-          }
-        end
+      %{
+        run_id: run_id,
+        pack_id: pack_id,
+        status: status,
+        started_at: first["timestamp"],
+        warning_count: warning_count,
+        degraded: degraded
+      }
     end
   end
 
@@ -233,10 +292,12 @@ defmodule LiminaraWeb.RunsLive.Index do
   end
 
   defp event_type_to_status("run_completed"), do: "completed"
+  defp event_type_to_status("run_partial"), do: "partial"
   defp event_type_to_status("run_failed"), do: "failed"
   defp event_type_to_status(_), do: "running"
 
   defp update_status(_current, "run_completed"), do: "completed"
+  defp update_status(_current, "run_partial"), do: "partial"
   defp update_status(_current, "run_failed"), do: "failed"
   defp update_status(current, _), do: current
 

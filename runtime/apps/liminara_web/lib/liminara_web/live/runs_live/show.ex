@@ -189,6 +189,11 @@ defmodule LiminaraWeb.RunsLive.Show do
             <dt>Status</dt>
             <dd>
               <span class={"status status--#{@view_model.run_status}"}>{@view_model.run_status}</span>
+              <%= if @view_model[:degraded] do %>
+                <span class="status status--degraded" title="Run completed with warnings">
+                  degraded
+                </span>
+              <% end %>
             </dd>
           </div>
           <div>
@@ -207,6 +212,12 @@ defmodule LiminaraWeb.RunsLive.Show do
             <dt>Nodes</dt>
             <dd>{length(@view_model.nodes)}</dd>
           </div>
+          <%= if @view_model[:degraded] do %>
+            <div>
+              <dt>Warnings</dt>
+              <dd>{@view_model[:warning_count] || 0}</dd>
+            </div>
+          <% end %>
           <div style="margin-left:auto;">
             <a
               href={"http://localhost:#{Application.get_env(:liminara_observation, :a2ui_port, 4006)}/?run_id=#{@run_id}"}
@@ -217,6 +228,12 @@ defmodule LiminaraWeb.RunsLive.Show do
             </a>
           </div>
         </div>
+        <%= if @view_model[:degraded] do %>
+          <div class="degraded-banner">
+            Degraded run: {@view_model[:warning_count] || 0} warning(s) in
+            <code>{Enum.join(@view_model[:degraded_nodes] || [], ", ")}</code>
+          </div>
+        <% end %>
         <div class="gate-banner-slot">
           <%= if @waiting_gate do %>
             <div class="gate-banner" phx-click="select_node" phx-value-node-id={@waiting_gate}>
@@ -396,6 +413,33 @@ defmodule LiminaraWeb.RunsLive.Show do
           <% end %>
         </div>
       <% end %>
+      <%= if @selected_node_data[:warnings] != [] and @selected_node_data[:warnings] != nil do %>
+        <div class="inspector-section inspector-warnings">
+          <h4>Warnings</h4>
+          <%= for w <- @selected_node_data[:warnings] do %>
+            <div class="warning-entry">
+              <span class="warning-entry-severity">{w["severity"] || w[:severity]}</span>
+              <strong>{w["summary"] || w[:summary]}</strong>
+              <dl>
+                <dt>Code</dt>
+                <dd><code>{w["code"] || w[:code]}</code></dd>
+                <%= if (w["cause"] || w[:cause]) do %>
+                  <dt>Cause</dt>
+                  <dd>{w["cause"] || w[:cause]}</dd>
+                <% end %>
+                <%= if (w["remediation"] || w[:remediation]) do %>
+                  <dt>Remediation</dt>
+                  <dd>{w["remediation"] || w[:remediation]}</dd>
+                <% end %>
+                <%= if (w["affected_outputs"] || w[:affected_outputs]) not in [nil, []] do %>
+                  <dt>Affected outputs</dt>
+                  <dd>{Enum.join(w["affected_outputs"] || w[:affected_outputs] || [], ", ")}</dd>
+                <% end %>
+              </dl>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
       <%= if @selected_node_data[:decisions] != [] and @selected_node_data[:decisions] != nil do %>
         <div class="inspector-section">
           <h4>Decisions</h4>
@@ -497,14 +541,19 @@ defmodule LiminaraWeb.RunsLive.Show do
     # Build a status lookup from view_model nodes
     status_map = Map.new(view_model_nodes, fn n -> {n.node_id, n.status} end)
 
+    degraded_map =
+      Map.new(view_model_nodes, fn n -> {n.node_id, Map.get(n, :degraded, false)} end)
+
     nodes =
       Enum.map(plan.insert_order, fn node_id ->
         node = Map.fetch!(plan.nodes, node_id)
         status = Map.get(status_map, node_id, "pending")
         cls = status_to_cls(status)
         dim = status == "pending"
+        degraded = Map.get(degraded_map, node_id, false)
 
-        %{id: node_id, label: dag_label(node), cls: cls, dim: dim}
+        base = %{id: node_id, label: dag_label(node), cls: cls, dim: dim}
+        if degraded, do: Map.put(base, :degraded, true), else: base
       end)
 
     # Extract edges from plan refs
@@ -526,12 +575,14 @@ defmodule LiminaraWeb.RunsLive.Show do
   defp nodes_only_dag_json(view_model_nodes, run_id) do
     nodes =
       Enum.map(view_model_nodes, fn n ->
-        %{
+        base = %{
           id: n.node_id,
           label: n.op_name,
           cls: status_to_cls(n.status),
           dim: n.status == "pending"
         }
+
+        if Map.get(n, :degraded, false), do: Map.put(base, :degraded, true), else: base
       end)
 
     Jason.encode!(%{
@@ -638,7 +689,10 @@ defmodule LiminaraWeb.RunsLive.Show do
       started_at: nil,
       completed_at: nil,
       event_count: 0,
-      nodes: []
+      nodes: [],
+      warning_count: 0,
+      degraded_nodes: [],
+      degraded: false
     }
   end
 
@@ -652,6 +706,7 @@ defmodule LiminaraWeb.RunsLive.Show do
       end)
 
     nodes = build_nodes(node_events)
+    {warning_count, degraded_nodes, degraded} = derive_degraded_from_events(events)
 
     %{
       not_found: false,
@@ -659,8 +714,47 @@ defmodule LiminaraWeb.RunsLive.Show do
       started_at: first["timestamp"],
       completed_at: completed_at(last),
       event_count: length(events),
-      nodes: nodes
+      nodes: nodes,
+      warning_count: warning_count,
+      degraded_nodes: degraded_nodes,
+      degraded: degraded
     }
+  end
+
+  defp derive_degraded_from_events(events) do
+    summary = find_terminal_warning_summary(events)
+
+    case summary do
+      %{"warning_count" => n, "degraded_node_ids" => ids} when is_integer(n) and is_list(ids) ->
+        # :failed takes precedence (never degraded). run_completed and
+        # run_partial are both degraded when warning_count > 0.
+        {n, ids, n > 0 and not last_event_failed?(events)}
+
+      _ ->
+        {0, [], false}
+    end
+  end
+
+  defp find_terminal_warning_summary(events) do
+    events
+    |> Enum.reverse()
+    |> Enum.find_value(&warning_summary_from_terminal_event/1)
+  end
+
+  defp warning_summary_from_terminal_event(event) do
+    type = event["event_type"] || event[:event_type]
+
+    if type in ["run_completed", "run_partial", "run_failed"] do
+      payload = event["payload"] || event[:payload] || %{}
+      payload["warning_summary"] || payload[:warning_summary]
+    end
+  end
+
+  defp last_event_failed?(events) do
+    case List.last(events) do
+      nil -> false
+      last -> (last["event_type"] || last[:event_type]) == "run_failed"
+    end
   end
 
   defp apply_event_to_view_model(view_model, event) do
@@ -683,12 +777,39 @@ defmodule LiminaraWeb.RunsLive.Show do
     %{vm | run_status: "running", started_at: ts}
   end
 
-  defp apply_event_type(vm, "run_completed", _payload, ts) do
-    %{vm | run_status: "completed", completed_at: ts}
+  defp apply_event_type(vm, "run_completed", payload, ts) do
+    {wc, ids} = extract_summary(payload)
+
+    vm
+    |> Map.put(:run_status, "completed")
+    |> Map.put(:completed_at, ts)
+    |> Map.put(:warning_count, wc)
+    |> Map.put(:degraded_nodes, ids)
+    |> Map.put(:degraded, wc > 0)
   end
 
-  defp apply_event_type(vm, "run_failed", _payload, ts) do
-    %{vm | run_status: "failed", completed_at: ts}
+  # M-WARN-04 merged_bug_001: partial terminal mirrors completed in
+  # derivation (degraded when wc > 0) but projects run_status "partial".
+  defp apply_event_type(vm, "run_partial", payload, ts) do
+    {wc, ids} = extract_summary(payload)
+
+    vm
+    |> Map.put(:run_status, "partial")
+    |> Map.put(:completed_at, ts)
+    |> Map.put(:warning_count, wc)
+    |> Map.put(:degraded_nodes, ids)
+    |> Map.put(:degraded, wc > 0)
+  end
+
+  defp apply_event_type(vm, "run_failed", payload, ts) do
+    {wc, ids} = extract_summary(payload)
+
+    vm
+    |> Map.put(:run_status, "failed")
+    |> Map.put(:completed_at, ts)
+    |> Map.put(:warning_count, wc)
+    |> Map.put(:degraded_nodes, ids)
+    |> Map.put(:degraded, false)
   end
 
   defp apply_event_type(vm, "op_started", payload, _ts) do
@@ -719,6 +840,14 @@ defmodule LiminaraWeb.RunsLive.Show do
 
   defp apply_event_type(vm, _event_type, _payload, _ts), do: vm
 
+  defp extract_summary(payload) do
+    summary = payload["warning_summary"] || payload[:warning_summary] || %{}
+
+    wc = summary["warning_count"] || summary[:warning_count] || 0
+    ids = summary["degraded_node_ids"] || summary[:degraded_node_ids] || []
+    {wc, ids}
+  end
+
   defp update_node(view_model, node_id, fun) when is_binary(node_id) do
     nodes = view_model.nodes
 
@@ -739,13 +868,14 @@ defmodule LiminaraWeb.RunsLive.Show do
   end
 
   defp derive_status("run_completed"), do: "completed"
+  defp derive_status("run_partial"), do: "partial"
   defp derive_status("run_failed"), do: "failed"
   defp derive_status("op_completed"), do: "running"
   defp derive_status("op_started"), do: "running"
   defp derive_status(_), do: "running"
 
   defp completed_at(%{"event_type" => t, "timestamp" => ts})
-       when t in ["run_completed", "run_failed"],
+       when t in ["run_completed", "run_partial", "run_failed"],
        do: ts
 
   defp completed_at(_), do: nil
@@ -763,7 +893,12 @@ defmodule LiminaraWeb.RunsLive.Show do
             %{current | op_name: op_name, status: "running"}
 
           "op_completed" ->
-            %{current | status: "completed"}
+            warnings = event["payload"]["warnings"] || []
+
+            current
+            |> Map.put(:status, "completed")
+            |> Map.put(:warnings, warnings)
+            |> Map.put(:degraded, warnings != [])
 
           "op_failed" ->
             %{current | status: "failed"}
@@ -785,7 +920,8 @@ defmodule LiminaraWeb.RunsLive.Show do
         %{
           node_id: node_id,
           op_name: Map.get(node, :op_name, node_id),
-          status: atom_status_to_string(Map.get(node, :status, :pending))
+          status: atom_status_to_string(Map.get(node, :status, :pending)),
+          degraded: Map.get(node, :degraded, false)
         }
       end)
 
@@ -795,7 +931,10 @@ defmodule LiminaraWeb.RunsLive.Show do
       started_at: Map.get(obs_state, :run_started_at),
       completed_at: Map.get(obs_state, :run_completed_at),
       event_count: Map.get(obs_state, :event_count, 0),
-      nodes: nodes
+      nodes: nodes,
+      warning_count: Map.get(obs_state, :warning_count, 0),
+      degraded_nodes: Map.get(obs_state, :degraded_nodes, []),
+      degraded: Map.get(obs_state, :degraded, false)
     }
   end
 

@@ -43,6 +43,7 @@ defmodule Liminara.Radar.Ops.RenderHtml do
     <body>
     <div class="container">
     #{render_header(briefing, stats)}
+    #{render_degraded_banner(briefing)}
     #{render_clusters(clusters)}
     #{render_source_health(source_health)}
     #{render_footer(briefing)}
@@ -50,6 +51,36 @@ defmodule Liminara.Radar.Ops.RenderHtml do
     </body>
     </html>
     """
+  end
+
+  defp render_degraded_banner(briefing) do
+    if briefing["degraded"] == true do
+      ids = briefing["degraded_cluster_ids"]
+      total = length(briefing["clusters"] || [])
+      degraded_count = length(ids)
+
+      notes =
+        briefing["clusters"]
+        |> Enum.filter(& &1["degraded"])
+        |> Enum.map(& &1["degradation_note"])
+        |> Enum.reject(&is_nil/1)
+        |> Enum.uniq()
+
+      notes_html =
+        Enum.map_join(notes, "", fn n ->
+          "<li>#{esc(n)}</li>"
+        end)
+
+      """
+      <section class="briefing--degraded">
+      <p class="briefing--degraded__title">&#x26A0; #{degraded_count} of #{total} cluster summaries are degraded.</p>
+      <ul class="briefing--degraded__notes">#{notes_html}</ul>
+      <p class="briefing--degraded__ids">Degraded clusters: #{esc(Enum.join(ids, ", "))}</p>
+      </section>
+      """
+    else
+      ""
+    end
   end
 
   defp render_header(briefing, stats) do
@@ -87,9 +118,11 @@ defmodule Liminara.Radar.Ops.RenderHtml do
       |> Enum.map(fn t -> "<li>#{esc(t)}</li>" end)
       |> Enum.join("\n")
 
+    pill_html = render_cluster_pill(cluster)
+
     """
     <section class="cluster">
-    <h2>#{esc(cluster["label"])}</h2>
+    <h2>#{esc(cluster["label"])}#{pill_html}</h2>
     <div class="summary">#{esc(cluster["summary"] || "")}</div>
     #{if takeaways_html != "", do: "<ul class=\"takeaways\">#{takeaways_html}</ul>", else: ""}
     <div class="items">
@@ -97,6 +130,20 @@ defmodule Liminara.Radar.Ops.RenderHtml do
     </div>
     </section>
     """
+  end
+
+  defp render_cluster_pill(cluster) do
+    if cluster["degraded"] == true do
+      label =
+        case cluster["degradation_note"] do
+          nil -> "Degraded"
+          note -> esc(note)
+        end
+
+      " <span class=\"cluster--degraded\">&#x26A0; #{label}</span>"
+    else
+      ""
+    end
   end
 
   defp render_item(item) do
@@ -177,6 +224,11 @@ defmodule Liminara.Radar.Ops.RenderHtml do
     th, td { padding: 0.4rem 0.5rem; text-align: left; border-bottom: 1px solid #eee; }
     th { font-weight: 600; color: #555; }
     footer { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #e0e0e0; font-size: 0.8rem; color: #999; }
+    .briefing--degraded { margin-bottom: 1.5rem; padding: 1rem 1.25rem; background: #fff8e1; border: 1px solid #ffd54f; border-radius: 6px; color: #6b5300; }
+    .briefing--degraded__title { font-weight: 600; margin-bottom: 0.5rem; }
+    .briefing--degraded__notes { margin: 0.25rem 0 0.5rem 1.5rem; }
+    .briefing--degraded__ids { font-size: 0.85rem; color: #7a5f00; }
+    .cluster--degraded { display: inline-block; margin-left: 0.5rem; padding: 0.15rem 0.55rem; font-size: 0.75rem; font-weight: 500; background: #fff8e1; color: #6b5300; border: 1px solid #ffd54f; border-radius: 999px; vertical-align: middle; }
     """
   end
 end

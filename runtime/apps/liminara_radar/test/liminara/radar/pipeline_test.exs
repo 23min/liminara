@@ -59,12 +59,18 @@ defmodule Liminara.Radar.PipelineTest do
     %{
       "cluster_id" => "c0",
       "summary" => "Major advances in AI this week.",
-      "key_takeaways" => ["LLM quality improving", "Competition intensifying"]
+      "key_takeaways" => ["LLM quality improving", "Competition intensifying"],
+      "degraded" => false,
+      "degradation_code" => nil,
+      "degradation_note" => nil
     },
     %{
       "cluster_id" => "c1",
       "summary" => "Elixir ecosystem continues to grow.",
-      "key_takeaways" => ["Phoenix 2.0 is a big release"]
+      "key_takeaways" => ["Phoenix 2.0 is a big release"],
+      "degraded" => false,
+      "degradation_code" => nil,
+      "degradation_note" => nil
     }
   ]
 

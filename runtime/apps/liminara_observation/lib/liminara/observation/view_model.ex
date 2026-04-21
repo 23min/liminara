@@ -3,6 +3,8 @@ defmodule Liminara.Observation.ViewModel do
 
   alias Liminara.Plan
 
+  @required_warning_fields ["code", "severity", "summary"]
+
   defstruct [
     :run_id,
     :plan,
@@ -12,7 +14,10 @@ defmodule Liminara.Observation.ViewModel do
     run_completed_at: nil,
     event_count: 0,
     events: [],
-    events_cap: 1000
+    events_cap: 1000,
+    warning_count: 0,
+    degraded_nodes: [],
+    degraded: false
   ]
 
   def init(run_id, %Plan{} = plan, opts \\ []) do
@@ -36,7 +41,9 @@ defmodule Liminara.Observation.ViewModel do
           error: nil,
           gate_prompt: nil,
           gate_response: nil,
-          decisions: []
+          decisions: [],
+          warnings: [],
+          degraded: false
         }
 
         {node_id, view}
@@ -90,6 +97,8 @@ defmodule Liminara.Observation.ViewModel do
   end
 
   defp apply_typed(state, "op_completed", ts, pl) do
+    warnings = extract_op_completed_warnings(pl)
+
     update_node(state, pl["node_id"], fn n ->
       %{
         n
@@ -97,7 +106,9 @@ defmodule Liminara.Observation.ViewModel do
           completed_at: ts,
           duration_ms: pl["duration_ms"],
           output_hashes: pl["output_hashes"] || [],
-          cache_hit: pl["cache_hit"]
+          cache_hit: pl["cache_hit"],
+          warnings: warnings,
+          degraded: warnings != []
       }
     end)
   end
@@ -127,12 +138,48 @@ defmodule Liminara.Observation.ViewModel do
     end)
   end
 
-  defp apply_typed(state, "run_completed", ts, _pl) do
-    %{state | run_status: :completed, run_completed_at: ts}
+  defp apply_typed(state, "run_completed", ts, pl) do
+    {warning_count, degraded_nodes} = extract_warning_summary!(pl)
+
+    %{
+      state
+      | run_status: :completed,
+        run_completed_at: ts,
+        warning_count: warning_count,
+        degraded_nodes: degraded_nodes,
+        degraded: derive_degraded(:completed, warning_count)
+    }
   end
 
-  defp apply_typed(state, "run_failed", ts, _pl) do
-    %{state | run_status: :failed, run_completed_at: ts}
+  # M-WARN-04 merged_bug_001: "run_partial" is a first-class terminal
+  # event type. It mirrors "run_completed" in derivation (degraded when
+  # warning_count > 0) but projects run_status: :partial so downstream
+  # consumers can distinguish a partial-with-warnings run from both
+  # plain success and true failure.
+  defp apply_typed(state, "run_partial", ts, pl) do
+    {warning_count, degraded_nodes} = extract_warning_summary!(pl)
+
+    %{
+      state
+      | run_status: :partial,
+        run_completed_at: ts,
+        warning_count: warning_count,
+        degraded_nodes: degraded_nodes,
+        degraded: derive_degraded(:partial, warning_count)
+    }
+  end
+
+  defp apply_typed(state, "run_failed", ts, pl) do
+    {warning_count, degraded_nodes} = extract_warning_summary!(pl)
+
+    %{
+      state
+      | run_status: :failed,
+        run_completed_at: ts,
+        warning_count: warning_count,
+        degraded_nodes: degraded_nodes,
+        degraded: derive_degraded(:failed, warning_count)
+    }
   end
 
   defp apply_typed(state, _unknown, _ts, _pl), do: state
@@ -143,6 +190,103 @@ defmodule Liminara.Observation.ViewModel do
       :error -> state
     end
   end
+
+  # ── Warning extraction / validation ──────────────────────────────
+
+  # Every op_completed payload is required to carry a "warnings" list
+  # (empty when the node emitted none). Missing or malformed is a contract
+  # violation and raises.
+  defp extract_op_completed_warnings(payload) do
+    case Map.fetch(payload, "warnings") do
+      {:ok, warnings} ->
+        validate_warnings!(warnings)
+
+      :error ->
+        raise ArgumentError,
+              "op_completed payload missing required key \"warnings\""
+    end
+  end
+
+  defp validate_warnings!(warnings) when is_list(warnings) do
+    Enum.each(warnings, &validate_warning_entry!/1)
+    warnings
+  end
+
+  defp validate_warnings!(other) do
+    raise ArgumentError,
+          "op_completed.warnings must be a list, got: #{inspect(other)}"
+  end
+
+  defp validate_warning_entry!(entry) when is_map(entry) do
+    for field <- @required_warning_fields do
+      unless Map.has_key?(entry, field) do
+        raise ArgumentError,
+              "warning entry missing required field #{inspect(field)}: #{inspect(entry)}"
+      end
+    end
+
+    :ok
+  end
+
+  defp validate_warning_entry!(other) do
+    raise ArgumentError, "warning entry must be a map, got: #{inspect(other)}"
+  end
+
+  # run_completed / run_partial / run_failed all carry warning_summary
+  # (M-WARN-01 guarantees the key is present on every terminal event,
+  # with stable shape). Missing or malformed is a contract violation.
+  defp extract_warning_summary!(payload) do
+    summary = fetch_summary_map!(payload)
+    warning_count = fetch_non_neg_integer!(summary, "warning_count")
+    degraded_node_ids = fetch_list!(summary, "degraded_node_ids")
+    {warning_count, degraded_node_ids}
+  end
+
+  defp fetch_summary_map!(payload) do
+    case Map.fetch(payload, "warning_summary") do
+      {:ok, %{} = m} ->
+        m
+
+      {:ok, other} ->
+        raise ArgumentError, "warning_summary must be a map, got: #{inspect(other)}"
+
+      :error ->
+        raise ArgumentError,
+              "run_completed/run_partial/run_failed payload missing required key \"warning_summary\""
+    end
+  end
+
+  defp fetch_non_neg_integer!(summary, key) do
+    case Map.fetch(summary, key) do
+      {:ok, n} when is_integer(n) and n >= 0 ->
+        n
+
+      {:ok, other} ->
+        raise ArgumentError,
+              "warning_summary.#{key} must be a non-negative integer, got: #{inspect(other)}"
+
+      :error ->
+        raise ArgumentError, "warning_summary missing required key #{inspect(key)}"
+    end
+  end
+
+  defp fetch_list!(summary, key) do
+    case Map.fetch(summary, key) do
+      {:ok, ids} when is_list(ids) ->
+        ids
+
+      {:ok, other} ->
+        raise ArgumentError,
+              "warning_summary.#{key} must be a list, got: #{inspect(other)}"
+
+      :error ->
+        raise ArgumentError, "warning_summary missing required key #{inspect(key)}"
+    end
+  end
+
+  defp derive_degraded(:failed, _warning_count), do: false
+  defp derive_degraded(_status, warning_count) when warning_count > 0, do: true
+  defp derive_degraded(_status, _warning_count), do: false
 
   defp event_type(%{event_type: t}), do: t
   defp event_type(%{"event_type" => t}), do: t

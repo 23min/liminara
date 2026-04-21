@@ -35,6 +35,10 @@ Respond in JSON only:
 {{"summary": "...", "key_takeaways": ["...", "..."]}}"""
 
 
+_LLM_ERROR_NOTE = "Fell back to a placeholder summary after an LLM error"
+_PLACEHOLDER_NOTE = "Using placeholder summaries because Anthropic access is unavailable"
+
+
 def execute(inputs):
     clusters = json.loads(inputs.get("clusters", "[]"))
 
@@ -82,6 +86,9 @@ def execute(inputs):
             "cluster_id": cluster["cluster_id"],
             "summary": data.get("summary", ""),
             "key_takeaways": data.get("key_takeaways", []),
+            "degraded": llm_failed,
+            "degradation_code": "radar_summarize_llm_error" if llm_failed else None,
+            "degradation_note": _LLM_ERROR_NOTE if llm_failed else None,
         }
         summaries.append(summary)
 
@@ -133,6 +140,9 @@ def _placeholder_summaries(clusters, api_key):
                 f"{len(cluster['items'])} item(s): {'; '.join(titles[:5])}."
             ),
             "key_takeaways": [f"Contains {len(cluster['items'])} related items"],
+            "degraded": True,
+            "degradation_code": "radar_summarize_placeholder",
+            "degradation_note": _PLACEHOLDER_NOTE,
         }
         summaries.append(summary)
 
@@ -146,7 +156,7 @@ def _placeholder_summaries(clusters, api_key):
             {
                 "code": "radar_summarize_placeholder",
                 "severity": "degraded",
-                "summary": "Using placeholder summaries because Anthropic access is unavailable",
+                "summary": _PLACEHOLDER_NOTE,
                 "cause": cause,
                 "remediation": remediation,
                 "affected_outputs": ["summaries"],
@@ -159,7 +169,7 @@ def _llm_error_warning(cause):
     return {
         "code": "radar_summarize_llm_error",
         "severity": "degraded",
-        "summary": "Fell back to a placeholder summary after an LLM error",
+        "summary": _LLM_ERROR_NOTE,
         "cause": cause,
         "remediation": (
             "Check Anthropic availability and credentials; "

@@ -42,15 +42,24 @@ defmodule Liminara.Radar.Ops.ComposeBriefing do
 
     enriched_clusters =
       Enum.map(clusters, fn cluster ->
-        summary_data = Map.get(summary_map, cluster["cluster_id"], %{})
+        summary_data = Map.fetch!(summary_map, cluster["cluster_id"])
 
         cluster
-        |> Map.put("summary", summary_data["summary"] || "")
-        |> Map.put("key_takeaways", summary_data["key_takeaways"] || [])
+        |> Map.put("summary", Map.fetch!(summary_data, "summary"))
+        |> Map.put("key_takeaways", Map.fetch!(summary_data, "key_takeaways"))
+        |> Map.put("degraded", Map.fetch!(summary_data, "degraded"))
+        |> Map.put("degradation_code", Map.fetch!(summary_data, "degradation_code"))
+        |> Map.put("degradation_note", Map.fetch!(summary_data, "degradation_note"))
       end)
 
     item_count =
       Enum.reduce(enriched_clusters, 0, fn c, acc -> acc + length(c["items"]) end)
+
+    degraded_cluster_ids =
+      enriched_clusters
+      |> Enum.filter(& &1["degraded"])
+      |> Enum.map(& &1["cluster_id"])
+      |> Enum.sort()
 
     briefing = %{
       "run_id" => context.run_id,
@@ -61,7 +70,9 @@ defmodule Liminara.Radar.Ops.ComposeBriefing do
         "source_count" => length(source_health)
       },
       "clusters" => enriched_clusters,
-      "source_health" => source_health
+      "source_health" => source_health,
+      "degraded" => degraded_cluster_ids != [],
+      "degraded_cluster_ids" => degraded_cluster_ids
     }
 
     {:ok, %{"briefing" => Jason.encode!(briefing)}}

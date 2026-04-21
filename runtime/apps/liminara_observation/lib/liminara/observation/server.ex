@@ -117,7 +117,7 @@ defmodule Liminara.Observation.Server do
       {:state_update, run_id, view}
     )
 
-    if view.run_status in [:running, :completed, :failed] do
+    if view.run_status in [:running, :completed, :partial, :failed] do
       Phoenix.PubSub.broadcast(
         Liminara.Observation.PubSub,
         "runs:index",

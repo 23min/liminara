@@ -1,0 +1,11 @@
+2026-04-20T00:00:00Z INIT: M-WARN-04 Phase 3 bug_004 heartbeat log initialised
+2026-04-20T14:31:13Z START: reading spec, tracking, agent/skill files, and index.ex
+2026-04-20T14:31:43Z START: reading existing test patterns; writing RED tests for bug_004
+2026-04-20T14:32:29Z RED: 4 tests added to runs_live_index_test.exs (idempotence describe)
+2026-04-20T14:32:51Z RED: 2 tests failing as expected (mount-race got 4 vs expected 2; rebuild got 6 vs 3); 2 baseline/zero passed (bug only visible on re-delivery)
+2026-04-20T14:33:19Z GREEN: edited index.ex:87-106 (direct assignment on terminal event_type; removed update_warning_count/3 helper — now unreachable)
+2026-04-20T14:33:33Z TEST: runs_live_index_test.exs 21/21 post-fix; running liminara_web full suite
+2026-04-20T14:43:35Z FIXTURE: isolating runs_root in warnings_test.exs fallback describe (pre-existing leak exposed by Phase 3 test-count-dependent ExUnit shuffle)
+2026-04-20T14:52:35Z TEST: liminara_web 210/210 across 5 seeds; running liminara_core and liminara_observation
+2026-04-20T15:07:15Z REVIEW: branch-coverage audit complete; tracking doc AC3 checked; test summaries updated
+2026-04-20T15:07:15Z DONE: ready for commit approval

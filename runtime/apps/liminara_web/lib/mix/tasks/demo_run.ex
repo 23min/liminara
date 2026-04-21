@@ -3,6 +3,7 @@ defmodule Mix.Tasks.DemoRun do
   use Mix.Task
 
   alias Liminara.{Plan, DemoOps, Run.Server}
+  alias Liminara.Run.Cli
 
   @impl true
   def run(_args) do
@@ -42,6 +43,14 @@ defmodule Mix.Tasks.DemoRun do
 
     # Wait briefly for the run to reach the gate
     Process.sleep(500)
+
+    # Best-effort: if the run already completed (e.g. because the plan has
+    # no gate, or the gate was auto-approved), surface a degraded banner
+    # when appropriate. Degraded is NOT a failure — the CLI still exits 0.
+    case Server.await(run_id, 200) do
+      {:ok, result} -> Cli.maybe_print_degraded_banner(result, &IO.puts/1)
+      _ -> :ok
+    end
 
     IO.puts("")
     IO.puts("Run started and paused at gate.")

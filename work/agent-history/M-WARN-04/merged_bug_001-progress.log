@@ -1,0 +1,24 @@
+2026-04-20T00:00:00Z INIT: M-WARN-04 Phase 2 merged_bug_001 heartbeat log initialised
+2026-04-20T12:36:18Z START: reading CLAUDE.md, builder agent, tdd-cycle skill, M-WARN-04 spec and tracking
+2026-04-20T12:36:38Z START: tracing all run_failed/run_completed consumers
+2026-04-20T12:40:23Z START: finished tracing; 6 consumers identified: Run.Server finish_run/terminal_status/result_from_event_log/rebuild_from_events, Observation.ViewModel apply_typed, Observation.Server publish_state, RunsLive.Show apply_event_type+derive_degraded_from_events+last_event_failed+derive_status+completed_at+build_nodes, RunsLive.Index derive_degraded+event_type_to_status+update_status+build_run_summary
+2026-04-20T12:40:40Z RED: writing end-to-end partial-run integration test
+2026-04-20T12:41:33Z RED: test file written at apps/liminara_observation/test/liminara/observation/partial_run_integration_test.exs
+2026-04-20T12:43:54Z RED: test files written (partial_run_integration_test.exs new, view_model_test.exs run_partial describe, runs_live_index_test.exs partial describe, warnings_test.exs partial describes)
+2026-04-20T12:47:05Z RED: all tests failing as expected (4 partial_run_integration + 6 view_model run_partial + 2 runs_live_index_test partial + 2 warnings_test partial)
+2026-04-20T12:47:21Z GREEN: edited runtime/apps/liminara_core/lib/liminara/run/server.ex:770 finish_run emits run_partial for :partial
+2026-04-20T12:47:38Z GREEN: edited run/server.ex terminal_status (1:1 event-type->status), :rebuild last_type list, result_from_event_log last types list
+2026-04-20T12:48:04Z GREEN: edited observation/view_model.ex:141 added run_partial apply_typed clause
+2026-04-20T12:48:40Z GREEN: edited show.ex apply_event_type+derive_status+completed_at+warning_summary_from_terminal_event for run_partial
+2026-04-20T12:49:07Z GREEN: edited runs_live/index.ex event_type_to_status+update_status+derive_degraded+update_warning_count+build_run_summary for run_partial
+2026-04-20T12:49:46Z GREEN: all targeted tests passing; running per-app suites
+2026-04-20T13:07:42Z FIXTURE: migrated integration_test.exs:163 'failing run' — a linear ok->fail plan is :partial (not :failed); updated expectations accordingly
+2026-04-20T13:08:09Z TEST: liminara_observation 291/291
+2026-04-20T13:08:42Z TEST: liminara_web 204/204
+2026-04-20T13:57:01Z TEST: liminara_core 438/438 (8 properties)
+2026-04-20T13:57:58Z TEST: liminara_radar 97/97
+2026-04-20T14:01:45Z TEST: liminara_web 205/205 (re-run including new fallback tests)
+2026-04-20T14:05:54Z REVIEW: starting branch-coverage audit
+2026-04-20T14:06:26Z REVIEW: branch-coverage audit complete — all 14 reachable branches covered by tests
+2026-04-20T14:09:51Z DONE: ready for commit approval
+2026-04-20T14:12:15Z TEST: final re-run — core/run 161/0, observation 291/0, web 206/0

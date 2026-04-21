@@ -204,28 +204,96 @@ One paragraph: overall assessment (approve / request changes).
 - **JavaScript**: node:test or vitest, deterministic (no network, no time-dependent)
 - Test names should read as specifications, not describe implementation
 
+## Running Tests from an AI Assistant (operational rules)
+
+These rules exist to avoid wasted sessions waiting on tests that never report. They apply any time an AI assistant runs `mix test` (or another test runner) via a shell tool.
+
+- **Never run the full umbrella `mix test`.** The Liminara umbrella has at least one pre-existing integration-test pathology (A2UI WebSocket / Python port) that causes the aggregate run to hang well past the 10-minute shell timeout, producing no output. Scope every invocation to a single app (`mix test apps/<app>/test`) or a specific file path.
+- **Never use `run_in_background: true` for tests.** Background tasks only deliver completion notifications on the next turn boundary. An assistant that launches a background test and then says "waiting" ends its turn with nothing scheduled — no wake-up happens until the user types the next message. This looks exactly like a stuck session. Run tests in the foreground with an explicit `timeout` that matches the suite's expected wall time (e.g. 120000ms for a per-app suite).
+- **Beware cross-suite test isolation flakes.** Some tests (e.g. `a2ui_provider_test`) pass in isolation but fail when run alongside other apps' suites in one `mix test` invocation. When validating, prefer per-app suites run separately rather than multi-path invocations. If per-app runs are green individually, treat the multi-path failure as a known flake rather than a regression.
+- **If you must poll, use `Monitor` with a specific grep filter, not `sleep`/`run_in_background`.** Long leading `sleep` commands are blocked, and `run_in_background` does not notify mid-turn.
+- **On timeout, pull the partial output and re-run with narrower scope.** Do not re-run the same hanging command with a longer timeout — diagnose what's hanging (typically a single slow file) and run the fast subset first.
+
+### Subagent heartbeat pattern (mandatory for long-running TDD subagents)
+
+Subagents dispatched via `Agent` run silently from the parent session's perspective — the parent only sees the agent's final report, which can be 10–30 minutes later. That looks identical to a stuck session from a human's perspective, and humans rightly cancel what looks stuck. To prevent that failure mode, every subagent that runs TDD / tests / any multi-phase implementation work must emit a heartbeat that the parent session monitors.
+
+**Parent session obligations (before dispatching a TDD subagent):**
+
+1. Create the progress-log directory: `mkdir -p work/agent-history/<milestone-id>/`
+2. Choose a stable log path: `work/agent-history/<milestone-id>/<phase-or-task>-progress.log`
+3. Start a `Monitor` on that log **before** spawning the subagent:
+   ```
+   tail -f work/agent-history/<milestone-id>/<phase>-progress.log \
+     | grep --line-buffered -E '^[0-9]{4}-[0-9]{2}-[0-9]{2}T'
+   ```
+4. Only then dispatch the subagent with `Agent`. The subagent brief must cite the exact log path and the marker format.
+5. When the subagent returns, stop the Monitor (it exits on its own when the agent finishes writing, but keep a `TaskStop` handy if it lingers).
+
+**Subagent brief obligations:**
+
+- Brief must include the exact log path the subagent is expected to write to.
+- Brief must instruct the subagent to append one ISO-8601-timestamped line per meaningful phase boundary:
+  - RED test written
+  - RED test confirmed failing (with the failure reason)
+  - GREEN edit made (with file:line)
+  - GREEN test passing
+  - per-app suite run with result (`<suite> N/M`)
+  - REVIEW step started/complete
+  - commit-approval prompt reached
+- Brief must include a "write a final marker even on error" instruction, so an agent that hits an exception still produces a last-line signal.
+- Marker format: `YYYY-MM-DDTHH:MM:SSZ <phase|note>: <short message>` (the leading timestamp is the grep anchor).
+
+**Why this is load-bearing:**
+
+- Without heartbeats, the human sees a spinner and cancels a working agent.
+- With heartbeats, each marker becomes a notification in the main chat. The human sees progress; the parent session can intervene if markers stop arriving for too long.
+- This pattern scales to any long-running automation: code-review subagents, research subagents, remote agents.
+
+**Sizing rule of thumb:** dispatch one subagent per bug / phase / focused change rather than one monolithic milestone-size agent. Smaller dispatches mean (a) a stuck one is detected earlier, (b) heartbeat cadence stays informative, (c) the parent session can course-correct between dispatches.
+
 
 ## Current Work
 <!-- Updated by start-milestone and wrap-milestone skills. -->
 
 ### Active milestone
 
-**No milestone currently in progress**
-- `M-TRUTH-03: Radar Semantic Cleanup` is complete and merged into `epic/E-20-execution-truth`
-- Next up in Phase 5c is `E-19: Warnings & Degraded Outcomes`, starting with `M-WARN-01`
+**M-WARN-01: Runtime Warning Contract** — **complete** (committed as `d39cb3e` along with M-WARN-02; ratification + runtime tightening that closed the absent-`warnings`-key gap on three Run.Server + two Run paths)
+
+**M-WARN-02: Observation + UI Surfacing** — **complete** (committed as `d39cb3e`)
+- Spec: `work/epics/E-19-warnings-degraded-outcomes/M-WARN-02-observation-ui-surfacing.md`
+- Tracking: `work/epics/E-19-warnings-degraded-outcomes/M-WARN-02-tracking.md`
+
+**M-WARN-03: Radar adoption** — **complete** (committed as `629b902`)
+- Spec: `work/epics/E-19-warnings-degraded-outcomes/M-WARN-03-radar-adoption.md`
+- Tracking: `work/epics/E-19-warnings-degraded-outcomes/M-WARN-03-tracking.md`
+- Delivered: `radar_summarize.py` emits per-cluster `degraded` / `degradation_code` / `degradation_note` on every summary (explicit `false` / `nil` / `nil` on success); `ComposeBriefing` `Map.fetch!`es every summary field (including pre-existing `summary` / `key_takeaways`, harmonised strict-fetch across the whole artifact contract) and adds root `degraded` + sorted `degraded_cluster_ids`; `RenderHtml` renders a count-prefixed banner (`⚠ N of M cluster summaries are degraded`) with deduplicated notes, plus a per-cluster pill that falls back to the label "Degraded" when `degradation_note` is nil; new `degradation_pipeline_test.exs` + extended replay suite prove the full chain.
+- No backward-compat fallback — `ComposeBriefing` raises via `Map.fetch!` on any missing summary field.
+- Validation: liminara_radar 97/0, liminara_observation 272/0, liminara_web 198/0, liminara_core (run+contracts) 216/0, Python 79/0. Credo and dialyzer unchanged from M-WARN-02 baseline.
+- `radar_dedup` safe-default and fetch-error HTML surfacing explicitly deferred (see tracking Deferrals section).
+
+**M-WARN-04: Post-Review Bugfixes** — **complete** (closed 2026-04-21; 5 commits: `3e43f8a`, `8c445e3`, `e68aa98`, `93792f4`, `fac07bd`)
+- Spec: `work/epics/E-19-warnings-degraded-outcomes/M-WARN-04-postreview-bugfixes.md`
+- Tracking: `work/epics/E-19-warnings-degraded-outcomes/M-WARN-04-tracking.md`
+- Source: ultrareview `r2fg1c81b` (2026-04-20) produced four findings invalidating reachable E-19 paths.
+- Delivered: (1) `Run.Server.warning_payload/1` + synchronous `Liminara.Run.warning_payload/1` emit string-keyed wire-shape (bug_005); (2) new `"run_partial"` terminal event type with 1:1 event-type → `Run.Result.status` mapping and matching consumer clauses in `Run.Server`, `Observation.ViewModel`, `RunsLive.Show`, `RunsLive.Index` (merged_bug_001); (3) `RunsLive.Index.update_existing_run/3` direct-assigns `warning_count` from terminal payload, removed `update_warning_count/3` helper (bug_004); (4) `RunsLive.Show.build_nodes/1` reads `payload["warnings"]` on `op_completed` and populates per-node `:warnings` + `:degraded` so DAG pill and inspector Warnings section render on the event-log fallback path (bug_009); (5) new `warning_cross_layer_test.exs` regression guard exercises all four fixes in one file.
+- Validation: liminara_radar 97/0, liminara_observation 291/0, liminara_web 216/0, liminara_core (run + contracts) 182/55/0. Python ruff + format clean. Credo 7 (unchanged from M-WARN-03 baseline). Dialyzer 2 (both pre-existing, unchanged).
+- Decisions recorded: D-2026-04-20-025 (`run_partial` terminal event type), D-2026-04-20-026 (no backward-compat shims for in-flight contract fixes).
+
+**E-19 Warnings & Degraded Outcomes** — **complete** (all 4 milestones closed). Awaiting wrap: squash-merge into `main`, move epic folder to `work/done/`, update E-19 entry in roadmap index.
 
 ### Where things stand
 
 - **Phase 4** (Observation Layer): **complete** — E-09 done, in `work/done/`
 - **Phase 5a** (Radar Correctness): **complete** — E-11 done, in `work/done/`
 - **Phase 5b** (Radar Complete): **complete** — E-10, E-11 done, in `work/done/`
-- **Phase 5c** (Radar Hardening): **in progress** — E-20 done (in `work/done/`); next is E-19 Warnings & Degraded Outcomes, then E-12 Op Sandbox
+- **Phase 5c** (Radar Hardening): **in progress** — E-20, E-19 done (E-19 awaiting merge); next is E-21 Pack Contribution Contract (planning — four sub-epics) and E-12 Op Sandbox
 - **Sequencing (D-013):** `Radar correctness -> Radar hardening -> VSME -> platform generalization`
 
 ### Key references
 
 - **Roadmap:** `work/roadmap.md` — full sequencing with status labels
-- **Decisions:** `work/decisions.md` (D-012 through D-022 are the most recent)
+- **Decisions:** `work/decisions.md` (D-022 through D-026 are the most recent)
 - **Truth governance:** `docs/architecture/contracts/00_TRUTH_MODEL.md`, `docs/architecture/contracts/01_CONTRACT_MATRIX.md`, `docs/architecture/contracts/02_SHIM_POLICY.md`
 - **Archived architecture:** `docs/history/architecture/` — moved snapshots and design notes that are no longer current authority
 - **Phase 5c epic specs:** `work/epics/E-19-warnings-degraded-outcomes/epic.md`, `work/epics/E-12-op-sandbox/epic.md`

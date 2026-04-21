@@ -46,12 +46,18 @@ defmodule Liminara.Radar.Ops.ComposeBriefingTest do
                       %{
                         "cluster_id" => "c0",
                         "summary" => "AI is advancing rapidly.",
-                        "key_takeaways" => ["Breakthrough in reasoning", "Cost reduction"]
+                        "key_takeaways" => ["Breakthrough in reasoning", "Cost reduction"],
+                        "degraded" => false,
+                        "degradation_code" => nil,
+                        "degradation_note" => nil
                       },
                       %{
                         "cluster_id" => "c1",
                         "summary" => "Elixir hits version 2.",
-                        "key_takeaways" => ["Major release"]
+                        "key_takeaways" => ["Major release"],
+                        "degraded" => false,
+                        "degradation_code" => nil,
+                        "degradation_note" => nil
                       }
                     ])
 
@@ -155,6 +161,269 @@ defmodule Liminara.Radar.Ops.ComposeBriefingTest do
 
       briefing = Jason.decode!(outputs["briefing"])
       assert briefing["run_id"] == "runtime-run-123"
+    end
+  end
+
+  describe "ComposeBriefing degraded propagation" do
+    test "all-success clusters: per-cluster false, root false, empty degraded_cluster_ids" do
+      {:ok, outputs} = compose_briefing()
+
+      briefing = Jason.decode!(outputs["briefing"])
+
+      for cluster <- briefing["clusters"] do
+        assert cluster["degraded"] == false
+        assert cluster["degradation_code"] == nil
+        assert cluster["degradation_note"] == nil
+      end
+
+      assert briefing["degraded"] == false
+      assert briefing["degraded_cluster_ids"] == []
+    end
+
+    test "one degraded cluster: per-cluster flags set, root degraded true, list contains id" do
+      mixed_summaries =
+        Jason.encode!([
+          %{
+            "cluster_id" => "c0",
+            "summary" => "AI is advancing rapidly.",
+            "key_takeaways" => ["Breakthrough in reasoning"],
+            "degraded" => false,
+            "degradation_code" => nil,
+            "degradation_note" => nil
+          },
+          %{
+            "cluster_id" => "c1",
+            "summary" => "Cluster 'Elixir Updates' contains 1 item(s): Elixir 2.0.",
+            "key_takeaways" => ["Contains 1 related items"],
+            "degraded" => true,
+            "degradation_code" => "radar_summarize_placeholder",
+            "degradation_note" =>
+              "Using placeholder summaries because Anthropic access is unavailable"
+          }
+        ])
+
+      {:ok, outputs} = compose_briefing(summaries: mixed_summaries)
+
+      briefing = Jason.decode!(outputs["briefing"])
+      [first, second] = briefing["clusters"]
+
+      assert first["cluster_id"] == "c0"
+      assert first["degraded"] == false
+      assert first["degradation_code"] == nil
+      assert first["degradation_note"] == nil
+
+      assert second["cluster_id"] == "c1"
+      assert second["degraded"] == true
+      assert second["degradation_code"] == "radar_summarize_placeholder"
+
+      assert second["degradation_note"] ==
+               "Using placeholder summaries because Anthropic access is unavailable"
+
+      assert briefing["degraded"] == true
+      assert briefing["degraded_cluster_ids"] == ["c1"]
+    end
+
+    test "all degraded clusters: root degraded true, sorted id list" do
+      all_degraded =
+        Jason.encode!([
+          %{
+            "cluster_id" => "c0",
+            "summary" => "Placeholder c0",
+            "key_takeaways" => [],
+            "degraded" => true,
+            "degradation_code" => "radar_summarize_placeholder",
+            "degradation_note" =>
+              "Using placeholder summaries because Anthropic access is unavailable"
+          },
+          %{
+            "cluster_id" => "c1",
+            "summary" => "Placeholder c1",
+            "key_takeaways" => [],
+            "degraded" => true,
+            "degradation_code" => "radar_summarize_llm_error",
+            "degradation_note" => "Fell back to a placeholder summary after an LLM error"
+          }
+        ])
+
+      {:ok, outputs} = compose_briefing(summaries: all_degraded)
+
+      briefing = Jason.decode!(outputs["briefing"])
+
+      for cluster <- briefing["clusters"] do
+        assert cluster["degraded"] == true
+      end
+
+      assert briefing["degraded"] == true
+      # sorted alphabetically
+      assert briefing["degraded_cluster_ids"] == ["c0", "c1"]
+    end
+
+    test "zero clusters: root degraded false, empty degraded_cluster_ids, no crash" do
+      {:ok, outputs} =
+        compose_briefing(
+          ranked_clusters: Jason.encode!([]),
+          summaries: Jason.encode!([]),
+          source_health: Jason.encode!([]),
+          run_id: "run_empty_degraded"
+        )
+
+      briefing = Jason.decode!(outputs["briefing"])
+
+      assert briefing["clusters"] == []
+      assert briefing["degraded"] == false
+      assert briefing["degraded_cluster_ids"] == []
+    end
+
+    test "degraded_cluster_ids is sorted regardless of summary input order" do
+      unsorted =
+        Jason.encode!([
+          %{
+            "cluster_id" => "c1",
+            "summary" => "Placeholder c1",
+            "key_takeaways" => [],
+            "degraded" => true,
+            "degradation_code" => "radar_summarize_placeholder",
+            "degradation_note" =>
+              "Using placeholder summaries because Anthropic access is unavailable"
+          },
+          %{
+            "cluster_id" => "c0",
+            "summary" => "Placeholder c0",
+            "key_takeaways" => [],
+            "degraded" => true,
+            "degradation_code" => "radar_summarize_placeholder",
+            "degradation_note" =>
+              "Using placeholder summaries because Anthropic access is unavailable"
+          }
+        ])
+
+      # Matches the cluster order (c0, c1) in @sample_clusters.
+      {:ok, outputs} = compose_briefing(summaries: unsorted)
+
+      briefing = Jason.decode!(outputs["briefing"])
+      assert briefing["degraded_cluster_ids"] == ["c0", "c1"]
+    end
+
+    test "malformed summaries (missing degraded fields) raises" do
+      malformed =
+        Jason.encode!([
+          %{
+            "cluster_id" => "c0",
+            "summary" => "AI is advancing rapidly.",
+            "key_takeaways" => ["Breakthrough in reasoning"]
+          },
+          %{
+            "cluster_id" => "c1",
+            "summary" => "Elixir hits version 2.",
+            "key_takeaways" => ["Major release"]
+          }
+        ])
+
+      assert_raise KeyError, fn -> compose_briefing(summaries: malformed) end
+    end
+
+    test "malformed summaries (missing degradation_code) raises" do
+      malformed =
+        Jason.encode!([
+          %{
+            "cluster_id" => "c0",
+            "summary" => "AI is advancing rapidly.",
+            "key_takeaways" => ["Breakthrough in reasoning"],
+            "degraded" => false,
+            "degradation_note" => nil
+          },
+          %{
+            "cluster_id" => "c1",
+            "summary" => "Elixir hits version 2.",
+            "key_takeaways" => ["Major release"],
+            "degraded" => false,
+            "degradation_note" => nil
+          }
+        ])
+
+      assert_raise KeyError, fn -> compose_briefing(summaries: malformed) end
+    end
+
+    test "malformed summaries (missing degradation_note) raises" do
+      malformed =
+        Jason.encode!([
+          %{
+            "cluster_id" => "c0",
+            "summary" => "AI is advancing rapidly.",
+            "key_takeaways" => ["Breakthrough in reasoning"],
+            "degraded" => false,
+            "degradation_code" => nil
+          },
+          %{
+            "cluster_id" => "c1",
+            "summary" => "Elixir hits version 2.",
+            "key_takeaways" => ["Major release"],
+            "degraded" => false,
+            "degradation_code" => nil
+          }
+        ])
+
+      assert_raise KeyError, fn -> compose_briefing(summaries: malformed) end
+    end
+
+    test "malformed summaries (missing summary) raises" do
+      malformed =
+        Jason.encode!([
+          %{
+            "cluster_id" => "c0",
+            "key_takeaways" => ["Breakthrough in reasoning"],
+            "degraded" => false,
+            "degradation_code" => nil,
+            "degradation_note" => nil
+          },
+          %{
+            "cluster_id" => "c1",
+            "key_takeaways" => ["Major release"],
+            "degraded" => false,
+            "degradation_code" => nil,
+            "degradation_note" => nil
+          }
+        ])
+
+      assert_raise KeyError, fn -> compose_briefing(summaries: malformed) end
+    end
+
+    test "malformed summaries (missing key_takeaways) raises" do
+      malformed =
+        Jason.encode!([
+          %{
+            "cluster_id" => "c0",
+            "summary" => "AI is advancing rapidly.",
+            "degraded" => false,
+            "degradation_code" => nil,
+            "degradation_note" => nil
+          },
+          %{
+            "cluster_id" => "c1",
+            "summary" => "Elixir hits version 2.",
+            "degraded" => false,
+            "degradation_code" => nil,
+            "degradation_note" => nil
+          }
+        ])
+
+      assert_raise KeyError, fn -> compose_briefing(summaries: malformed) end
+    end
+
+    test "missing summary for a listed cluster raises (no silent default)" do
+      only_c0 =
+        Jason.encode!([
+          %{
+            "cluster_id" => "c0",
+            "summary" => "AI is advancing rapidly.",
+            "key_takeaways" => ["Breakthrough in reasoning"],
+            "degraded" => false,
+            "degradation_code" => nil,
+            "degradation_note" => nil
+          }
+        ])
+
+      assert_raise KeyError, fn -> compose_briefing(summaries: only_c0) end
     end
   end
 
