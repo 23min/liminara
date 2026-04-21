@@ -3,26 +3,23 @@
 **Started:** 2026-04-20
 **Branch:** `epic/E-19-warnings-degraded-outcomes` (continuing epic branch per E-19 pattern; milestones M-WARN-01/02/03 were all committed directly here without a separate milestone branch)
 **Spec:** `work/epics/E-19-warnings-degraded-outcomes/M-WARN-04-postreview-bugfixes.md`
-**Status:** in-progress (4/6 ACs landed; 2 gaps open — see below)
+**Status:** complete pending commit (6/6 ACs landed; Phase 5 + AC6 uncommitted in working tree)
 **Source of bugs:** ultrareview task `r2fg1c81b` (2026-04-20)
 
-## Remaining Gaps (2026-04-21 audit)
+## Resolved Gaps (2026-04-21)
 
-Milestone is 4/6 ACs landed (AC1 Phase 1 committed `3e43f8a`; AC2 Phase 2 committed `8c445e3`; AC3 Phase 3 committed `e68aa98`; AC4 Phase 4 complete but **uncommitted in working tree** — `show.ex`, `warnings_test.exs`, this tracking doc, plus untracked `work/agent-history/M-WARN-04/bug_009-progress.log`).
+All six ACs landed:
 
-These two gaps block E-19 wrap. Both belong in M-WARN-04; neither should be deferred.
+- AC1 Phase 1 (bug_005) — committed `3e43f8a`
+- AC2 Phase 2 (merged_bug_001) — committed `8c445e3`
+- AC3 Phase 3 (bug_004) — committed `e68aa98`
+- AC4 Phase 4 (bug_009) — committed `93792f4`
+- AC5 Phase 5 (cross-layer consistency test module) — **uncommitted** in working tree (new file `apps/liminara_web/test/liminara_web/live/runs_live/warning_cross_layer_test.exs`, 4 tests / 0 failures, plus this tracking doc)
+- AC6 wrap-time validation — **uncommitted**; see Validation Pipeline section below
 
-| Gap | AC | Phase | Evidence in code |
-|---|---|---|---|
-| **Consolidated cross-layer consistency test module** | AC5 | 5 | No file exists that exercises all four fixed paths together. Existing coverage is split across `live_warning_integration_test.exs` (AC1 only), `partial_run_integration_test.exs` (AC2 only), `runs_live_index_test.exs` idempotence describe (AC3 only), `warnings_test.exs` fallback describe (AC4 only). |
-| **Wrap-time validation sweep** | AC6 | — | "Validation Pipeline" section below still reads "*To be filled at wrap time.*" Per-app suites green individually as of Phase 4 (liminara_web 212/0), but the full baseline sweep (per-app suites + ruff + format + credo + dialyzer) has not been run against the combined Phase 1+2+3+4+5 state. |
+### Final commit to close M-WARN-04
 
-### Exit criteria for closing the gaps
-
-1. Commit Phase 4 (bug_009) with approval.
-2. Phase 5: single new test module exercising all four paths in one place (live warning broadcast, `:partial`-with-warnings, terminal replay, event-log fallback).
-3. AC6: fill in the Validation Pipeline section with per-app suite counts, ruff/format results, credo/dialyzer deltas from M-WARN-03 baseline.
-4. Commit Phase 5 (+ tracking doc updates) with approval. E-19 then ready to wrap.
+Commit the working-tree Phase 5 file + tracking-doc updates + untracked progress log, then E-19 is ready to wrap.
 
 ## Summary
 
@@ -67,12 +64,20 @@ Closes four ultrareview findings against commits `d39cb3e` (M-WARN-01 + M-WARN-0
     2. `event log op_completed warnings render in inspector Warnings section on fallback` — persists an op_completed with a full canonical warning, renders `/runs/:id`, `render_click(view, "select_node", %{"node-id" => "summarize"})`, asserts the Warnings header plus `code`, `summary`, `cause`, `remediation` all appear.
   - RED verified: pre-fix run produced exactly the documented bug_009 signature — the data-dag JSON lacked `"degraded":true` for the warn node, and the inspector rendered Fields/status but no Warnings section (and `llm_fallback`/`summary`/`cause`/`remediation` strings absent).
   - Fixture migration: none. The `extract_dag_json!/1` helper is a new test utility, not a migration of existing fixtures.
-- [ ] **AC5: Cross-layer consistency tests**
-  - New test module exercises all four fixed paths in one place (live broadcast, `:partial`-with-warnings, terminal replay, event-log fallback)
-- [ ] **AC6: Validation pipeline stays at baseline**
-  - Per-app suites green (liminara_radar, liminara_observation, liminara_web, liminara_core)
-  - `uvx ruff check .` / `uvx ruff format --check .` pass
-  - `mix format --check-formatted`, `mix credo --strict`, `mix dialyzer` unchanged from M-WARN-03 baseline
+- [x] **AC5: Cross-layer consistency tests** (Phase 5 — 2026-04-21)
+  - New test module `apps/liminara_web/test/liminara_web/live/runs_live/warning_cross_layer_test.exs` (4 tests, 0 failures) exercises all four fixed paths:
+    1. `live warning broadcast reaches ViewModel without raising (bug_005)` — runs a real `%Warning{}`-bearing plan through `Run.Server → :pg → Observation.Server`, asserts the observer survives, `state.nodes["warn"].degraded == true`, and `/runs/:id` renders the degraded badge.
+    2. `partial-with-warnings reaches every consumer as degraded (merged_bug_001)` — runs a fan-out partial plan, asserts `Run.Result.status == :partial` with `degraded: true`, ViewModel `run_status: :partial` with `degraded: true`, and `/runs/:id` renders both `status--partial` + `status--degraded` while NOT rendering `status--failed`.
+    3. `runs-index warning_count stays stable on duplicate terminal (bug_004)` — runs a warning plan under a `run-xlayer-*` id (passes `real_run?/2`), mounts `/runs`, asserts the row for this run shows `degraded (1)` and not `degraded (2)`.
+    4. `event-log fallback preserves per-node degraded (bug_009)` — appends events without a plan.json, mounts `/runs/:id`, decodes `data-dag`, asserts `warn["degraded"] == true`, then `render_click(view, "select_node", ...)` and asserts the inspector Warnings section renders code/summary/cause/remediation.
+  - Module-level `setup` grabs the supervised `runs_root`; every test `on_exit`s a `File.rm_rf!` of its own run dir to prevent cross-test leak (same isolation pattern used by the existing warnings_test.exs fallback describe).
+  - All four tests pass against the HEAD of Phase 1+2+3+4. Verified stable across seeds.
+- [x] **AC6: Validation pipeline stays at baseline** (wrap-time — 2026-04-21)
+  - Per-app suites: see the Validation Pipeline table below. All green; deltas accounted for by new M-WARN-04 tests only.
+  - Python: `uvx ruff check .` + `uvx ruff format --check .` pass (33 files already formatted).
+  - `mix format --check-formatted` clean.
+  - `mix credo --strict`: 7 refactoring opportunities, unchanged from M-WARN-03 baseline.
+  - `mix dialyzer`: 2 errors, both pre-existing and unchanged from M-WARN-03 baseline (verified against HEAD pre-Phase 5).
 
 ## Implementation Phases
 
@@ -210,7 +215,36 @@ No unreachable branches introduced. The op_started/op_failed arms are unchanged 
 
 ## Validation Pipeline
 
-*To be filled at wrap time.*
+Run 2026-04-21, all scopes foreground + per-app per CLAUDE.md testing rules.
+
+### Per-app test suites
+
+| Suite | Result | Delta from M-WARN-03 baseline |
+|-------|--------|-------------------------------|
+| `apps/liminara_radar/test` | 97 / 0 | unchanged (no radar touch) |
+| `apps/liminara_observation/test` | 291 / 0 | +19 (+12 Phase 2 view_model + partial integration, +7 Phase 1 live integration) |
+| `apps/liminara_web/test` | 216 / 0 | +18 (+8 Phase 2 Index/warnings partial, +4 Phase 3 idempotence, +2 Phase 4 fallback, +4 Phase 5 cross-layer) |
+| `apps/liminara_core/test/liminara/run` + `execution_runtime_contract_test.exs` | 182 / 0 | unchanged (no runtime Run.Server surface change in Phase 3/4/5) |
+| `apps/liminara_core/test/liminara/execution_contract_structs_test.exs` + `execution_runtime_contract_test.exs` | 55 / 0 | unchanged |
+
+Note: the broader `mix test apps/liminara_core/test` invocation hangs without emitting output in this environment (reproduced twice across fresh runs; Phase 2 notes saw 438/0/8 properties but that was on a different day — likely the pre-existing integration-test pathology flagged in CLAUDE.md "Running Tests from an AI Assistant"). The 182 + 55 per-directory scopes together cover every runtime code path M-WARN-04 modified.
+
+### Python linters
+
+| Tool | Result |
+|------|--------|
+| `uvx ruff check .` (under `runtime/python/`) | All checks passed |
+| `uvx ruff format --check .` (under `runtime/python/`) | 33 files already formatted |
+
+### Elixir linters
+
+| Tool | Result |
+|------|--------|
+| `mix format --check-formatted` (umbrella root) | clean |
+| `mix credo --strict` | 7 refactoring opportunities (unchanged from M-WARN-03 baseline; all 7 in pre-existing files, none in M-WARN-04 touchpoints) |
+| `mix dialyzer` | 2 errors (`a2ui_provider.ex:95:callback_type_mismatch`, `runs_live/show.ex:618:pattern_match_cov`) — both pre-existing, identical on HEAD with or without Phase 4 edits. `show.ex:618` is `load_initial_events/1`'s defensive `_` fallthrough; M-WARN-04's only touch to `show.ex` is `build_nodes/1` at lines 883-912. |
+
+Baseline preserved across all three linters.
 
 ## Notes
 
