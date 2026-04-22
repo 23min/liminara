@@ -79,7 +79,7 @@ Shared E-21 constraints apply. Sub-epic-specific:
 - [ ] Advisory FS-scope enforcement: `Liminara.Executor` emits a warning event on FS-scope violation; does not block the op. Tested with a deliberate-violation fixture.
 - [ ] `ex_a2ui` MultiProvider dispatch ships in the submodule repo (PR merged there); the Liminara repo updates the submodule pointer.
 - [ ] Existing `liminara_core`, `liminara_observation`, and `liminara_web` tests all pass against the new infrastructure.
-- [ ] Credo boundary rules (per ADR-BOUNDARY-01) wired: in-tree pack code can only reference `Liminara.Pack.API.*`.
+- [ ] Boundary enforcement at compile time per ADR-BOUNDARY-01: the `boundary` hex library is added as a runtime dep; `use Boundary` declarations land on `Liminara.Pack.API` and on the runtime/pack cross-cuts identified by the ADR. In-tree pack code can only reference `Liminara.Pack.API.*`; `mix compile` fails on a deliberate-violation fixture. OTP-app boundaries (`liminara_core` vs `liminara_observation` vs `liminara_web`) continue to enforce deployment-aligned cross-app access via `mix.exs` deps — the two mechanisms together cover all boundaries.
 
 ## Milestones
 

@@ -86,7 +86,7 @@ Each ADR ships with: CUE schema, valid fixtures, invalid fixtures (demonstrating
 | **ADR-EXECUTOR-01** | Executor-type taxonomy + extensibility (persistent-worker stipulation) | Existing `:inline` + `:port` | future `:container` / `:wasm` |
 | **ADR-EVOLUTION-01** | Schema evolution and backward-compat discipline | Kubernetes API versioning | Protobuf evolution |
 | **ADR-LAYOUT-01** | Pack repo layout conventions | Radar (post-extraction) | admin-pack |
-| **ADR-BOUNDARY-01** | Credo boundary rules for in-tree packs | Radar | — |
+| **ADR-BOUNDARY-01** | Compile-time boundary enforcement for in-tree packs (`boundary` hex lib + OTP-app splits) | Radar | — |
 | **ADR-REGISTRY-01** | Pack registration via deployment config | Radar load path | admin-pack load path |
 | **ADR-MULTIPLAN-01** | Multi-workflow packs (multiple plan entrypoints per pack) | Radar (single-plan today) | admin-pack (three-plan) |
 
