@@ -78,6 +78,7 @@ Shared E-21 constraints apply. Sub-epic-specific:
 - [ ] Radar's replay test (discovery → replay → identical artifacts) passes against the extracted pack.
 - [ ] Radar's briefing UI works in the browser when a Liminara instance has `radar-pack` in its deployment config.
 - [ ] Radar's cron scheduling works via `TriggerManager`'s `:cron` trigger (no bespoke scheduler in the pack or runtime).
+- [ ] UI parity for scheduler observability: the Radar briefing UI still displays next-scheduled-run, last-run, and a manual fire-now control, sourced from `TriggerManager`'s observation API (per E-21b + ADR-TRIGGER-01). Losing these UI affordances is a behavior change and blocks wrap.
 - [ ] The Liminara dev/test deployment config loads `radar-pack` by path; production-like configs load it by git ref.
 - [ ] Pack authoring guide finalized at `docs/guides/pack-authoring.md`, walks zero-to-running in under one page, cites both `file_watch_demo` and `radar-pack`.
 - [ ] Admin-pack-ready checkpoint doc at `docs/architecture/contracts/admin-pack-readiness.md` enumerates every admin-pack requirement from `admin-pack/v2/docs/architecture/` and maps it to a shipped E-21 capability (or an explicitly deferred follow-up).

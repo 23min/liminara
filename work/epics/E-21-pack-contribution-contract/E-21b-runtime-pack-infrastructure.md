@@ -74,6 +74,7 @@ Shared E-21 constraints apply. Sub-epic-specific:
 - [ ] A multi-workflow test pack (two plan entrypoints, two triggers) round-trips: deploy-config → load → trigger fires → correct plan runs.
 - [ ] Radar has a generated `pack.yaml` in-tree; Radar is loaded through `PackLoader`; Radar's e2e, replay, and briefing UI tests all pass.
 - [ ] `Liminara.TriggerManager` supports `:cron`, `:file_watch`, `:manual`. File-watch semantics (debounce, coalesce, scan-on-startup, dedup) match ADR-FILEWATCH-01. Radar's scheduler is replaced by `TriggerManager`.
+- [ ] `TriggerManager` exposes an observation API sufficient to replace today's `Liminara.Radar.Scheduler.next_run_at/1`, `last_run_at/1`, and `run_now/1` — i.e. every consumer must be able to ask "when does this trigger next fire?", "when did it last fire?", and "fire it now." Exact function signatures per ADR-TRIGGER-01. Radar's UI is migrated onto this API in the same milestone; the existing `Scheduler` GenServer is deleted.
 - [ ] `Liminara.SurfaceRenderer` loads surface declarations for a pack, translates to A2UI wire messages, and binds declared data sources. Radar's existing surfaces (once declared as YAML) render identically.
 - [ ] `Liminara.SecretSource` behaviour exists; `Liminara.SecretSource.EnvVar` adapter resolves manifest-declared secrets from the deployment's env. Secret values are scrubbed from observation events and logs.
 - [ ] Advisory FS-scope enforcement: `Liminara.Executor` emits a warning event on FS-scope violation; does not block the op. Tested with a deliberate-violation fixture.
