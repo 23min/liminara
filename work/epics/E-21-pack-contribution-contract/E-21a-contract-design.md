@@ -64,6 +64,7 @@ All shared constraints from E-21's parent epic apply. Sub-epic-specific:
 - [ ] The schema-evolution CI check runs on every PR and validates the current fixture library against the current schemas.
 - [ ] A "read this first" index exists at `docs/architecture/contracts/pack-contract-index.md` linking each ADR, schema, and fixture set.
 - [ ] Downstream sub-epic specs (E-21b, E-21c, E-21d) reference specific ADRs for every design choice they inherit.
+- [ ] M-PACK-A-02a, M-PACK-A-02b, and M-PACK-A-02c each declare their contract-matrix row deltas as explicit acceptance criteria in the milestone spec (`## Contract matrix changes`), and land those rows in `docs/architecture/contracts/01_CONTRACT_MATRIX.md` as part of the milestone's merge. Rule reference: `.ai-repo/rules/liminara.md` → Contract matrix discipline.
 
 ## ADRs produced (17)
 
@@ -96,9 +97,9 @@ Each ADR lives under `docs/decisions/` following the existing ADR convention; th
 | ID | Title | Summary |
 |---|---|---|
 | **M-PACK-A-01** | Contract-TDD tooling | Ship the `design-contract` skill, `contract-design` rule, CUE in devcontainer, `cue vet` CI check, ADR template extensions. One-sitting milestone. |
-| **M-PACK-A-02a** | Foundational contracts (4 ADRs) | Ship ADR-MANIFEST-01, ADR-PLAN-01, ADR-OPSPEC-01, ADR-WIRE-01 with CUE schemas + fixtures + worked examples. These are the hot path — every other sub-epic blocks on their shape. Ship the schema-evolution CI check in this milestone (it runs against these first schemas and every one that follows). |
-| **M-PACK-A-02b** | Packs-as-running-systems (5 ADRs) | Ship ADR-SURFACE-01, ADR-TRIGGER-01, ADR-FILEWATCH-01, ADR-FSSCOPE-01, ADR-SECRETS-01 with CUE schemas + fixtures + worked examples. These define how a loaded pack interacts with the world (UI, triggers, filesystem, secrets). Unblocks the bulk of E-21b's runtime plumbing. |
-| **M-PACK-A-02c** | Governance (8 ADRs) | Ship ADR-REGISTRY-01, ADR-MULTIPLAN-01, ADR-EXECUTOR-01, ADR-EVOLUTION-01, ADR-LAYOUT-01, ADR-BOUNDARY-01, ADR-CONTENT-01, ADR-LA-01 with CUE schemas + fixtures + worked examples. These govern how packs are registered, composed, extended, and bounded. Can be reviewed in parallel with M-PACK-A-02b once M-PACK-A-02a's foundational shapes are frozen. The `docs/architecture/contracts/pack-contract-index.md` lands in this milestone. |
+| **M-PACK-A-02a** | Foundational contracts (4 ADRs) | Ship ADR-MANIFEST-01, ADR-PLAN-01, ADR-OPSPEC-01, ADR-WIRE-01 with CUE schemas + fixtures + worked examples. These are the hot path — every other sub-epic blocks on their shape. Ship the schema-evolution CI check in this milestone (it runs against these first schemas and every one that follows). Lands contract-matrix rows for `manifest`, `plan-as-data`, `op-execution-spec`, `wire-protocol`. Refresh the existing warning-contract row to reflect E-19's shipped `Liminara.Warning` + `run_partial` terminal event. |
+| **M-PACK-A-02b** | Packs-as-running-systems (5 ADRs) | Ship ADR-SURFACE-01, ADR-TRIGGER-01, ADR-FILEWATCH-01, ADR-FSSCOPE-01, ADR-SECRETS-01 with CUE schemas + fixtures + worked examples. These define how a loaded pack interacts with the world (UI, triggers, filesystem, secrets). Unblocks the bulk of E-21b's runtime plumbing. Lands contract-matrix rows for `surface-declaration`, `trigger`, `file-watch`, `fs-scope`, `secrets`. |
+| **M-PACK-A-02c** | Governance (8 ADRs) | Ship ADR-REGISTRY-01, ADR-MULTIPLAN-01, ADR-EXECUTOR-01, ADR-EVOLUTION-01, ADR-LAYOUT-01, ADR-BOUNDARY-01, ADR-CONTENT-01, ADR-LA-01 with CUE schemas + fixtures + worked examples. These govern how packs are registered, composed, extended, and bounded. Can be reviewed in parallel with M-PACK-A-02b once M-PACK-A-02a's foundational shapes are frozen. The `docs/architecture/contracts/pack-contract-index.md` lands in this milestone. Lands contract-matrix rows for the governance contracts that have live sources (`registry`, `executor-taxonomy`, `layout`, `boundary` at minimum; authors evaluate whether meta-ADRs like `schema-evolution`, `language-agnostic`, `multi-plan`, `content-namespace` warrant rows when drafting the milestone spec). |
 
 ## Technical direction
 

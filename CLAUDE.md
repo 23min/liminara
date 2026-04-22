@@ -82,7 +82,7 @@ Liminara is **a runtime for reproducible nondeterministic computation**. It reco
 - **Op**: typed function (artifacts in → artifacts out) with a determinism class (pure, pinned_env, recordable, side_effecting).
 - **Decision**: recorded nondeterministic choice (LLM response, GA selection, human approval, random seed). Enables replay.
 - **Run**: an execution = an append-only event log + a plan (DAG of op-nodes). Events are the source of truth.
-- **Pack**: a module providing op definitions, a `plan/1` function, and optional `init/0` for reference data.
+- **Pack**: a module providing op definitions and a `plan/1` function. (Reference-data callback `init/0` is approved-next; see `docs/architecture/01_CORE.md`.)
 
 ## Tech stack
 
@@ -107,6 +107,17 @@ Liminara is **a runtime for reproducible nondeterministic computation**. It reco
 - If approved next-state behavior is disputed, the active epic or milestone spec plus decided-next architecture docs win.
 - Compatibility shims are banned by default. Any exception needs a named removal trigger in the milestone spec and tracking doc.
 - To change AI instruction behavior, edit `.ai-repo/` and run `./.ai/sync.sh`. Do not hand-edit generated instruction files except for the preserved `CLAUDE.md` Current Work section.
+
+## Contract matrix discipline
+
+`docs/architecture/contracts/01_CONTRACT_MATRIX.md` is the live ownership/status index for every first-class contract surface in the runtime. Drift here is silent failure: new contracts ship without rows, retired contracts leave stale rows, live-source paths rot. The following rules apply to every milestone that touches a contract surface.
+
+- **Plan-time declaration.** Any milestone that creates, modifies, or retires a contract surface **must** include a `## Contract matrix changes` section in its spec with three bullets: rows added, rows updated, rows retired. If none apply, write "None — this milestone does not touch contract surfaces." Missing section blocks spec approval.
+- **Wrap-time check.** Before wrapping a milestone that declared matrix changes, the reviewer verifies that the declared rows are present in `01_CONTRACT_MATRIX.md` with correct live-source paths. Row absence blocks wrap.
+- **Live-source accuracy.** When a live-source file in a matrix row is renamed, moved, deleted, or extracted to a submodule, the same PR updates the row. Finding drift after merge is a reviewer miss and should be noted in agent history.
+- **Boundary with ADRs.** A matrix row points at *what the contract is and where its live source lives*; an ADR under `docs/decisions/` explains *why the contract has that shape*. The two always cross-reference but never overlap.
+
+Until framework issue [ai-workflow#20](https://github.com/23min/ai-workflow/issues/20) lands plan-time template support + wrap-time doc-lint enforcement, this discipline is enforced by spec review and reviewer agent attention.
 
 ## Validation pipeline (per language)
 
