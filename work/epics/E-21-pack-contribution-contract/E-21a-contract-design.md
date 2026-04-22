@@ -92,6 +92,9 @@ Each ADR ships with: CUE schema, valid fixtures, invalid fixtures (demonstrating
 
 Each ADR lives under `docs/decisions/` following the existing ADR convention; the paired CUE schema lives under `docs/architecture/contracts/schemas/<topic>.cue`; fixtures live under `docs/architecture/contracts/fixtures/<topic>/`.
 
+**Per-ADR content requirements beyond the default set:**
+- **ADR-FSSCOPE-01** must include an "Enforcement escalation" section documenting that MVP advisory enforcement (warning on violation) and E-12's hard enforcement (block on violation) occupy the same contract surface with a strengthened observer. Classify advisory mode explicitly as *intermediate contract, not a shim* against `docs/architecture/contracts/02_SHIM_POLICY.md` — the contract shape is preserved across the escalation.
+
 ## Milestones
 
 | ID | Title | Summary |
