@@ -1,6 +1,6 @@
 ---
 id: ADR-007
-status: draft
+status: accepted
 date: 2026-03-23
 ---
 
@@ -8,7 +8,13 @@ date: 2026-03-23
 
 ## Status
 
-Draft — design spike needed before implementation.
+Accepted. Phase 1 (dim pending nodes) shipped in M-OBS-05a. Phases 2-3 (cache-aware and replay-aware visual states) deferred; tracked in `work/gaps.md`.
+
+### Status history
+
+- 2026-03-23 — drafted
+- 2026-04-01 — Phase 1 shipped (M-OBS-05a, via E-09 squash merge `2a45b5e`); ADR promoted to accepted
+- Phase 2 and Phase 3 deferred as documented in the body of this ADR; see `work/gaps.md`
 
 ## Context
 
