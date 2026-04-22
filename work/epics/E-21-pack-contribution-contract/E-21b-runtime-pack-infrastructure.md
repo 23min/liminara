@@ -68,7 +68,7 @@ Shared E-21 constraints apply. Sub-epic-specific:
 
 ## Success criteria
 
-- [ ] `Liminara.Pack.API.*` namespace exists in `liminara_core` with the canonical structs and behaviours from M-TRUTH-01 organized under it. No struct-shape changes; pure reorganization.
+- [ ] `Liminara.Pack.API.*` namespace exists in `liminara_core` with the canonical structs and behaviours from M-TRUTH-01 organized under it. No struct-shape changes; pure reorganization. Old module paths (`Liminara.ExecutionSpec`, `Liminara.OpResult`, `Liminara.Warning`, `Liminara.ExecutionContext`, `Liminara.Plan`, `Liminara.Decision`, `Liminara.FSScope`) are **deleted** — no alias modules, no `defdelegate` re-exports, no `use` shims. Every call site is updated in the same milestone.
 - [ ] `Liminara.PackLoader` loads a `pack.yaml` from a given path, validates against the ADR-MANIFEST-01 CUE schema, and returns a `Pack.API` representation.
 - [ ] `Liminara.PackRegistry` reads `config :liminara, :packs` at boot, loads each pack via `PackLoader`, and exposes a lookup API (`PackRegistry.get(pack_id)`).
 - [ ] A multi-workflow test pack (two plan entrypoints, two triggers) round-trips: deploy-config → load → trigger fires → correct plan runs.
@@ -94,7 +94,7 @@ Shared E-21 constraints apply. Sub-epic-specific:
 
 1. **Radar is the live validator.** If any M-PACK-B-* milestone breaks Radar, the milestone is not done. The staged-loading approach (manifest → loader → registry; then surface renderer; then trigger manager) means each milestone tests against Radar incrementally.
 2. **Generated manifest for Radar is temporary scaffolding.** It exists in-tree during E-21b to prove the pack-loader works. E-21d replaces it with Radar's own canonical manifest when Radar moves to its submodule.
-3. **`Liminara.Pack.API.*` is a namespace reorganization, not a rewrite.** Structs from M-TRUTH-01 keep their fields, defaults, and semantics; only their module paths change. Existing call sites update via module aliases.
+3. **`Liminara.Pack.API.*` is a namespace reorganization, not a rewrite.** Structs from M-TRUTH-01 keep their fields, defaults, and semantics; only their module paths change. Existing call sites are rewritten to the new paths in the same milestone — old module paths are deleted, not aliased.
 4. **No compile-time magic in pack registration.** `config :liminara, :packs` is explicit; `PackRegistry.start_link/1` reads the config and loads packs. Tests can start the registry with an in-memory config.
 5. **File-watch trigger MVP is advisory + recoverable.** File-watcher emits trigger events; dispatcher queues runs in-memory. On runtime restart, file-watcher rescans its declared path and re-emits for files not yet marked processed in pack-instance state. Durable queue is E-14.
 6. **MultiProvider in `ex_a2ui` is server-side dispatch only.** Wire format stays A2UI v0.9. Surface IDs gain pack prefixes; Lit renderer needs no changes.
