@@ -57,3 +57,4 @@ agent_runtime_specs.zip
 .claude-sessions-backup/
 .claude/statusline.sh
 .codex/instructions.md
+.ai-repo/.framework-sync-sha
