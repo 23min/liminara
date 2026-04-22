@@ -47,6 +47,15 @@ Liminara is **a runtime for reproducible nondeterministic computation**. It reco
 
 Until framework issue [ai-workflow#20](https://github.com/23min/ai-workflow/issues/20) lands plan-time template support + wrap-time doc-lint enforcement, this discipline is enforced by spec review and reviewer agent attention.
 
+## Decision records — two surfaces, one policy
+
+The framework prescribes two decision-recording surfaces (`.ai/rules.md`, `.ai/paths.md`, `.ai/skills/wrap-epic.md`, `.ai/skills/workflow-audit.md`). This repo follows the prescribed split:
+
+- **`work/decisions.md`** — day-to-day structured entries (id, status, context, decision, consequences) appended as work proceeds. Scope: operational, sequencing, and tactical decisions. Lightweight, fast to write, reviewed in-session.
+- **`docs/decisions/NNNN-<slug>.md`** (ADRs) — heavier ratifying records surfaced at wrap-epic per `.ai/skills/wrap-epic.md` Step 2. Scope: first-class boundaries, constraint changes, shim justifications, supersessions — any decision a future reader would regret missing. Follow the Nygard pattern (Context → Decision → Consequences + Nygard-standard status vocabulary) until framework issue [ai-workflow#19](https://github.com/23min/ai-workflow/issues/19) ships a canonical template.
+
+For ratification of constraint drift, either surface counts (per `.ai/skills/workflow-audit.md`). When in doubt between the two, ask "would a future reader regret missing the reasoning?" — if yes, write an ADR.
+
 ## Validation pipeline (per language)
 
 Before any commit, the appropriate validation must pass:
