@@ -4,7 +4,7 @@ doc_type: architecture
 truth_class: live
 status: active
 owner: runtime
-last_reviewed: 2026-04-04
+last_reviewed: 2026-04-22
 source_of_truth:
   - work/roadmap.md
   - docs/architecture/contracts/00_TRUTH_MODEL.md
@@ -237,24 +237,29 @@ defmodule Liminara.Pack do
   @callback version() :: String.t()
   @callback ops() :: [module()]
   @callback plan(input :: term()) :: Plan.t()
-
-  # Optional: register reference data (rulesets, material databases, geographic lookups)
-  @callback init() :: :ok
 end
 ```
 
-Five callbacks (one optional). A pack tells the runtime:
+Four callbacks. A pack tells the runtime:
 1. Who it is
 2. What version it is
 3. What op modules it can perform, each exposing the runtime execution contract in force today and converging on canonical `execution_spec/0` through E-20
 4. How to build a plan for a given input
-5. (Optional) What reference data it ships with
 
-That's the entire pack contract. No middleware chains, no registration protocols. Just: "here are my ops, here's my data, here's how I plan."
+That's the entire pack contract today. No middleware chains, no registration protocols. Just: "here are my ops, here's how I plan."
 
 Execution note: the live runtime still executes many ops through legacy callbacks and tuple-shaped results. E-20 makes `execution_spec/0` the canonical runtime surface; until M-TRUTH-02 lands, this section should be read as the stable pack boundary plus the approved-next execution direction.
 
-Reference data deserves a note: the house compiler needs material properties, span tables, geographic load maps. These aren't produced by a run — they're **versioned datasets** the pack brings with it. `init/0` registers them as artifacts in the store. Ops reference them as literal inputs. When the pack upgrades and the dataset changes, the version changes, cache keys invalidate, downstream ops re-execute automatically. Clean — the cache mechanics handle versioned knowledge for free.
+#### Approved-next callback: `init/0` *(decided_next)*
+
+Not yet implemented in code. First consumer: admin-pack / House Compiler, which need versioned reference data (vendor canonical maps, rulesets, material databases, span tables, geographic load maps). These aren't produced by a run — they're **versioned datasets** the pack brings with it.
+
+```elixir
+# Planned shape:
+@callback init() :: :ok  # registers reference data as artifacts in the store
+```
+
+Ops will reference these artifacts as literal inputs. When the pack upgrades and the dataset changes, the version changes, cache keys invalidate, downstream ops re-execute automatically. Clean — the cache mechanics handle versioned knowledge for free. Radar does not use `init/0` and remains the live four-callback validator; `init/0` lands with the first pack that genuinely requires it.
 
 ---
 
@@ -721,9 +726,9 @@ This isn't a bug — it's inherent to the workload. You can't parallelize sequen
 - Cache pure computation between LLM calls
 - Use gates to let humans redirect the chain early
 
-### 6. Pack-managed reference data
+### 6. Pack-managed reference data *(decided_next — not yet implemented)*
 
-The house compiler needs material databases, span tables, geographic load maps. These aren't artifacts produced by a run — they're **versioned datasets** that packs bring with them. This is handled by the pack `init/0` callback (see Pack contract above). Reference data becomes artifacts in the store, and the cache mechanics handle version transitions automatically.
+The house compiler needs material databases, span tables, geographic load maps. These aren't artifacts produced by a run — they're **versioned datasets** that packs bring with them. This will be handled by the approved-next pack `init/0` callback (see Pack contract above). Reference data becomes artifacts in the store, and the cache mechanics handle version transitions automatically. Radar does not use this mechanism; the first consumer is admin-pack / House Compiler.
 
 ```elixir
 # In HouseCompiler.Pack.init/0:
