@@ -2,6 +2,23 @@
 
 Discovered work items deferred for later.
 
+## Dependabot: security vulnerabilities in Python dependencies — plan under a security epic
+**Discovered:** 2026-04-22 (push to `main` after `.ai` framework bump; GitHub surfaced 2 open dependabot alerts)
+**Relates to:** `runtime/python/uv.lock`, `integrations/python/uv.lock`, future security epic
+**Severity:** High + Medium (one each) — runtime scope for both, no exploit in current usage pattern (see notes) but worth addressing together rather than one-off
+**Items:**
+- **GHSA-vfmq-68hx-4jfw / CVE-2026-41066 — `lxml` XXE via `iterparse()` / `ETCompatXMLParser()` defaults** (severity: high)
+  - Location: `runtime/python/uv.lock`
+  - Vulnerable range: `< 6.1.0`; fix: upgrade to `>= 6.1.0`
+  - Alert: https://github.com/23min/liminara/security/dependabot/2
+  - Usage note: verify whether we call `iterparse`/`ETCompatXMLParser` on untrusted XML; if only trusted inputs, exposure is limited but the upgrade is still the right fix
+- **GHSA-fv5p-p927-qmxr — `langchain-text-splitters` SSRF redirect bypass in `HTMLHeaderTextSplitter.split_text_from_url`** (severity: medium)
+  - Location: `integrations/python/uv.lock`
+  - Vulnerable range: `< 1.1.2`; fix: upgrade to `>= 1.1.2`
+  - Alert: https://github.com/23min/liminara/security/dependabot/1
+  - Usage note: only exploitable if we actually call `HTMLHeaderTextSplitter.split_text_from_url` on user-supplied URLs; confirm whether we do
+**Trigger:** plan a security epic covering dependabot bulk-resolution, SBOM tracking, and a cadence for future alerts. Do not address as one-off patches unless a critical CVE lands that can't wait.
+
 ## Milestone/tracking template drift — consolidate at next milestone start
 **Discovered:** 2026-04-21 (post-framework-update doc-gardening pass)
 **Relates to:** `.ai/templates/`, `work/_templates/`
