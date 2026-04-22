@@ -66,7 +66,7 @@ All shared constraints from E-21's parent epic apply. Sub-epic-specific:
 - [ ] Downstream sub-epic specs (E-21b, E-21c, E-21d) reference specific ADRs for every design choice they inherit.
 - [ ] M-PACK-A-02a, M-PACK-A-02b, and M-PACK-A-02c each declare their contract-matrix row deltas as explicit acceptance criteria in the milestone spec (`## Contract matrix changes`), and land those rows in `docs/architecture/contracts/01_CONTRACT_MATRIX.md` as part of the milestone's merge. Rule reference: `.ai-repo/rules/liminara.md` → Contract matrix discipline.
 
-## ADRs produced (17)
+## ADRs produced (18)
 
 Each ADR ships with: CUE schema, valid fixtures, invalid fixtures (demonstrating what `cue vet` rejects), worked example (one or two realistic pack snippets), and a named reference implementation citation.
 
@@ -76,6 +76,7 @@ Each ADR ships with: CUE schema, valid fixtures, invalid fixtures (demonstrating
 | **ADR-MANIFEST-01** | Pack manifest schema (YAML + CUE) | Radar generated manifest | admin-pack manifest sketch |
 | **ADR-PLAN-01** | Plan representation (language-agnostic data) | Radar plan output | admin-pack plan sketch |
 | **ADR-OPSPEC-01** | Op execution spec CUE schema (codifies M-TRUTH-01; includes terminal event taxonomy `run_completed` / `run_partial` / `run_failed` per D-2026-04-20-025) | Radar ops | admin-pack op sketches |
+| **ADR-REPLAY-01** | Run-level replay protocol: event-log walk order, decision injection, partial-run re-entry, pack-version skew handling, replay `Run.Result` shape. Per-op replay semantics stay in ADR-OPSPEC-01's `determinism.replay_policy`; this ADR covers the run-wide protocol. | Radar replay suite (`runtime/apps/liminara_core/test/liminara/run/replay_test.exs`) + `Liminara.rebuild_from_events/2` | D-2026-04-05-023 (Radar run identity from ExecutionContext) |
 | **ADR-WIRE-01** | Port wire protocol schema | Radar Python ops today | — |
 | **ADR-SURFACE-01** | Surface declaration schema + widget catalog | Radar runs_dashboard | admin-pack period view |
 | **ADR-TRIGGER-01** | Trigger declaration (`:cron`, `:file_watch`, `:manual`) | Radar scheduler | admin-pack intake |
@@ -100,7 +101,7 @@ Each ADR lives under `docs/decisions/` following the existing ADR convention; th
 | ID | Title | Summary |
 |---|---|---|
 | **M-PACK-A-01** | Contract-TDD tooling | Ship the `design-contract` skill, `contract-design` rule, CUE in devcontainer, `cue vet` CI check, ADR template extensions. One-sitting milestone. |
-| **M-PACK-A-02a** | Foundational contracts (4 ADRs) | Ship ADR-MANIFEST-01, ADR-PLAN-01, ADR-OPSPEC-01, ADR-WIRE-01 with CUE schemas + fixtures + worked examples. These are the hot path — every other sub-epic blocks on their shape. Ship the schema-evolution CI check in this milestone (it runs against these first schemas and every one that follows). Lands contract-matrix rows for `manifest`, `plan-as-data`, `op-execution-spec`, `wire-protocol`. Refresh the existing warning-contract row to reflect E-19's shipped `Liminara.Warning` + `run_partial` terminal event. |
+| **M-PACK-A-02a** | Foundational contracts (5 ADRs) | Ship ADR-MANIFEST-01, ADR-PLAN-01, ADR-OPSPEC-01, ADR-REPLAY-01, ADR-WIRE-01 with CUE schemas + fixtures + worked examples. These are the hot path — every other sub-epic blocks on their shape. Ship the schema-evolution CI check in this milestone (it runs against these first schemas and every one that follows). Lands contract-matrix rows for `manifest`, `plan-as-data`, `op-execution-spec`, `replay-protocol`, `wire-protocol`. Refresh the existing warning-contract row to reflect E-19's shipped `Liminara.Warning` + `run_partial` terminal event. |
 | **M-PACK-A-02b** | Packs-as-running-systems (5 ADRs) | Ship ADR-SURFACE-01, ADR-TRIGGER-01, ADR-FILEWATCH-01, ADR-FSSCOPE-01, ADR-SECRETS-01 with CUE schemas + fixtures + worked examples. These define how a loaded pack interacts with the world (UI, triggers, filesystem, secrets). Unblocks the bulk of E-21b's runtime plumbing. Lands contract-matrix rows for `surface-declaration`, `trigger`, `file-watch`, `fs-scope`, `secrets`. |
 | **M-PACK-A-02c** | Governance (8 ADRs) | Ship ADR-REGISTRY-01, ADR-MULTIPLAN-01, ADR-EXECUTOR-01, ADR-EVOLUTION-01, ADR-LAYOUT-01, ADR-BOUNDARY-01, ADR-CONTENT-01, ADR-LA-01 with CUE schemas + fixtures + worked examples. These govern how packs are registered, composed, extended, and bounded. Can be reviewed in parallel with M-PACK-A-02b once M-PACK-A-02a's foundational shapes are frozen. The `docs/architecture/contracts/pack-contract-index.md` lands in this milestone. Lands contract-matrix rows for the governance contracts that have live sources (`registry`, `executor-taxonomy`, `layout`, `boundary` at minimum; authors evaluate whether meta-ADRs like `schema-evolution`, `language-agnostic`, `multi-plan`, `content-namespace` warrant rows when drafting the milestone spec). |
 
@@ -116,7 +117,7 @@ Each ADR lives under `docs/decisions/` following the existing ADR convention; th
 
 | Risk | Impact | Mitigation |
 |---|---|---|
-| 17 ADRs is a lot to merge sequentially | Low | Split across three clustered milestones (M-PACK-A-02a foundational, M-PACK-A-02b running-systems, M-PACK-A-02c governance). M-PACK-A-02b and M-PACK-A-02c can be reviewed in parallel once M-PACK-A-02a's foundational shapes are frozen. No one milestone carries more than eight ADRs. |
+| 18 ADRs is a lot to merge sequentially | Low | Split across three clustered milestones (M-PACK-A-02a foundational, M-PACK-A-02b running-systems, M-PACK-A-02c governance). M-PACK-A-02b and M-PACK-A-02c can be reviewed in parallel once M-PACK-A-02a's foundational shapes are frozen. No one milestone carries more than eight ADRs. |
 | ADRs pushed to close the sub-epic before admin-pack's needs are honestly reflected | High | Explicit success criterion that each pack-level ADR names both a Radar citation and an admin-pack citation. Reviewer checks the secondary citation is substantive, not ceremonial. |
 | CUE toolchain learning curve slows ADR authoring | Low | M-PACK-A-01 ships the `design-contract` skill that embodies the workflow; authors follow the skill's checklist rather than re-deriving. |
 | Schema-evolution test fails on historical fixtures | Low | Fixtures written during E-21a start as the historical baseline; every schema change runs the test. No prior fixtures exist to be incompatible with at M-PACK-A-02 landing time. |
@@ -129,7 +130,7 @@ Each ADR lives under `docs/decisions/` following the existing ADR convention; th
 
 ## What downstream sub-epics get from E-21a
 
-- **E-21b** (runtime) inherits: ADR-MANIFEST-01, ADR-PLAN-01, ADR-WIRE-01, ADR-TRIGGER-01, ADR-FILEWATCH-01, ADR-FSSCOPE-01, ADR-SECRETS-01, ADR-EXECUTOR-01, ADR-REGISTRY-01, ADR-SURFACE-01, ADR-MULTIPLAN-01. These constrain PackLoader, TriggerManager, SurfaceRenderer, SecretSource, etc.
+- **E-21b** (runtime) inherits: ADR-MANIFEST-01, ADR-PLAN-01, ADR-WIRE-01, ADR-REPLAY-01, ADR-TRIGGER-01, ADR-FILEWATCH-01, ADR-FSSCOPE-01, ADR-SECRETS-01, ADR-EXECUTOR-01, ADR-REGISTRY-01, ADR-SURFACE-01, ADR-MULTIPLAN-01. These constrain PackLoader, TriggerManager, SurfaceRenderer, SecretSource, the runtime's replay walker, etc.
 - **E-21c** (DX) inherits: ADR-MANIFEST-01, ADR-PLAN-01, ADR-OPSPEC-01, ADR-WIRE-01, ADR-SURFACE-01, ADR-LAYOUT-01, ADR-CONTENT-01. These constrain the Python SDK shape, widget catalog, scaffolder output.
 - **E-21d** (extraction) inherits: ADR-LAYOUT-01, ADR-BOUNDARY-01, ADR-REGISTRY-01, plus effectively all others (Radar's extracted form must be a valid pack per every schema).
 
