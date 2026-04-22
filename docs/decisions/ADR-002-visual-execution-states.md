@@ -1,10 +1,11 @@
 ---
-id: ADR-007
+id: ADR-002
 status: accepted
 date: 2026-03-23
+renamed_from: ADR-007
 ---
 
-# ADR-007: Visual Execution States in the Observation Layer
+# ADR-002: Visual Execution States in the Observation Layer
 
 ## Status
 

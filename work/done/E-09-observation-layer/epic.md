@@ -61,4 +61,4 @@ Build the real-time observation infrastructure for Liminara runs. When this epic
 - Spec snapshot: `docs/history/architecture/03_PHASE3_REFERENCE.md §Event broadcasting`
 - Research: `docs/research/a2ui_finding.md`
 - Research: `docs/research/graph_execution_patterns.md §7 Visualization`
-- ADR: `docs/decisions/ADR-007-visual-execution-states.md` (draft — pending/cached/replay visual states, deferred to future phase)
+- ADR: `docs/decisions/ADR-002-visual-execution-states.md` (accepted — Phase 1 shipped in M-OBS-05a; Phases 2-3 deferred — renamed from ADR-007 on 2026-04-22 per framework ADR-NNNN convention)

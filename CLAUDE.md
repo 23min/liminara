@@ -65,8 +65,11 @@ These values are resolved from framework defaults in .ai/paths.md and repo overr
 | `completedEpicPathTemplate` | `work/done/<epic>/` | Completed epic archive template |
 | `epicIdPattern` | `E-{NN}[optional-letter]` | Epic ID naming pattern |
 | `milestoneIdPattern` | `M-<TRACK>-<NN>` | Milestone ID naming pattern |
+| `adrPath` | `docs/decisions/` | Architecture Decision Records folder (filename `NNNN-<slug>.md`) |
+| `adrTemplatePath` | `.ai/templates/adr.md` | Repo-neutral ADR template used by `architect` and `wrap-epic` |
 | `frameworkSkillPrefix` | `wf` | Prefix for framework skill slash-commands (e.g. `/wf-patch`) |
 | `repoSkillPrefix` | `` | Prefix for repo-specific skill slash-commands (e.g. `/wf-li-app-legibility`) |
+| `contractSurfaces` | `not configured` | Opt-in: enables `doc-lint`'s uncovered-contract-surface check. See `.ai/paths.md`. |
 
 ## Project-Specific Rules
 
