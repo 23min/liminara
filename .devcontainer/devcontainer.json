@@ -5,11 +5,12 @@
   },
   "workspaceFolder": "/workspaces/liminara",
   "workspaceMount": "source=${localWorkspaceFolder}/..,target=/workspaces,type=bind,consistency=cached",
-  "initializeCommand": "ln -sfn \"$HOME/.claude\" /tmp/.claude-mount",
+  "initializeCommand": "ln -sfn \"$HOME/.claude\" /tmp/.claude-mount && mkdir -p \"$HOME/.config/gh\" && ln -sfn \"$HOME/.config/gh\" /tmp/.gh-mount",
   "postCreateCommand": "bash .devcontainer/post-create.sh",
   "remoteUser": "vscode",
   "mounts": [
-    "source=/tmp/.claude-mount,target=/home/vscode/.claude,type=bind,consistency=cached"
+    "source=/tmp/.claude-mount,target=/home/vscode/.claude,type=bind,consistency=cached",
+    "source=/tmp/.gh-mount,target=/home/vscode/.config/gh,type=bind,consistency=cached"
   ],
   "customizations": {
     "vscode": {
