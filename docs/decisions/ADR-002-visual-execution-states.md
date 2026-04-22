@@ -1,7 +1,9 @@
 ---
 id: ADR-002
+title: Visual Execution States in the Observation Layer
 status: accepted
 date: 2026-03-23
+decided_by: Peter Bruinsma
 renamed_from: ADR-007
 ---
 

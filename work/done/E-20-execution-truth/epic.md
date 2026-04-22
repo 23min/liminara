@@ -3,6 +3,7 @@ id: E-20-execution-truth
 phase: 5
 status: complete
 depends_on: E-11-radar
+completed: 2026-04-05
 ---
 
 # E-20: Execution Truth

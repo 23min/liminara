@@ -1,7 +1,7 @@
 ---
 id: E-12-op-sandbox
 phase: 5
-status: not started
+status: draft
 depends_on: E-20-execution-truth
 ---
 

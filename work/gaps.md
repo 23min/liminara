@@ -19,18 +19,9 @@ Discovered work items deferred for later.
   - Usage note: only exploitable if we actually call `HTMLHeaderTextSplitter.split_text_from_url` on user-supplied URLs; confirm whether we do
 **Trigger:** plan a security epic covering dependabot bulk-resolution, SBOM tracking, and a cadence for future alerts. Do not address as one-off patches unless a critical CVE lands that can't wait.
 
-## Milestone/tracking template drift — consolidate at next milestone start — RESOLVED
-**Discovered:** 2026-04-21 (post-framework-update doc-gardening pass)
-**Resolved:** 2026-04-22 (framework bump `.ai` → `9ef0b5e` adopted as-is; all of `work/_templates/` deleted)
-**Relates to:** `.ai/templates/`, `work/_templates/` (removed), D-2026-04-22-029
-**Severity:** Low — real specs work fine; templates just aren't helpful starting points anymore
-**Context:** Neither template set matched current practice when this gap was logged. The 2026-04-22 framework bump shipped updated templates (`.ai/templates/{adr,epic-spec,milestone-spec,tracking-doc}.md`) that include YAML frontmatter with `id`/`epic`/`status: draft|approved|in-progress|complete`/`depends_on`, plus Constraints / Design Notes / Surfaces touched sections — closing the concrete lacks this gap named. Side-by-side comparison with real E-19/E-20 specs showed framework templates now cover the core shape; Liminara extras (Milestone Boundary, Tests, TDD Sequence, Downstream Consumers, Technical Notes) are additive author choices per spec, not structural requirements — they don't need to live in a template.
-**Resolution:** Framework templates adopted as-is. `.ai-repo/templates/` intentionally left empty — the only divergences worth codifying would have been sub-epic frontmatter fields (`parent`, `composed_of`, `phase`) and the `planning` status value, both retired by D-2026-04-22-029. All four files under `work/_templates/` deleted:
-- `work/_templates/ADR.md` — deleted in `dcf9311` alongside the framework bump
-- `work/_templates/epic.md`, `work/_templates/milestone.md`, `work/_templates/milestone-log.md` — deleted in the template-adoption commit
-E-21 files had `status: planning` bumped to `status: draft` in the same commit (per D-029).
+## Op sandbox: layered isolation not implemented
 **Discovered:** 2026-04-02 (M-RAD-03, live run exposed VIRTUAL_ENV leakage)
-**Relates to:** D-2026-04-02-011, E-10 Port Executor
+**Relates to:** D-2026-04-02-011, E-10 Port Executor, E-12 Op Sandbox
 **Severity:** Architectural gap — not blocking Radar dev (all ops are ours) but blocks production use and untrusted ops
 **Items:**
 - Clean env whitelist in Executor.Port (layer 1) — quick fix, could be a patch
@@ -41,12 +32,6 @@ E-21 files had `status: planning` bumped to `status: draft` in the same commit (
 - Documentation of isolation model in docs/architecture/
 - Evaluate: simple Python ops (normalize, rank, summarize) as Elixir :inline candidates
 
-## Radar LanceDB path drifts into `_build` — RESOLVED in explicit Radar path config
-**Discovered:** 2026-04-08 (container persistence review)
-**Resolved:** 2026-04-08 (explicit `:liminara_radar, :lancedb_path` in dev/test/prod plus required config lookup)
-**Relates to:** D-2026-04-01-009, D-2026-04-08-024, M-RAD-01 persistent storage paths
-**Fix:** Radar no longer falls back to a build-output-derived LanceDB path. The pack now requires an explicit configured `lancedb_path`, with dev defaulting to `runtime/data/radar/lancedb`, test using an explicit tmp path, and prod defaulting to `/var/lib/liminara/radar/lancedb`.
-
 ## Pack-owned durable path contract needs implementation follow-through
 **Discovered:** 2026-04-08 (follow-up from LanceDB path review)
 **Relates to:** D-2026-04-08-024, deployment planning
@@ -56,27 +41,6 @@ E-21 files had `status: planning` bumped to `status: draft` in the same commit (
 - Migrate Radar LanceDB to the decided durable path contract and decide whether to preserve or discard existing local drift data
 - Ensure recorded plans and runtime metadata surface resolved durable pack paths consistently when those paths materially affect execution
 - Make any future pack-specific durable directory explicit in both dev and deployment config from day one
-
-## Multi-decision replay is broken — RESOLVED in M-RAD-06
-**Discovered:** 2026-04-02 (OpenAI review of M-RAD-03 implementation)
-**Resolved:** 2026-04-03 (M-RAD-06 commit e9fe49a)
-**Fix:** Decision.Store stores list per node_id, Run.Server replays stored output_hashes, full Radar replay test validates end-to-end
-
-## Rank op violates determinism model — RESOLVED in M-RAD-03
-**Discovered:** 2026-04-02 (OpenAI review of M-RAD-03 implementation)
-**Resolved:** 2026-04-03 (M-RAD-03 commit fd5b4c9)
-**Fix:** `reference_time` passed as explicit plan input; rank op raises on missing (no wall-clock fallback)
-
-## M-RAD-03 tracking ahead of implementation — RESOLVED in M-RAD-03
-**Discovered:** 2026-04-02 (OpenAI review)
-**Resolved:** 2026-04-03 (M-RAD-03 scope amendment + tracking doc update)
-**Fix:** Known limitations documented in spec and tracking doc; placeholders accepted for v1
-
-## E-12 sandbox spec contradiction — RESOLVED in epic spec
-**Discovered:** 2026-04-02 (OpenAI review)
-**Resolved:** 2026-04-03 (E-12 epic spec rewrite)
-**Relates to:** E-12 Op Sandbox epic, D-019 (sandbox split)
-**Fix:** Success criteria now distinguish bootstrap code/dependency reads from runtime access restrictions. Startup may read declared bootstrap paths; runtime access remains limited to declared runtime paths, with undeclared host paths and other ops' working dirs blocked.
 
 ## dag-map: interactive features for live execution visualization
 **Discovered:** 2026-04-02 (M-RAD-03 planning)
@@ -139,3 +103,44 @@ E-21 files had `status: planning` bumped to `status: draft` in the same commit (
 - Phase 3 — replay-aware states: `Decision Store` queried for each recordable/side-effecting node; view gains `replay_available: true`; visual distinction for "will replay" vs "will discover." Requires a Decision-Store lookup API in `Observation.Server`.
 - Revisit trigger: when replay/cache integration work is scheduled, or earlier if operator feedback demands it.
 
+## Resolved
+
+Closed gap entries kept for history. Move new resolutions here rather than deleting.
+
+### Milestone/tracking template drift — consolidate at next milestone start
+**Discovered:** 2026-04-21 (post-framework-update doc-gardening pass)
+**Resolved:** 2026-04-22 (framework bump `.ai` → `9ef0b5e` adopted as-is; all of `work/_templates/` deleted)
+**Relates to:** `.ai/templates/`, `work/_templates/` (removed), D-2026-04-22-029
+**Severity:** Low — real specs work fine; templates just aren't helpful starting points anymore
+**Context:** Neither template set matched current practice when this gap was logged. The 2026-04-22 framework bump shipped updated templates (`.ai/templates/{adr,epic-spec,milestone-spec,tracking-doc}.md`) that include YAML frontmatter with `id`/`epic`/`status: draft|approved|in-progress|complete`/`depends_on`, plus Constraints / Design Notes / Surfaces touched sections — closing the concrete lacks this gap named. Side-by-side comparison with real E-19/E-20 specs showed framework templates now cover the core shape; Liminara extras (Milestone Boundary, Tests, TDD Sequence, Downstream Consumers, Technical Notes) are additive author choices per spec, not structural requirements — they don't need to live in a template.
+**Resolution:** Framework templates adopted as-is. `.ai-repo/templates/` intentionally left empty — the only divergences worth codifying would have been sub-epic frontmatter fields (`parent`, `composed_of`, `phase`) and the `planning` status value, both retired by D-2026-04-22-029. All four files under `work/_templates/` deleted:
+- `work/_templates/ADR.md` — deleted in `dcf9311` alongside the framework bump
+- `work/_templates/epic.md`, `work/_templates/milestone.md`, `work/_templates/milestone-log.md` — deleted in the template-adoption commit
+E-21 files had `status: planning` bumped to `status: draft` in the same commit (per D-029).
+
+### Radar LanceDB path drifts into `_build`
+**Discovered:** 2026-04-08 (container persistence review)
+**Resolved:** 2026-04-08 (explicit `:liminara_radar, :lancedb_path` in dev/test/prod plus required config lookup)
+**Relates to:** D-2026-04-01-009, D-2026-04-08-024, M-RAD-01 persistent storage paths
+**Fix:** Radar no longer falls back to a build-output-derived LanceDB path. The pack now requires an explicit configured `lancedb_path`, with dev defaulting to `runtime/data/radar/lancedb`, test using an explicit tmp path, and prod defaulting to `/var/lib/liminara/radar/lancedb`.
+
+### Multi-decision replay is broken
+**Discovered:** 2026-04-02 (OpenAI review of M-RAD-03 implementation)
+**Resolved:** 2026-04-03 (M-RAD-06 commit e9fe49a)
+**Fix:** Decision.Store stores list per node_id, Run.Server replays stored output_hashes, full Radar replay test validates end-to-end.
+
+### Rank op violates determinism model
+**Discovered:** 2026-04-02 (OpenAI review of M-RAD-03 implementation)
+**Resolved:** 2026-04-03 (M-RAD-03 commit fd5b4c9)
+**Fix:** `reference_time` passed as explicit plan input; rank op raises on missing (no wall-clock fallback).
+
+### M-RAD-03 tracking ahead of implementation
+**Discovered:** 2026-04-02 (OpenAI review)
+**Resolved:** 2026-04-03 (M-RAD-03 scope amendment + tracking doc update)
+**Fix:** Known limitations documented in spec and tracking doc; placeholders accepted for v1.
+
+### E-12 sandbox spec contradiction
+**Discovered:** 2026-04-02 (OpenAI review)
+**Resolved:** 2026-04-03 (E-12 epic spec rewrite)
+**Relates to:** E-12 Op Sandbox epic, D-019 (sandbox split)
+**Fix:** Success criteria now distinguish bootstrap code/dependency reads from runtime access restrictions. Startup may read declared bootstrap paths; runtime access remains limited to declared runtime paths, with undeclared host paths and other ops' working dirs blocked.

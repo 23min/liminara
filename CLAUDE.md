@@ -323,7 +323,7 @@ Subagents dispatched via `Agent` run silently from the parent session's perspect
 - **Phase 4** (Observation Layer): **complete** — E-09 done, in `work/done/`
 - **Phase 5a** (Radar Correctness): **complete** — E-11 done, in `work/done/`
 - **Phase 5b** (Radar Complete): **complete** — E-10, E-11 done, in `work/done/`
-- **Phase 5c** (Radar Hardening): **in progress** — E-20 and E-19 done (both merged and archived); next is E-21 Pack Contribution Contract (planning — four sub-epics) and E-12 Op Sandbox
+- **Phase 5c** (Radar Hardening): **in progress** — E-20 and E-19 done (both merged and archived); next is E-21 Pack Contribution Contract (draft — four sub-epics) and E-12 Op Sandbox
 - **Sequencing (D-013):** `Radar correctness -> Radar hardening -> VSME -> platform generalization`
 
 ### Key references
