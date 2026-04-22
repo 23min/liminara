@@ -84,6 +84,7 @@ Shared E-21 constraints apply. Sub-epic-specific:
 - [ ] Schema-evolution doc at `docs/architecture/contracts/schema-evolution.md` explains the CUE-backed backward-compat discipline.
 - [ ] Roadmap updated: Phase 5c pack-contract work marked complete; admin-pack (E-22) listed as ready to start.
 - [ ] `CLAUDE.md` "Current Work" section updated to reflect the post-E-21 state.
+- [ ] `docs/architecture/contracts/01_CONTRACT_MATRIX.md` — Radar-dedup row removed. Rationale: once Radar is extracted, dedup is a pack-owned contract in an external repo, not a runtime-owned surface. The matrix tracks what the runtime owns. Same pattern will apply to future extracted packs (admin-pack, VSME, House Compiler). Rule reference: `.ai-repo/rules/liminara.md` → Contract matrix discipline.
 
 ## Milestones
 
