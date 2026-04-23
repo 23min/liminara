@@ -81,6 +81,7 @@ Tightly scoped to capabilities Radar has already proven it needs for production 
   - [ ] **E-21b Runtime Pack Infrastructure** — `PackLoader`, `PackRegistry`, `SurfaceRenderer`, `SecretSource` (+ env-var adapter), `TriggerManager` (`:cron`, `:file_watch`, `:manual`), A2UI MultiProvider in `ex_a2ui`, advisory FS-scope enforcement (3 milestones; validated by loading Radar through the generic loader)
   - [ ] **E-21c Pack Developer Experience** — `liminara-pack-sdk` (Python, PyPI), `liminara_pack_sdk` (Elixir, Hex), `liminara_ui` MVP widgets (`data_grid`, `json_viewer`, `dag_map` embedder; `pdf_viewer` + `timeline` deferred), `liminara-new-pack` + `liminara-test-harness` CLIs (pipx), `e2e-harness` skill, `examples/file_watch_demo` reference pack (3 milestones)
   - [ ] **E-21d Radar Extraction + Migration** — Radar moves to external `radar-pack` submodule; pack authoring guide; admin-pack-ready checkpoint; schema-evolution doc (2 milestones; capstone)
+- [ ] E-22 Admin-pack — external bookkeeping pack (`admin-pack` submodule) authored against the merged E-21 contract. Serves as the second-pack forcing function that validates E-21 without one-pack abstraction and ratifies the PackRegistry promotion (D-027). Lands before VSME so Phase 6 consumes a contract already exercised by two packs with different domain pressures.
 - [ ] E-12 Op Sandbox (Layers 2-3) — audit hooks, Landlock, capability declarations in execution spec `isolation` section, sandbox metadata in run events
   - [ ] M-ISO-01 Executor isolation (audit hooks, Landlock)
   - [ ] M-ISO-02 Provenance & documentation (sandbox config in events, docs)
@@ -113,11 +114,6 @@ Promote only cross-pack-proven concerns into reusable runtime abstractions. Item
   - [ ] Postgres for event log + artifact metadata persistence
   - [ ] Oban for job scheduling (one recurring job per pack instance)
   - [ ] Artifact index separation — decouple artifact indexing from execution (Flyte DataCatalog / Bazel action cache pattern)
-- [ ] E-15 PackRegistry — generalize topic config into runtime-level pack instances
-  - [ ] PackRegistry with `register/1` API
-  - [ ] Pack behaviour evolution: `init/1` (config), `plan/2` (inputs, config)
-  - [ ] Instance-scoped storage partitioning at runtime level
-  - [ ] Observation UI: full instance selector, per-instance run timelines
 - [ ] E-16 Dynamic DAGs
   - [ ] Add nodes to a running plan mid-execution
   - [ ] Scheduler handles growing DAGs (find ready -> dispatch -> collect loop unchanged)

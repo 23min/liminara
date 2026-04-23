@@ -170,7 +170,7 @@ These surface repeatedly across the sub-epics' scopes; capturing them once here:
 | Admin-pack itself | E-22 |
 | Fan-out / dynamic DAGs (per-item parallelism within a DAG) | E-16 (Phase 7) |
 | Cross-run artifact queries | E-23 |
-| Multi-instance pack tenancy | E-15 (Phase 7) |
+| Multi-instance pack tenancy | Post-E-21, demand-driven — E-21b ships single-instance `PackRegistry.get/1`; multi-instance tenancy (per-instance config, storage partitioning, per-instance run timelines) gets a new numbered epic only when a third pack surfaces a tenancy requirement the existing lookup cannot satisfy |
 | Hard FS isolation (Landlock) | E-12 |
 | Container / wasm / remote executors | TBD post-VSME |
 | CUE schemas for artifact content-types | TBD demand-driven |

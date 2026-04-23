@@ -41,9 +41,9 @@ Sequencing note: this epic implements against the canonical `execution_spec/0` i
 
 ### Out of Scope
 
-- Container-based isolation (E-15 — `:container` executor)
-- Per-op dependency isolation (separate venvs — addressed if needed by E-15)
-- GPU/resource limits (E-15)
+- Container-based isolation (E-17 — `:container` executor)
+- Per-op dependency isolation (separate venvs — addressed if needed by E-17)
+- GPU/resource limits (E-17)
 - seccomp-BPF syscall filtering (layer 4 — can be added later as hardening)
 - bubblewrap/namespace isolation (layer 5 — requires user namespaces, not always available)
 - Rewriting existing Python ops as Elixir `:inline` ops (separate optimization, not a security concern)

@@ -103,6 +103,17 @@ Discovered work items deferred for later.
 - Phase 3 — replay-aware states: `Decision Store` queried for each recordable/side-effecting node; view gains `replay_available: true`; visual distinction for "will replay" vs "will discover." Requires a Decision-Store lookup API in `Observation.Server`.
 - Revisit trigger: when replay/cache integration work is scheduled, or earlier if operator feedback demands it.
 
+## Workflow-audit: roadmap-scope and roadmap-presence drift not detected
+**Discovered:** 2026-04-23 (PackRegistry / E-22 admin-pack sequencing review)
+**Relates to:** `.ai/skills/workflow-audit.md` Section 7 (ROADMAP.md Currency), framework repo `23min/ai-workflow`
+**Severity:** Medium — workflow-audit is the skill that's supposed to catch exactly this, and it didn't. Two real drifts (E-15 PackRegistry row overlapping E-21b scope; E-22 missing from the roadmap entirely despite being cited across E-21 specs + D-027) lived silently because the audit's roadmap checks don't cover scope-overlap or cross-surface reference completeness.
+**Context:** Section 7 of `workflow-audit` currently checks (a) in-progress items appear in roadmap, (b) completed epics have a shipped entry, (c) released epics are marked released, (d) roadmap entries don't reference deleted epic folders. It does not check whether an epic referenced across other surfaces (specs, decisions, tracking) actually has a roadmap row, nor whether two roadmap rows describe the same capability/primitive. Both were the load-bearing checks in this case.
+**Items:**
+- Add a Section 7 check: *referenced-epic-must-appear-on-roadmap* — for every epic ID referenced in `work/epics/*/`, `work/decisions.md`, and CLAUDE.md Current Work, verify a roadmap row exists for that ID. Mechanically checkable by grepping `E-\d{2}[a-z]?` across those surfaces and diffing against roadmap rows.
+- Add a Section 7 check: *capability-overlap detection* — flag cases where a named capability/primitive (e.g. `PackRegistry`, `TriggerManager`, `SurfaceRenderer`) appears in the scope of more than one active roadmap row. Mechanically checkable by extracting bolded/back-ticked capability names from each row and reporting names that appear in >1 open row.
+- Consider a companion check against the contract matrix (`docs/architecture/contracts/01_CONTRACT_MATRIX.md`) for repos that maintain one — runtime-level capabilities in the matrix should map to exactly one active epic row.
+**Trigger:** file as an issue on `23min/ai-workflow`; address when the framework opens a workflow-audit milestone. This is framework-level work, not Liminara-local — no workaround needed beyond manual review at epic planning time.
+
 ## Resolved
 
 Closed gap entries kept for history. Move new resolutions here rather than deleting.
