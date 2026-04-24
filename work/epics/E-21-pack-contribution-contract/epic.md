@@ -1,7 +1,7 @@
 ---
 id: E-21-pack-contribution-contract
 phase: 5c
-status: draft
+status: planning
 depends_on: E-19-warnings-degraded-outcomes
 composed_of:
   - E-21a-contract-design

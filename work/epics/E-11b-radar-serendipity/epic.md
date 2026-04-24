@@ -1,7 +1,7 @@
 ---
 id: E-11b-radar-serendipity
 phase: 7
-status: draft
+status: planning
 depends_on: E-16-dynamic-dags
 ---
 

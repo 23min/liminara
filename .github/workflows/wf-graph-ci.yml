@@ -1,0 +1,112 @@
+name: wf-graph
+
+# Consumer-repo template: drop into your repo's .github/workflows/ and
+# adjust the trigger / paths as needed. Runs read-only wf-graph checks
+# on every PR and annotates the run with findings. Never mutates —
+# apply/split/merge/discover refuse to run under CI anyway (that guard
+# lives in the binary), but this job sticks to validate / diff-roadmap /
+# diff-github for speed.
+#
+# Prerequisites:
+#   - The framework is checked out at .ai/ (submodule or clone).
+#   - `bash .ai/sync.sh` has been run at least once so .ai-repo/bin/wf-graph
+#     is installed (or the binary is on PATH some other way).
+#   - work/graph.yaml is committed.
+
+on:
+  pull_request:
+    paths:
+      - "work/**"
+      - "docs/decisions/**"
+      - ".ai/**"
+      - "work/graph.yaml"
+  push:
+    branches: [main]
+    paths:
+      - "work/**"
+      - "docs/decisions/**"
+      - "work/graph.yaml"
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  validate:
+    name: wf-graph validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Sync framework adapters (installs wf-graph binary)
+        run: bash .ai/sync.sh
+
+      - name: Confirm binary is on PATH (via .ai-repo/bin)
+        run: |
+          export PATH="$PWD/.ai-repo/bin:$PATH"
+          wf-graph --help
+
+      - name: Scan surfaces
+        run: |
+          export PATH="$PWD/.ai-repo/bin:$PATH"
+          wf-graph scan > scan.json
+
+      - name: Validate graph
+        id: validate
+        run: |
+          export PATH="$PWD/.ai-repo/bin:$PATH"
+          # Non-zero exit on error-severity findings; warn-severity flows
+          # through as annotations but doesn't fail the build.
+          wf-graph validate --pretty > findings.json
+          errors=$(python3 -c '
+          import json, sys
+          d = json.load(open("findings.json"))
+          n = sum(1 for f in d.get("findings", []) if f.get("severity") == "error")
+          print(n)
+          ')
+          echo "error_count=$errors" >> "$GITHUB_OUTPUT"
+          cat findings.json
+
+      - name: Compare ROADMAP against graph
+        run: |
+          export PATH="$PWD/.ai-repo/bin:$PATH"
+          wf-graph diff-roadmap --scan scan.json --pretty > diff-roadmap.json
+          cat diff-roadmap.json
+
+      - name: Compare GitHub issues against graph
+        run: |
+          export PATH="$PWD/.ai-repo/bin:$PATH"
+          wf-graph diff-github --pretty > diff-github.json || true
+          cat diff-github.json
+
+      - name: Summarize on PR
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          {
+            echo "### wf-graph findings"
+            echo ""
+            echo "- \`validate\`: $(python3 -c 'import json;d=json.load(open("findings.json"));print(sum(d.get("counts",{}).values()))') total finding(s), ${{ steps.validate.outputs.error_count }} error-severity"
+            echo "- \`diff-roadmap\`: see artifact"
+            echo "- \`diff-github\`: see artifact"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload raw reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wf-graph-reports
+          path: |
+            findings.json
+            diff-roadmap.json
+            diff-github.json
+            scan.json
+
+      - name: Fail on error-severity findings
+        if: steps.validate.outputs.error_count != '0'
+        run: |
+          echo "::error::wf-graph validate found ${{ steps.validate.outputs.error_count }} error-severity finding(s). See job summary or the wf-graph-reports artifact."
+          exit 1

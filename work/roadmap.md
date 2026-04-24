@@ -84,7 +84,7 @@ Tightly scoped to capabilities Radar has already proven it needs for production 
   - [ ] **E-21b Runtime Pack Infrastructure** — `PackLoader`, `PackRegistry`, `SurfaceRenderer`, `SecretSource` (+ env-var adapter), `TriggerManager` (`:cron`, `:file_watch`, `:manual`), A2UI MultiProvider in `ex_a2ui`, advisory FS-scope enforcement (3 milestones; validated by loading Radar through the generic loader)
   - [ ] **E-21c Pack Developer Experience** — `liminara-pack-sdk` (Python, PyPI), `liminara_pack_sdk` (Elixir, Hex), `liminara_widgets` MVP widgets (`data_grid`, `json_viewer`, `dag_map` embedder; `pdf_viewer` + `timeline` deferred), `liminara-new-pack` + `liminara-test-harness` CLIs (pipx), `e2e-harness` skill, `examples/file_watch_demo` reference pack (3 milestones)
   - [ ] **E-21d Radar Extraction + Migration** — Radar moves to external `radar-pack` submodule; pack authoring guide; admin-pack-ready checkpoint; schema-evolution doc (2 milestones; capstone)
-- [ ] E-23 Admin-pack — external bookkeeping pack (`admin-pack` submodule) authored against the merged E-21 contract. Serves as the second-pack forcing function that validates E-21 without one-pack abstraction and ratifies the PackRegistry promotion (D-027). Lands before VSME so Phase 6 consumes a contract already exercised by two packs with different domain pressures. (Renumbered from E-22 on 2026-04-24 — E-22 was claimed by Docs Foundation; renumbering resolved the collision.)
+- [ ] E-23 Admin-pack [decided next] — external bookkeeping pack (`admin-pack` submodule) authored against the merged E-21 contract. Serves as the second-pack forcing function that validates E-21 without one-pack abstraction and ratifies the PackRegistry promotion (D-027). Lands before VSME so Phase 6 consumes a contract already exercised by two packs with different domain pressures. (Renumbered from E-22 on 2026-04-24 — E-22 was claimed by Docs Foundation; renumbering resolved the collision.)
 - [ ] E-12 Op Sandbox (Layers 2-3) — audit hooks, Landlock, capability declarations in execution spec `isolation` section, sandbox metadata in run events
   - [ ] M-ISO-01 Executor isolation (audit hooks, Landlock)
   - [ ] M-ISO-02 Provenance & documentation (sandbox config in events, docs)
@@ -172,3 +172,41 @@ Second domain pack. Proves generality beyond LLM/text workflows (geometry, struc
 - *[17_flyte_architecture.md](../docs/research/17_flyte_architecture.md) — Flyte deep dive*
 - *[18_scale_and_distribution_strategy.md](../docs/research/18_scale_and_distribution_strategy.md) — scale and executor strategy*
 - *[16_Orchestration_Positioning.md](../docs/analysis/16_Orchestration_Positioning.md) — orchestration landscape positioning*
+
+<!-- wf-graph:begin -->
+## Dependency Graph
+
+_Rendered from `work/graph.yaml` by `wf-graph render`. Do not hand-edit — edit the graph and re-run._
+
+### planning
+
+- **E-11b** _(depends on: E-16)_
+- **E-12** _(depends on: E-20)_
+- **E-21** _(depends on: E-19)_
+
+### proposed
+
+- **E-13**
+- **E-14**
+- **E-16**
+- **E-17**
+- **E-18**
+
+### complete
+
+- **E-01**
+- **E-02**
+- **E-03**
+- **E-04**
+- **E-05**
+- **E-06**
+- **E-07**
+- **E-08**
+- **E-09**
+- **E-10**
+- **E-11** _(depends on: E-10)_
+- **E-19** _(depends on: E-20)_
+- **E-20** _(depends on: E-11)_
+- **E-22**
+
+<!-- wf-graph:end -->
