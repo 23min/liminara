@@ -69,6 +69,8 @@ These values are resolved from framework defaults in .ai/paths.md and repo overr
 | `adrTemplatePath` | `.ai/templates/adr.md` | Repo-neutral ADR template used by `architect` and `wrap-epic` |
 | `frameworkSkillPrefix` | `wf` | Prefix for framework skill slash-commands (e.g. `/wf-patch`) |
 | `repoSkillPrefix` | `` | Prefix for repo-specific skill slash-commands (e.g. `/wf-li-app-legibility`) |
+| `scratchPath` | `.ai-repo/scratch/` | Per-work-unit scratch dir; cleaned up at wrap. |
+| `scratchAuditThresholdMb` | `100` | Size threshold (MB) for SessionStart scratch-audit warning. |
 | `contractSurfaces` | `not configured` | Opt-in: enables `doc-lint`'s uncovered-contract-surface check. See `.ai/paths.md`. |
 
 ## Project-Specific Rules
