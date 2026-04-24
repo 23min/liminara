@@ -1,7 +1,7 @@
 ---
 id: M-ES-02-fixtures
 epic: E-04-elixir-scaffolding
-status: done
+status: complete
 ---
 
 # M-ES-02: Golden Test Fixtures

@@ -1,7 +1,7 @@
 ---
 id: M-OBS-03-dag-visualization
 epic: E-09-observation-layer
-status: done
+status: complete
 ---
 
 # M-OBS-03: SVG DAG Visualization with Real-Time Updates

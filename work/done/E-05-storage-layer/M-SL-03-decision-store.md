@@ -1,7 +1,7 @@
 ---
 id: M-SL-03-decision-store
 epic: E-05-storage-layer
-status: done
+status: complete
 ---
 
 # M-SL-03: Decision Store

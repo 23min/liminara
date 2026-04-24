@@ -1,7 +1,7 @@
 ---
 id: M-OBS-01-observation-server
 epic: E-09-observation-layer
-status: done
+status: complete
 ---
 
 # M-OBS-01: Observation Server

@@ -1,7 +1,7 @@
 ---
 id: M-OBS-04b-timeline
 epic: E-09-observation-layer
-status: done
+status: complete
 ---
 
 # M-OBS-04b: Event Timeline + Decision Viewer

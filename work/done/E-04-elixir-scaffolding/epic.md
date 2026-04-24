@@ -1,7 +1,7 @@
 ---
 id: E-04-elixir-scaffolding
 phase: 2
-status: done
+status: complete
 ---
 
 # E-04: Elixir Project Scaffolding

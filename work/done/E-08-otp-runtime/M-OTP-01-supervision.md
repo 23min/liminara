@@ -1,7 +1,7 @@
 ---
 id: M-OTP-01-supervision
 epic: E-08-otp-runtime
-status: done
+status: complete
 ---
 
 # M-OTP-01: Application and Supervision Tree

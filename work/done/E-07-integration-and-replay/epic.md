@@ -1,7 +1,7 @@
 ---
 id: E-07-integration-and-replay
 phase: 2
-status: done
+status: complete
 ---
 
 # E-07: Integration and Replay

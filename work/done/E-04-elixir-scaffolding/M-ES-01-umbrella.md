@@ -1,7 +1,7 @@
 ---
 id: M-ES-01-umbrella
 epic: E-04-elixir-scaffolding
-status: done
+status: complete
 ---
 
 # M-ES-01: Umbrella Project + Tooling

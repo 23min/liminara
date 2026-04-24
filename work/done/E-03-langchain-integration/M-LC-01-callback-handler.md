@@ -1,7 +1,7 @@
 ---
 id: M-LC-01-callback-handler
 epic: E-03-langchain-integration
-status: done
+status: complete
 ---
 
 # M-LC-01: LiminaraCallbackHandler

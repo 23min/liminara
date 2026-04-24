@@ -1,7 +1,7 @@
 ---
 id: M-RAD-04-webui-scheduler
 epic: E-11-radar
-status: not started
+status: complete
 depends_on: M-RAD-03-cluster-rank-render
 ---
 

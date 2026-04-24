@@ -1,7 +1,7 @@
 ---
 id: M-LC-02-rag-example
 epic: E-03-langchain-integration
-status: done
+status: complete
 ---
 
 # M-LC-02: RAG Example with End-to-End Validation

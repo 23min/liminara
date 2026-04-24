@@ -1,7 +1,7 @@
 ---
 id: M-SL-01-artifact-store
 epic: E-05-storage-layer
-status: done
+status: complete
 ---
 
 # M-SL-01: Artifact Store

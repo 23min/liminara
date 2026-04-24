@@ -1,7 +1,7 @@
 ---
 id: E-03-langchain-integration
 phase: 1
-status: done
+status: complete
 ---
 
 # E-03: LangChain Integration

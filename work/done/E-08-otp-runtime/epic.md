@@ -1,7 +1,7 @@
 ---
 id: E-08-otp-runtime
 phase: 3
-status: done
+status: complete
 ---
 
 # E-08: OTP Runtime Layer

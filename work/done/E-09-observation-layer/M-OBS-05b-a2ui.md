@@ -1,7 +1,7 @@
 ---
 id: M-OBS-05b-a2ui
 epic: E-09-observation-layer
-status: done
+status: complete
 ---
 
 # M-OBS-05b: A2UI Exploration + Integration

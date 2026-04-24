@@ -1,7 +1,7 @@
 ---
 id: M-CS-03-decorators
 epic: E-02-python-compliance-sdk
-status: done
+status: complete
 ---
 
 # M-CS-03: Decorators, Run Context Manager, and Configuration

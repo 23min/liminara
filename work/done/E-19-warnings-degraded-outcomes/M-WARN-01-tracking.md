@@ -5,6 +5,7 @@
 **Branch:** `epic/E-19-warnings-degraded-outcomes`
 **Spec:** `work/epics/E-19-warnings-degraded-outcomes/M-WARN-01-runtime-warning-contract.md`
 **Status:** complete
+**Completed:** 2026-04-17
 
 ## Wrap note
 

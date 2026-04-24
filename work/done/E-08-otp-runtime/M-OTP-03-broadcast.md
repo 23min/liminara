@@ -1,7 +1,7 @@
 ---
 id: M-OTP-03-broadcast
 epic: E-08-otp-runtime
-status: done
+status: complete
 ---
 
 # M-OTP-03: Event Broadcasting

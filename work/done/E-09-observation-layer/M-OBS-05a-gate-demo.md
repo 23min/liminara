@@ -1,7 +1,7 @@
 ---
 id: M-OBS-05a-gate-demo
 epic: E-09-observation-layer
-status: done
+status: complete
 ---
 
 # M-OBS-05a: Gate Demo + LiveView Gate Interaction

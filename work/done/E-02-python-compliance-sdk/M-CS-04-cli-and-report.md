@@ -1,7 +1,7 @@
 ---
 id: M-CS-04-cli-and-report
 epic: E-02-python-compliance-sdk
-status: done
+status: complete
 ---
 
 # M-CS-04: CLI and Article 12 Compliance Report

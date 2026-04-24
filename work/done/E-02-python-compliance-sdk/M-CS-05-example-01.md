@@ -1,7 +1,7 @@
 ---
 id: M-CS-05-example-01
 epic: E-02-python-compliance-sdk
-status: done
+status: complete
 ---
 
 # M-CS-05: Example 01 — Raw Python + Anthropic SDK

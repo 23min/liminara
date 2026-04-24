@@ -1,7 +1,7 @@
 ---
 id: E-05-storage-layer
 phase: 2
-status: done
+status: complete
 ---
 
 # E-05: Storage Layer (Artifact Store + Event Store + Decision Store)

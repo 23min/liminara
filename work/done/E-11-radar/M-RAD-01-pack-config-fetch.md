@@ -1,7 +1,7 @@
 ---
 id: M-RAD-01-pack-config-fetch
 epic: E-11-radar
-status: not started
+status: complete
 depends_on: E-10-port-executor
 ---
 

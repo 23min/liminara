@@ -4,6 +4,7 @@
 **Branch:** `epic/E-19-warnings-degraded-outcomes`
 **Spec:** `work/epics/E-19-warnings-degraded-outcomes/M-WARN-02-observation-ui-surfacing.md`
 **Status:** complete (committed as `d39cb3e`)
+**Completed:** 2026-04-18
 
 ## Summary
 

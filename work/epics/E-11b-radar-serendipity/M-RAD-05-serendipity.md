@@ -1,7 +1,7 @@
 ---
 id: M-RAD-05-serendipity
 epic: E-11b-radar-serendipity
-status: not started
+status: draft
 depends_on: E-16-dynamic-dags
 ---
 

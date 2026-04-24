@@ -3,6 +3,7 @@ id: E-11-radar
 phase: 5
 status: complete
 depends_on: E-10-port-executor
+completed: 2026-04-05
 ---
 
 # E-11: Radar Pack

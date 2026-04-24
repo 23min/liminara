@@ -1,7 +1,7 @@
 ---
 id: M-EE-03-run-server
 epic: E-06-execution-engine
-status: done
+status: complete
 ---
 
 # M-EE-03: Run.Server + Supervision Tree

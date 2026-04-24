@@ -1,7 +1,7 @@
 ---
 id: M-RAD-06-replay-correctness
 epic: E-11-radar
-status: done
+status: complete
 depends_on: M-RAD-03-cluster-rank-render
 ---
 

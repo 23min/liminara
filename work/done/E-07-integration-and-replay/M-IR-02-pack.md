@@ -1,7 +1,7 @@
 ---
 id: M-IR-02-pack
 epic: E-07-integration-and-replay
-status: done
+status: complete
 ---
 
 # M-IR-02: Pack Behaviour + Public API

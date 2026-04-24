@@ -1,7 +1,7 @@
 ---
 id: M-OBS-04a-inspector
 epic: E-09-observation-layer
-status: done
+status: complete
 ---
 
 # M-OBS-04a: Node Inspector + Artifact Viewer

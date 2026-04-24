@@ -1,7 +1,7 @@
 ---
 id: M-OBS-02-phoenix-scaffold
 epic: E-09-observation-layer
-status: done
+status: complete
 ---
 
 # M-OBS-02: Phoenix Scaffolding + Runs Dashboard

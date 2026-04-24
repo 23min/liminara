@@ -1,7 +1,7 @@
 ---
 id: M-RAD-03-cluster-rank-render
 epic: E-11-radar
-status: done
+status: complete
 depends_on: M-RAD-02-extract-embed-dedup
 ---
 

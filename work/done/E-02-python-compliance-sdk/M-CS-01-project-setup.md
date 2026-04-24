@@ -1,7 +1,7 @@
 ---
 id: M-CS-01-project-setup
 epic: E-02-python-compliance-sdk
-status: draft
+status: complete
 ---
 
 # M-CS-01: Python Project Scaffolding

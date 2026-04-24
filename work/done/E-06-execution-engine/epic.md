@@ -1,7 +1,7 @@
 ---
 id: E-06-execution-engine
 phase: 2
-status: done
+status: complete
 ---
 
 # E-06: Execution Engine (Plan + Op + Run.Server)

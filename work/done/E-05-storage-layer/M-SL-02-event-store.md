@@ -1,7 +1,7 @@
 ---
 id: M-SL-02-event-store
 epic: E-05-storage-layer
-status: done
+status: complete
 ---
 
 # M-SL-02: Event Store

@@ -1,7 +1,7 @@
 ---
 id: M-IR-03-end-to-end
 epic: E-07-integration-and-replay
-status: done
+status: complete
 ---
 
 # M-IR-03: End-to-End Integration Tests

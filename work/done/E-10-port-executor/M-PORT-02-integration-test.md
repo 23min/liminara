@@ -1,7 +1,7 @@
 ---
 id: M-PORT-02-integration-test
 epic: E-10-port-executor
-status: done
+status: complete
 depends_on: M-PORT-01-protocol-executor-runner
 ---
 

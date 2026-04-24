@@ -1,7 +1,7 @@
 ---
 id: M-CS-02-hash-and-store
 epic: E-02-python-compliance-sdk
-status: done
+status: complete
 ---
 
 # M-CS-02: Hashing, Canonical JSON, Artifact Store, and Event Log

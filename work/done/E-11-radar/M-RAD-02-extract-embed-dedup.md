@@ -1,7 +1,7 @@
 ---
 id: M-RAD-02-extract-embed-dedup
 epic: E-11-radar
-status: not started
+status: complete
 depends_on: M-RAD-01-pack-config-fetch
 ---
 

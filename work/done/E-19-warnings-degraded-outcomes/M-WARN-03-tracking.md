@@ -4,6 +4,7 @@
 **Branch:** `epic/E-19-warnings-degraded-outcomes`
 **Spec:** `work/epics/E-19-warnings-degraded-outcomes/M-WARN-03-radar-adoption.md`
 **Status:** complete (committed as `629b902`)
+**Completed:** 2026-04-19
 
 ## Summary
 

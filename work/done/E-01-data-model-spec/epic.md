@@ -1,7 +1,7 @@
 ---
 id: E-01-data-model-spec
 phase: 0
-status: done
+status: complete
 ---
 
 # E-01: Data Model Specification
