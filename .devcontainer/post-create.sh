@@ -5,6 +5,17 @@ set -e
 
 echo "==> Setting up Liminara development environment"
 
+# Correct the gh credential helper path. The devcontainers github-cli
+# feature hardcodes /usr/local/bin/gh, but gh may live elsewhere
+# (/usr/bin/gh on this image). Rewrite to bare `gh` so PATH resolves it.
+# ~/.gitconfig isn't host-mounted, so this must re-run on every rebuild.
+echo "==> Fixing gh credential helper path..."
+for host in https://github.com https://gist.github.com; do
+  git config --global --unset-all "credential.${host}.helper" 2>/dev/null || true
+  git config --global --add "credential.${host}.helper" ""
+  git config --global --add "credential.${host}.helper" "!gh auth git-credential"
+done
+
 # Elixir dependencies (runtime/ is the umbrella project)
 if [ -d runtime ]; then
   echo "==> Installing Elixir dependencies..."
