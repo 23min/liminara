@@ -376,7 +376,7 @@ Subagents dispatched via `Agent` run silently from the parent session's perspect
 
 ### Active milestone
 
-**E-22 Docs Foundation** — **complete** (closed 2026-04-24; epic-wrap commit pending on `epic/E-22-docs-foundation`; squash-merge to `main` pending). ADR-0003 flipped `proposed` → `accepted`. Archived to `work/done/E-22-docs-foundation/` (epic + 2 milestones + 2 tracking docs). Roadmap updated; E-23 resolves a prior ID collision (the former "E-22 Admin-pack" → E-23).
+**E-22 Docs Foundation** — **complete** (closed 2026-04-24; squash-merged to `main` as `390cee0`; archived to `work/done/E-22-docs-foundation/` — epic + 2 milestones + 2 tracking docs). ADR-0003 flipped `proposed` → `accepted`. Roadmap updated; E-23 resolves a prior ID collision (the former "E-22 Admin-pack" → E-23).
 - Milestones: M-DOCS-01 (framework prep — specsPath removed upstream, adapters regenerated) + M-DOCS-02 (doc-tree taxonomy — `docs/governance/`, `docs/architecture/indexes/`, bind-me/inform-me rule text, `NN_` convention, `researchPath`/`architecturePath` in artifact-layout, `docs/research/*` renumbered 01-18, E-21 planning prose adjusted).
 - Commits on epic branch (9 total): planning `c6a2454` + `ccec8b3` + `c6f9d4e`; M-DOCS-02 commits `ce5f7a1`, `4c2cbef`, `1e7992f`, `c61dec6`, `c08da56`, close-out `308a506`.
 - Decisions: D-2026-04-24-031 (reorg ratified), D-2026-04-24-032 (`specsPath` omission). ADR-0003 records the full bind-me / inform-me taxonomy.

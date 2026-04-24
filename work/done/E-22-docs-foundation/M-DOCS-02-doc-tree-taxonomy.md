@@ -1,8 +1,9 @@
 ---
 id: M-DOCS-02-doc-tree-taxonomy
 epic: E-22-docs-foundation
-status: draft
+status: complete
 depends_on: M-DOCS-01-framework-prep
+completed: 2026-04-24
 ---
 
 # M-DOCS-02: Doc-tree Taxonomy — Execute the Reorg

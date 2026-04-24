@@ -1,7 +1,9 @@
 ---
 id: E-22-docs-foundation
-status: in-progress
+phase: 5
+status: complete
 depends_on:
+completed: 2026-04-24
 ---
 
 # E-22: Doc-tree Foundation
