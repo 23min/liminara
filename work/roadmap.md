@@ -78,7 +78,7 @@ Tightly scoped to capabilities Radar has already proven it needs for production 
 - [x] E-22 Docs Foundation — bind-me/inform-me doc-tree taxonomy (ADR-0003) + framework `specsPath` removal. Prerequisite for E-21 to land its ~14 ADRs + schemas + fixtures under a coherent structure.
   - [x] M-DOCS-01 Framework Prep — framework PR [ai-workflow#40](https://github.com/23min/ai-workflow/pull/40) removes `specsPath`, softens contract-catalog examples; adapters regenerated
   - [x] M-DOCS-02 Doc-tree Taxonomy — `docs/governance/` + `docs/architecture/indexes/` created; `docs/architecture/contracts/` removed; rule text articulates bind-me vs. inform-me and the `NN_` convention; `researchPath` + `architecturePath` added to artifact-layout; E-21 planning prose adjusted; 18 `docs/research/*.md` files retroactively NN_-prefixed
-- [ ] E-21 Pack Contribution Contract [draft]
+- [ ] E-21 Pack Contribution Contract
   - Four sub-epics turn Liminara into a language-agnostic runtime + observation host. Packs are external repos contributing via a data contract (manifest + executable units), not library imports.
   - [ ] **E-21a Contract Design** — one ADR per contract surface (see E-21a's *ADRs produced* table), CUE schemas, fixtures, `design-contract` skill, `cue vet` CI (4 milestones: tooling + foundational contracts + packs-as-running-systems + governance; docs only; critical-path gate)
   - [ ] **E-21b Runtime Pack Infrastructure** — `PackLoader`, `PackRegistry`, `SurfaceRenderer`, `SecretSource` (+ env-var adapter), `TriggerManager` (`:cron`, `:file_watch`, `:manual`), A2UI MultiProvider in `ex_a2ui`, advisory FS-scope enforcement (3 milestones; validated by loading Radar through the generic loader)
@@ -191,6 +191,7 @@ _Rendered from `work/graph.yaml` by `wf-graph render`. Do not hand-edit — edit
 - **E-16**
 - **E-17**
 - **E-18**
+- **E-23**
 
 ### complete
 

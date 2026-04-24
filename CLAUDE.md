@@ -381,7 +381,7 @@ Subagents dispatched via `Agent` run silently from the parent session's perspect
 - Commits on epic branch (9 total): planning `c6a2454` + `ccec8b3` + `c6f9d4e`; M-DOCS-02 commits `ce5f7a1`, `4c2cbef`, `1e7992f`, `c61dec6`, `c08da56`, close-out `308a506`.
 - Decisions: D-2026-04-24-031 (reorg ratified), D-2026-04-24-032 (`specsPath` omission). ADR-0003 records the full bind-me / inform-me taxonomy.
 
-**Next: E-21 Pack Contribution Contract** — draft, four sub-epics (E-21a Contract Design → E-21b Runtime Pack Infrastructure → E-21c Pack DX → E-21d Radar Extraction + Migration). Docs Foundation was the prerequisite; E-21a is now unblocked and can begin.
+**E-21 Pack Contribution Contract** — `status: planning`, four sub-epics: E-21a Contract Design (`active`, drafting on worktree branch `epic/E-21a-contract-design`, 4 commits ahead of `main`) → E-21b Runtime Pack Infrastructure (`planning`) → E-21c Pack DX (`planning`) → E-21d Radar Extraction + Migration (`planning`). Docs Foundation was the prerequisite (closed E-22).
 
 **M-WARN-01: Runtime Warning Contract** — **complete** (committed as `d39cb3e` along with M-WARN-02; ratification + runtime tightening that closed the absent-`warnings`-key gap on three Run.Server + two Run paths)
 

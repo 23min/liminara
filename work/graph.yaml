@@ -744,10 +744,6 @@ nodes:
         file: work/roadmap.md
         line: 120
         value: proposed
-      - source: roadmap-row
-        file: work/roadmap.md
-        line: 133
-        value: proposed
   - id: E-17
     kind: epic
     status: proposed
@@ -816,12 +812,13 @@ nodes:
       - M-DOCS-02
   - id: E-23
     kind: epic
-    confidence: none
-    conflicts:
-      - field: presence
-        winner: ""
-        reason: id referenced in prose but no spec, folder, or frontmatter
-        resolution_hint: add a spec at work/epics/<slug>/, remove the prose reference, or mark status:dropped
+    status: proposed
+    confidence: medium
+    status_evidence:
+      - source: roadmap-row
+        file: work/roadmap.md
+        line: 87
+        value: proposed
   - id: M-CS-01
     kind: milestone
     path: work/done/E-02-python-compliance-sdk/M-CS-01-project-setup.md
