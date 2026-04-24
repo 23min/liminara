@@ -334,7 +334,39 @@ Sources:
 
 ---
 
-## 12. Technology Synthesis — The Pattern
+## 12. Luna / Enso — Visual Data-Flow Programming
+
+[Luna](https://medium.com/@enso_org/luna-the-future-of-computing-aaf4f76303ef) was a 2017-era programming language built on the thesis that **"the graph IS the code"** — a data-flow DAG and a functional textual source are dual representations of the same program, convertible either direction. The design goal was cognitive: reduce programming's mental overhead by making the DAG itself the primary artifact rather than a debugging aid. Stack was Haskell + GHCJS + React.
+
+The project rebranded to [Enso](https://ensoanalytics.com/) and today ships as a visual data-preparation / workflow-automation platform positioned as an Alteryx replacement for FP&A, accounting, tax, and sales-ops teams. Same DAG substrate, narrowed to a vertical SaaS market; no AI/LLM story, no formal reproducibility or audit claims beyond "automatic version history."
+
+**Connection to Liminara:** Luna is a genuine ancestor in the *"DAG as first-class computational substrate"* lineage — nodes as typed transformations, edges as data, composition as the unit of meaning. dag-map's visualization ambitions descend from the same tradition Luna championed (graph-as-primary-surface, not as after-the-fact diagram).
+
+| Dimension | Luna (2017) | Enso (today) | Liminara |
+|-----------|-------------|--------------|----------|
+| **Core thesis** | "The graph IS the code" — programming ergonomics | Visual data prep for business analysts | Reproducible nondeterministic computation |
+| **DAG role** | Authoring surface (dual with text) | Workflow authoring for non-engineers | Execution plan + persisted artifact |
+| **Nondeterminism** | Not addressed — pure functional model | Not addressed | First-class — captured as Decision records |
+| **Reproducibility** | Not a stated concern | "Version history" (workflow source only) | Replay with recorded decisions = identical output |
+| **Content addressing** | No | No | SHA-256 artifacts, hash-chained event log |
+| **Target user** | General programmers | FP&A / sales ops | Pack authors building auditable AI workflows |
+
+**Where Liminara picks up what Luna dropped.** Luna's 2017 manifesto has no mention of nondeterminism, caching, replay, or reproducibility — its DAG was a pure-functional thing where those questions didn't arise. Enso's current product gestures at version history but makes no reproducibility or audit claims, and has no AI/LLM surface. Liminara's entire thesis lives in that gap: a DAG where *some nodes are inherently nondeterministic* (LLM calls, human approvals, stochastic selection), and the runtime's job is to record every such choice so the run can be replayed exactly. That's the layer Luna never built and Enso walked away from.
+
+**The useful framing:**
+- **Luna (2017):** "DAGs make programming ergonomic" — a language/IDE thesis, pre-LLM.
+- **Enso (today):** "DAGs make data prep accessible" — a vertical SaaS.
+- **Liminara:** "DAGs + decision records make AI-era computation reproducible" — a runtime thesis that only makes sense *because* the new primitives (LLM, human-in-the-loop) are nondeterministic.
+
+Shared substrate, different problem. Acknowledging Luna sharpens Liminara's claim about what's actually new: not the DAG, but the recorded choice at each nondeterministic node.
+
+Sources:
+- [Luna — The Future of Computing](https://medium.com/@enso_org/luna-the-future-of-computing-aaf4f76303ef), Enso Org, 2017
+- [Enso Analytics](https://ensoanalytics.com/) — current product
+
+---
+
+## 13. Technology Synthesis — The Pattern
 
 The best systems come from someone who recognized that a *combination* of existing ideas was new even if the pieces weren't:
 
