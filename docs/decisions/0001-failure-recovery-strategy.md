@@ -1,12 +1,12 @@
 ---
-id: ADR-001
+id: ADR-0001
 title: Failure Recovery via Cache-Based Re-run, Not Automatic Retry
 status: accepted
 date: 2026-03-19
 decided_by: Peter Bruinsma
 ---
 
-# ADR-001: Failure Recovery via Cache-Based Re-run, Not Automatic Retry
+# ADR-0001: Failure Recovery via Cache-Based Re-run, Not Automatic Retry
 
 ## Context
 

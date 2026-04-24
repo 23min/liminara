@@ -93,11 +93,11 @@ Discovered work items deferred for later.
 - Fetch-error partial-ingestion surfacing: source-level concern; the briefing already has a `source_health` section showing errors. Extending that to a top-level banner would require deciding how per-source errors compose with per-cluster placeholder summaries in the same banner — another UX + schema decision.
 - Both extensions were deferred from M-WARN-03 because they cost >1h and the spec explicitly said to defer in that case. Consider re-opening when E-21a ADR-CONTENT-01 codifies the briefing contract, or earlier if operator feedback calls for them.
 
-## ADR-002 Phases 2 & 3 — cache-aware and replay-aware visual states
-**Discovered:** 2026-03-23 (ADR-002 body); formally logged 2026-04-22 (F-M6 promotion)
-**Relates to:** ADR-002 (renamed from ADR-007 on 2026-04-22 per framework ADR-NNNN convention), Observation layer, future cache + replay integration
+## ADR-0002 Phases 2 & 3 — cache-aware and replay-aware visual states
+**Discovered:** 2026-03-23 (ADR-0002 body); formally logged 2026-04-22 (F-M6 promotion)
+**Relates to:** ADR-0002 (originally ADR-007, renumbered to ADR-002 on 2026-04-22, zero-padded to ADR-0002 on 2026-04-23 per framework `ADR-\d{4}` / `NNNN-<slug>.md` convention), Observation layer, future cache + replay integration
 **Severity:** UX polish — Phase 1 (dim pending nodes) shipped in M-OBS-05a and is sufficient for day-to-day DAG legibility. Phases 2-3 would disambiguate "not yet reached" from "has a cached result" and "will replay" from "will discover" — useful when cache + replay become visually important.
-**Context:** ADR-002 was promoted from draft → accepted on 2026-04-22 (F-M6). Phase 1 is in production. Phases 2 and 3 were explicitly deferred in the ADR body to "Phase 5: Radar or later"; captured here so planners don't have to read the ADR to see the deferred work.
+**Context:** ADR-0002 was promoted from draft → accepted on 2026-04-22 (F-M6). Phase 1 is in production. Phases 2 and 3 were explicitly deferred in the ADR body to "Phase 5: Radar or later"; captured here so planners don't have to read the ADR to see the deferred work.
 **Items:**
 - Phase 2 — cache-aware states: `Observation.Server` queries the artifact cache for each pending node; view gains `cache_available: true`; dag-map renders a distinct visual (dotted outline or badge). Requires a cache-lookup API in `Observation.Server`.
 - Phase 3 — replay-aware states: `Decision Store` queried for each recordable/side-effecting node; view gains `replay_available: true`; visual distinction for "will replay" vs "will discover." Requires a Decision-Store lookup API in `Observation.Server`.
