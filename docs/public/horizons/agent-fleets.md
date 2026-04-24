@@ -46,7 +46,7 @@ Each stimulus produces an **episode** — a complete Liminara run with its own e
 
 **Stimulus routing.** Incoming events are dispatched to the correct agent(s) by a pure routing op. Timer ticks, webhooks, inbox messages, sensor readings — the fleet handles heterogeneous event sources.
 
-**Checkpointing as artifacts.** Agent state is not in memory — it's a content-addressed artifact. Kill an agent, restart it tomorrow, it resumes from its last checkpoint. Like Ethereum smart contracts: state on disk, computation only on activation. This is the "activatable run" pattern from `docs/research/graph_execution_patterns.md`, applied at scale.
+**Checkpointing as artifacts.** Agent state is not in memory — it's a content-addressed artifact. Kill an agent, restart it tomorrow, it resumes from its last checkpoint. Like Ethereum smart contracts: state on disk, computation only on activation. This is the "activatable run" pattern from `docs/research/08_graph_execution_patterns.md`, applied at scale.
 
 **Idempotent stimuli.** Every stimulus has a deduplication key. Process the same event twice? The second time is a no-op. Essential for reliability when agents number in the hundreds.
 

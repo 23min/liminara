@@ -1383,7 +1383,7 @@ The recurring tension: building something useful (product: Radar) vs. building a
 - *EU AI Act: `docs/analysis/03_EU_AI_Act_and_Funding.md`*
 - *Compliance layer: `docs/analysis/07_Compliance_Layer.md`*
 - *Data model spec: `docs/analysis/11_Data_Model_Spec.md`*
-- *Adjacent technologies: `docs/research/ADJACENT_TECHNOLOGIES.md`*
+- *Adjacent technologies: `docs/research/01_adjacent_technologies.md`*
 - *FlowTime relationship: `docs/analysis/06_FlowTime_and_Liminara.md`*
-- *Graph execution patterns: `docs/research/graph_execution_patterns.md`*
+- *Graph execution patterns: `docs/research/08_graph_execution_patterns.md`*
 - *Domain packs: `docs/domain_packs/`*

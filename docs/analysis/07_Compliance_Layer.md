@@ -226,7 +226,7 @@ The **run seal** (event N's hash) is a single value that cryptographically commi
 
 Sources:
 - [Certificate Transparency RFC 9162](https://www.rfc-editor.org/rfc/rfc9162) — the reference architecture for hash-chained public audit logs
-- [ADJACENT_TECHNOLOGIES.md — Hash Chains](../research/ADJACENT_TECHNOLOGIES.md)
+- [01_adjacent_technologies.md — Hash Chains](../research/01_adjacent_technologies.md)
 
 ---
 
@@ -644,4 +644,4 @@ Compliance is a selling point in pitches and funding applications ("our architec
 *See also:*
 - *[03_EU_AI_Act_and_Funding.md](03_EU_AI_Act_and_Funding.md) — regulatory context and funding paths*
 - *[10_Synthesis.md](10_Synthesis.md) — strategic decisions and positioning*
-- *[ADJACENT_TECHNOLOGIES.md](../research/ADJACENT_TECHNOLOGIES.md) — Certificate Transparency as reference architecture*
+- *[01_adjacent_technologies.md](../research/01_adjacent_technologies.md) — Certificate Transparency as reference architecture*

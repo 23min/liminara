@@ -55,12 +55,12 @@ Discovered work items deferred for later.
 
 ## Borrowable patterns from Camunda
 **Discovered:** 2026-04-06 (Camunda platform analysis)
-**Relates to:** ADJACENT_TECHNOLOGIES.md §11
+**Relates to:** 01_adjacent_technologies.md §11
 **Severity:** Future inspiration — not blocking any current work
 **Items:**
 - **Connector protocol for side_effecting ops** — standardized interface for ops that wrap external systems (email, Slack, webhooks, APIs). Not Camunda's specific connectors, but the pattern of a common protocol for integration ops. Maps to `side_effecting` determinism class.
 - **Run inspection tooling** — Camunda's Operate shows where a process instance is, what's blocked, and why. Liminara's observation layer (A2UI) already has the data; surfacing "where is this run stuck and why?" as a first-class view would be high value. No instance mutation (that conflicts with immutability).
-- **Process mining over historical runs** — Camunda's Optimize analyzes completed process instances for bottlenecks and deviations. Liminara's JSONL event logs are already pm4py-compatible (see ADJACENT_TECHNOLOGIES.md §2). A tool or future pack that runs statistical analysis over historical runs to find slow ops, common failure patterns, and plan deviations.
+- **Process mining over historical runs** — Camunda's Optimize analyzes completed process instances for bottlenecks and deviations. Liminara's JSONL event logs are already pm4py-compatible (see 01_adjacent_technologies.md §2). A tool or future pack that runs statistical analysis over historical runs to find slow ops, common failure patterns, and plan deviations.
 - **Agentic subprocess pattern** — Camunda models LLM agents as ad-hoc subprocesses where the LLM dynamically picks which tasks to run. In Liminara terms: a `recordable` op whose decision is "which sub-DAG to execute." The decision gets recorded, so replay works. Worth considering for packs where the plan itself is nondeterministic (e.g., serendipity exploration in Radar).
 
 ## Port executor: no process pooling (cold-start per invocation)
@@ -179,7 +179,7 @@ Discovered work items deferred for later.
 
 ## Radar generated `pack.yaml` shim — planned entry, activates on M-PACK-B-01b merge
 **Discovered:** 2026-04-23 (E-21 ultrareview — Finding 6)
-**Relates to:** E-21b M-PACK-B-01b (shim lands), E-21d M-PACK-D-01b (shim removed), `docs/architecture/contracts/02_SHIM_POLICY.md`
+**Relates to:** E-21b M-PACK-B-01b (shim lands), E-21d M-PACK-D-01b (shim removed), `docs/governance/shim-policy.md`
 **Severity:** N/A — this is a declared shim under policy, not a silent drift. Recorded here so the shim's survival across multiple milestones (B-01 → B-02 → B-03 → C-01..03 → early D-01) is visible.
 **Status:** **Planned.** This entry is promoted to active when M-PACK-B-01b merges and the shim file actually lives in-tree. Before that, the shim exists only as a spec commitment.
 **Context:** E-21b M-PACK-B-01b lands a generated `pack.yaml` for Radar in-tree so `PackLoader` can load Radar through the generic code path without a big-bang extraction. The file adapts Radar's current shape to the ADR-MANIFEST-01 schema; it preserves semantics (Radar's execution is identical), so it qualifies under the shim policy's allowed-exception rule. Full shim record in `work/epics/E-21-pack-contribution-contract/E-21b-runtime-pack-infrastructure.md` → "Compatibility shims" section.
@@ -209,7 +209,7 @@ Discovered work items deferred for later.
 **Items:**
 - Add a Section 7 check: *referenced-epic-must-appear-on-roadmap* — for every epic ID referenced in `work/epics/*/`, `work/decisions.md`, and CLAUDE.md Current Work, verify a roadmap row exists for that ID. Mechanically checkable by grepping `E-\d{2}[a-z]?` across those surfaces and diffing against roadmap rows.
 - Add a Section 7 check: *capability-overlap detection* — flag cases where a named capability/primitive (e.g. `PackRegistry`, `TriggerManager`, `SurfaceRenderer`) appears in the scope of more than one active roadmap row. Mechanically checkable by extracting bolded/back-ticked capability names from each row and reporting names that appear in >1 open row.
-- Consider a companion check against the contract matrix (`docs/architecture/contracts/01_CONTRACT_MATRIX.md`) for repos that maintain one — runtime-level capabilities in the matrix should map to exactly one active epic row.
+- Consider a companion check against the contract matrix (`docs/architecture/indexes/contract-matrix.md`) for repos that maintain one — runtime-level capabilities in the matrix should map to exactly one active epic row.
 **Trigger:** file as an issue on `23min/ai-workflow`; address when the framework opens a workflow-audit milestone. This is framework-level work, not Liminara-local — no workaround needed beyond manual review at epic planning time.
 
 ## Resolved

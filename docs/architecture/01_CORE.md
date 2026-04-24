@@ -7,8 +7,8 @@ owner: runtime
 last_reviewed: 2026-04-22
 source_of_truth:
   - work/roadmap.md
-  - docs/architecture/contracts/00_TRUTH_MODEL.md
-  - docs/architecture/contracts/01_CONTRACT_MATRIX.md
+  - docs/governance/truth-model.md
+  - docs/architecture/indexes/contract-matrix.md
 ---
 
 # The Liminara Core
@@ -819,7 +819,7 @@ Is this system simple enough?
 
 *See also:*
 - *[02_PLAN.md](02_PLAN.md) — architecture source map and truth rules*
-- *[contracts/01_CONTRACT_MATRIX.md](contracts/01_CONTRACT_MATRIX.md) — current contract ownership matrix*
+- *[indexes/contract-matrix.md](indexes/contract-matrix.md) — current contract ownership matrix*
 - *[../analysis/10_Synthesis.md](../analysis/10_Synthesis.md) — settled strategic decisions*
 - *[../analysis/11_Data_Model_Spec.md](../analysis/11_Data_Model_Spec.md) — canonical on-disk format (Phase 0)*
 - *[../analysis/07_Compliance_Layer.md](../analysis/07_Compliance_Layer.md) — compliance integration architecture*

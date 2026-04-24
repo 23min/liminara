@@ -21,7 +21,7 @@ The Liminara specs describe a genuinely interesting system: a durable, observabl
 
 **Verdict:** The *concept* is viable. The *scope* will kill it. The path to something real requires ruthless reduction and honest acknowledgment of what's actually hard.
 
-6. **The house compiler conversation validates the core model.** A deep design conversation about using Liminara for timber-frame house compilation (SketchUp → structural analysis → manufacturing outputs) confirms the IR pipeline model isn't just metaphorical — it's a literal compiler. This also reveals gaps: convergence protocols for coupled agents, binary artifact handling, regulatory transition logic, and pack-managed reference data. See `docs/research/house_compiler_context.md`.
+6. **The house compiler conversation validates the core model.** A deep design conversation about using Liminara for timber-frame house compilation (SketchUp → structural analysis → manufacturing outputs) confirms the IR pipeline model isn't just metaphorical — it's a literal compiler. This also reveals gaps: convergence protocols for coupled agents, binary artifact handling, regulatory transition logic, and pack-managed reference data. See `docs/research/05_house_compiler_context.md`.
 
 ---
 
@@ -400,7 +400,7 @@ These internal events are published on Phoenix PubSub. A2UI rendering is a *cons
 | `ARCHITECTURE_REQUIREMENTS_BRIEF.md` | Good | Original brief; well-structured but high-level |
 | `radar.omvarldsbevakning.md` | Good | Best pack spec; concrete IR pipeline; real risks |
 | `software_factory.md` | Adequate | Security risks named but not designed for |
-| `house_compiler.md` | Good | Geometry correctness is the real risk; the IR pipeline is well-designed. Detailed analysis in `docs/research/house_compiler_context.md` |
+| `house_compiler.md` | Good | Geometry correctness is the real risk; the IR pipeline is well-designed. Detailed analysis in `docs/research/05_house_compiler_context.md` |
 | `agent_fleets.md` | Weak | Doesn't reconcile fleet semantics with DAG model |
 | `toy.report_compiler.md` | Good | Right choice for first validation |
 | `toy.ruleset_lab.md` | Good | Clean domain; good for testing rules-as-data |

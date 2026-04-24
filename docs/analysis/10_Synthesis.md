@@ -68,7 +68,7 @@ The DAG is not a limitation — it is the property that enables content-addressi
 
 A Liminara plan is a **workflow net** — a well-studied subclass of Petri nets. Petri net theory provides formal tools for verifying the scheduler: deadlock-freedom, liveness, reachability. The scheduler's "find ready nodes, dispatch, collect, repeat" loop is sound if and only if the underlying workflow net is sound.
 
-Sources: [ADJACENT_TECHNOLOGIES.md](../research/ADJACENT_TECHNOLOGIES.md), [02_Fresh_Analysis.md](02_Fresh_Analysis.md)
+Sources: [01_adjacent_technologies.md](../research/01_adjacent_technologies.md), [02_Fresh_Analysis.md](02_Fresh_Analysis.md)
 
 ---
 
@@ -136,7 +136,7 @@ Article 12 requires automatic, tamper-resistant logging for all high-risk AI sys
 | Identify nondeterminism | Determinism classes flag which ops are nondeterministic |
 | 6-month retention | Filesystem event files, retained by policy |
 
-**Planned addition for compliance:** hash-chained event log — each event includes `hash(previous_event)`. The final event's hash is the "run seal," cryptographically committing to the entire run history. This gives tamper-evidence without blockchain overhead. See [Certificate Transparency](../research/ADJACENT_TECHNOLOGIES.md#certificate-transparency) for the reference architecture.
+**Planned addition for compliance:** hash-chained event log — each event includes `hash(previous_event)`. The final event's hash is the "run seal," cryptographically committing to the entire run history. This gives tamper-evidence without blockchain overhead. See [Certificate Transparency](../research/01_adjacent_technologies.md#certificate-transparency) for the reference architecture.
 
 ### Positioning for funding applications
 
@@ -276,7 +276,7 @@ See [09_Compliance_Demo_Tool.md](09_Compliance_Demo_Tool.md) for the full demo t
 - *[../../work/roadmap.md](../../work/roadmap.md) — current sequencing and active status*
 - *[02_Fresh_Analysis.md](02_Fresh_Analysis.md) — landscape and competitive analysis*
 - *[05_Why_Replay.md](05_Why_Replay.md) — the case for recorded decisions and replay*
-- *[ADJACENT_TECHNOLOGIES.md](../research/ADJACENT_TECHNOLOGIES.md) — intellectual ancestors and adjacent technologies*
+- *[01_adjacent_technologies.md](../research/01_adjacent_technologies.md) — intellectual ancestors and adjacent technologies*
 - *[09_Compliance_Demo_Tool.md](09_Compliance_Demo_Tool.md) — Python SDK demo tool design and repo structure*
 - *[07_Compliance_Layer.md](07_Compliance_Layer.md) — full compliance layer architecture*
 - *[08_Article_12_Summary.md](08_Article_12_Summary.md) — plain-language Article 12 explanation*

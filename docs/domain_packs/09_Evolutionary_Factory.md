@@ -188,7 +188,7 @@ They share the **generate → evaluate → select → iterate** loop. A hybrid c
 
 3. **results.tsv as a primitive event log.** AAE logs commit hash, metric, resource usage, status, and hypothesis per experiment. This is a hand-rolled, fragile version of Liminara's event log. It validates the pattern while showing what formalization gains: hash chaining, replay, caching, observation.
 
-4. **The iteration pattern.** AAE's indefinite loop is exactly the pattern that Liminara's planned iteration primitive (FAUST-style unrolling, see `docs/research/dataflow_systems_and_liminara.md` Gap 6) would support — each iteration as observable nodes in the DAG rather than an opaque agent loop.
+4. **The iteration pattern.** AAE's indefinite loop is exactly the pattern that Liminara's planned iteration primitive (FAUST-style unrolling, see `docs/research/15_dataflow_systems_and_liminara.md` Gap 6) would support — each iteration as observable nodes in the DAG rather than an opaque agent loop.
 
 ### Potential hybrid: AAE + Evolutionary Factory
 

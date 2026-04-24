@@ -6,8 +6,8 @@ status: active
 owner: architecture
 last_reviewed: 2026-04-04
 source_of_truth:
-  - docs/architecture/contracts/01_CONTRACT_MATRIX.md
-  - docs/architecture/contracts/02_SHIM_POLICY.md
+  - docs/architecture/indexes/contract-matrix.md
+  - docs/governance/shim-policy.md
   - work/decisions.md
 ---
 

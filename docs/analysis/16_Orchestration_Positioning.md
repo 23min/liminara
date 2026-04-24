@@ -4,9 +4,9 @@
 **Context:** Strategic analysis of where Liminara sits relative to the workflow orchestration landscape. Triggered by the question: "Why would anyone pick Liminara if Flyte already exists?" This document synthesizes the Flyte deep dive, scale research, and our existing architectural analysis into a positioning statement.
 
 **Prerequisite reading:**
-- [flyte_architecture.md](../research/flyte_architecture.md) — technical deep dive on Flyte
-- [scale_and_distribution_strategy.md](../research/scale_and_distribution_strategy.md) — scale and executor strategy
-- [build_vs_buy.md](../research/build_vs_buy.md) — original build vs buy analysis
+- [17_flyte_architecture.md](../research/17_flyte_architecture.md) — technical deep dive on Flyte
+- [18_scale_and_distribution_strategy.md](../research/18_scale_and_distribution_strategy.md) — scale and executor strategy
+- [04_build_vs_buy.md](../research/04_build_vs_buy.md) — original build vs buy analysis
 - [10_Synthesis.md](10_Synthesis.md) — Liminara's settled identity
 
 ---
@@ -148,7 +148,7 @@ If Liminara should support *any* pack — including ML pipelines, not just intel
 1. **Pluggable executors** (`:inline` → `:ray_task` spectrum). Already designed, partially built.
 2. **Resource declarations on ops** (`resources: [gpu: 2, memory: "32GB"]`). Not built yet.
 3. **Pluggable artifact store** (filesystem → S3). Not built yet, straightforward.
-4. **Formal op contracts via CUE** — constraint-based schemas for op inputs/outputs, resource declarations, and decision spaces. CUE's lattice-based validation is a better fit than Protobuf (FlyteIDL) because Liminara needs constraint *composition* (cross-pack compatibility, multi-source config, decision space validation), not code generation. See [cue_language.md](../research/cue_language.md). Not built yet.
+4. **Formal op contracts via CUE** — constraint-based schemas for op inputs/outputs, resource declarations, and decision spaces. CUE's lattice-based validation is a better fit than Protobuf (FlyteIDL) because Liminara needs constraint *composition* (cross-pack compatibility, multi-source config, decision space validation), not code generation. See [10_cue_language.md](../research/10_cue_language.md). Not built yet.
 
 What it does NOT need:
 - Distributed BEAM (single-node orchestration, distributed compute)
@@ -180,7 +180,7 @@ The same plan mixes microsecond inline ops with hour-long GPU training jobs. The
 
 | System | Pattern | Priority |
 |--------|---------|----------|
-| **Flyte** | Formal op contracts — but via CUE (constraint composition) rather than Protobuf (code-gen). See [cue_language.md](../research/cue_language.md). | Medium-term |
+| **Flyte** | Formal op contracts — but via CUE (constraint composition) rather than Protobuf (code-gen). See [10_cue_language.md](../research/10_cue_language.md). | Medium-term |
 | **Flyte** | Recovery mode — "resume from last success" as explicit API | Near-term |
 | **Flyte** | Tiered execution — agents for lightweight tasks, pods for heavy | Already have (`:inline` vs `:port`) |
 | **Flyte** | DataCatalog as separate service — decouple artifact indexing from execution | Medium-term |
@@ -245,8 +245,8 @@ Priority (D-013):
 - *[10_Synthesis.md](10_Synthesis.md) — Liminara's settled identity*
 - *[04_HashiCorp_Parallels.md](04_HashiCorp_Parallels.md) — Terraform parallels*
 - *[02_Fresh_Analysis.md](02_Fresh_Analysis.md) — original landscape analysis*
-- *[../research/flyte_architecture.md](../research/flyte_architecture.md) — Flyte technical deep dive*
-- *[../research/scale_and_distribution_strategy.md](../research/scale_and_distribution_strategy.md) — scale and executor strategy*
-- *[../research/build_vs_buy.md](../research/build_vs_buy.md) — Temporal, Dagster, Flyte, Prefect comparison*
-- *[../research/agent_frameworks_landscape.md](../research/agent_frameworks_landscape.md) — LangGraph and Cloudflare Agents*
-- *[../research/graph_execution_patterns.md](../research/graph_execution_patterns.md) — taxonomy of DAG execution systems*
+- *[../research/17_flyte_architecture.md](../research/17_flyte_architecture.md) — Flyte technical deep dive*
+- *[../research/18_scale_and_distribution_strategy.md](../research/18_scale_and_distribution_strategy.md) — scale and executor strategy*
+- *[../research/04_build_vs_buy.md](../research/04_build_vs_buy.md) — Temporal, Dagster, Flyte, Prefect comparison*
+- *[../research/13_agent_frameworks_landscape.md](../research/13_agent_frameworks_landscape.md) — LangGraph and Cloudflare Agents*
+- *[../research/08_graph_execution_patterns.md](../research/08_graph_execution_patterns.md) — taxonomy of DAG execution systems*

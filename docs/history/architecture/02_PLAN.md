@@ -212,7 +212,7 @@ Observation.Server (GenServer per run)
 
 | Pack | Trigger |
 |------|---------|
-| FlowTime ConsultingPack | When FlowTime is consulting-usable AND observation layer is built. Could accelerate ahead of Radar if consulting need is pressing. See `docs/research/flowtime_liminara_convergence.md`. |
+| FlowTime ConsultingPack | When FlowTime is consulting-usable AND observation layer is built. Could accelerate ahead of Radar if consulting need is pressing. See `docs/research/07_flowtime_liminara_convergence.md`. |
 | Software Factory | Hobby pace, after House Compiler |
 | Process Mining | When FlowTime is ready for integration |
 | Far-horizon packs | When external contributors or customers need them |
@@ -240,7 +240,7 @@ This is how Ethereum smart contracts work — state persists on chain, computati
 
 **Relevance:** Enables runs spanning days to years (supply chain tracking, monitored systems, long approval workflows). Makes Oban integration (Phase 6) more powerful — Oban becomes the "activator" for dormant runs, not just a cron scheduler.
 
-**See also:** `docs/research/graph_execution_patterns.md §3–4`
+**See also:** `docs/research/08_graph_execution_patterns.md §3–4`
 
 ### Gates as a primary mechanism
 

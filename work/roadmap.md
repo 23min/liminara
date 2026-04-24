@@ -75,13 +75,16 @@ Tightly scoped to capabilities Radar has already proven it needs for production 
   - [x] M-WARN-02 Observation + UI surfacing of cause, severity, remediation, and output impact
   - [x] M-WARN-03 Radar adoption for placeholder/fallback paths and briefing annotations
   - [x] M-WARN-04 Post-review bugfixes — bug_005 live warning key-shape, merged_bug_001 `"run_partial"` terminal event type, bug_004 runs-index idempotence, bug_009 event-log fallback per-node degraded
+- [x] E-22 Docs Foundation — bind-me/inform-me doc-tree taxonomy (ADR-0003) + framework `specsPath` removal. Prerequisite for E-21 to land its ~14 ADRs + schemas + fixtures under a coherent structure.
+  - [x] M-DOCS-01 Framework Prep — framework PR [ai-workflow#40](https://github.com/23min/ai-workflow/pull/40) removes `specsPath`, softens contract-catalog examples; adapters regenerated
+  - [x] M-DOCS-02 Doc-tree Taxonomy — `docs/governance/` + `docs/architecture/indexes/` created; `docs/architecture/contracts/` removed; rule text articulates bind-me vs. inform-me and the `NN_` convention; `researchPath` + `architecturePath` added to artifact-layout; E-21 planning prose adjusted; 18 `docs/research/*.md` files retroactively NN_-prefixed
 - [ ] E-21 Pack Contribution Contract [draft]
   - Four sub-epics turn Liminara into a language-agnostic runtime + observation host. Packs are external repos contributing via a data contract (manifest + executable units), not library imports.
   - [ ] **E-21a Contract Design** — one ADR per contract surface (see E-21a's *ADRs produced* table), CUE schemas, fixtures, `design-contract` skill, `cue vet` CI (4 milestones: tooling + foundational contracts + packs-as-running-systems + governance; docs only; critical-path gate)
   - [ ] **E-21b Runtime Pack Infrastructure** — `PackLoader`, `PackRegistry`, `SurfaceRenderer`, `SecretSource` (+ env-var adapter), `TriggerManager` (`:cron`, `:file_watch`, `:manual`), A2UI MultiProvider in `ex_a2ui`, advisory FS-scope enforcement (3 milestones; validated by loading Radar through the generic loader)
   - [ ] **E-21c Pack Developer Experience** — `liminara-pack-sdk` (Python, PyPI), `liminara_pack_sdk` (Elixir, Hex), `liminara_widgets` MVP widgets (`data_grid`, `json_viewer`, `dag_map` embedder; `pdf_viewer` + `timeline` deferred), `liminara-new-pack` + `liminara-test-harness` CLIs (pipx), `e2e-harness` skill, `examples/file_watch_demo` reference pack (3 milestones)
   - [ ] **E-21d Radar Extraction + Migration** — Radar moves to external `radar-pack` submodule; pack authoring guide; admin-pack-ready checkpoint; schema-evolution doc (2 milestones; capstone)
-- [ ] E-22 Admin-pack — external bookkeeping pack (`admin-pack` submodule) authored against the merged E-21 contract. Serves as the second-pack forcing function that validates E-21 without one-pack abstraction and ratifies the PackRegistry promotion (D-027). Lands before VSME so Phase 6 consumes a contract already exercised by two packs with different domain pressures.
+- [ ] E-23 Admin-pack — external bookkeeping pack (`admin-pack` submodule) authored against the merged E-21 contract. Serves as the second-pack forcing function that validates E-21 without one-pack abstraction and ratifies the PackRegistry promotion (D-027). Lands before VSME so Phase 6 consumes a contract already exercised by two packs with different domain pressures. (Renumbered from E-22 on 2026-04-24 — E-22 was claimed by Docs Foundation; renumbering resolved the collision.)
 - [ ] E-12 Op Sandbox (Layers 2-3) — audit hooks, Landlock, capability declarations in execution spec `isolation` section, sandbox metadata in run events
   - [ ] M-ISO-01 Executor isolation (audit hooks, Landlock)
   - [ ] M-ISO-02 Provenance & documentation (sandbox config in events, docs)
@@ -91,7 +94,7 @@ Tightly scoped to capabilities Radar has already proven it needs for production 
 - [ ] Observation UI: topic filter — tag runs with topic ID, filter in dashboard
 
 *Scope rule (D-012): only items Radar has already proven it needs. No broad platform abstractions.*
-*E-21 exception: the pack contribution contract expands Phase 5c beyond the D-012 scope rule to prepare Liminara for admin-pack (external, personal, E-22) as the second pack. The forcing-function role is **time-displaced** — admin-pack runs in E-22 after E-21d wraps, so during E-21 admin-pack exists as architecture documentation in `admin-pack/v2/docs/architecture/`. E-21 closes this gap with two mechanisms: (1) anchored-citation discipline in every pack-level ADR (E-21a success criterion), and (2) an admin-pack-shape proxy pack in E-21b (three plans, mixed triggers — contract shape, not bookkeeping domain). Together these defend against one-pack (Radar-only) abstraction and harden the contract before VSME (Phase 6) consumes it.*
+*E-21 exception: the pack contribution contract expands Phase 5c beyond the D-012 scope rule to prepare Liminara for admin-pack (external, personal, E-23) as the second pack. The forcing-function role is **time-displaced** — admin-pack runs in E-23 after E-21d wraps, so during E-21 admin-pack exists as architecture documentation in `admin-pack/v2/docs/architecture/`. E-21 closes this gap with two mechanisms: (1) anchored-citation discipline in every pack-level ADR (E-21a success criterion), and (2) an admin-pack-shape proxy pack in E-21b (three plans, mixed triggers — contract shape, not bookkeeping domain). Together these defend against one-pack (Radar-only) abstraction and harden the contract before VSME (Phase 6) consumes it.*
 
 ## Phase 6: VSME — Not started [decided next]
 
@@ -165,7 +168,7 @@ Second domain pack. Proves generality beyond LLM/text workflows (geometry, struc
 - [ ] Observation UI filtered by user permissions
 
 *Research context:*
-- *[cue_language.md](../docs/research/cue_language.md) — CUE constraint language analysis*
-- *[flyte_architecture.md](../docs/research/flyte_architecture.md) — Flyte deep dive*
-- *[scale_and_distribution_strategy.md](../docs/research/scale_and_distribution_strategy.md) — scale and executor strategy*
+- *[10_cue_language.md](../docs/research/10_cue_language.md) — CUE constraint language analysis*
+- *[17_flyte_architecture.md](../docs/research/17_flyte_architecture.md) — Flyte deep dive*
+- *[18_scale_and_distribution_strategy.md](../docs/research/18_scale_and_distribution_strategy.md) — scale and executor strategy*
 - *[16_Orchestration_Positioning.md](../docs/analysis/16_Orchestration_Positioning.md) — orchestration landscape positioning*

@@ -281,7 +281,7 @@ This directly addresses the "no benchmarks against real-world outcomes" limitati
 
 ## Appendix: Related work and reference implementations
 
-- [MiroFish](https://github.com/mirofish) — LLM-backed social simulation, March 2026. Built in 10 days, #1 GitHub trending, $4.1M backing. Demonstrates commercial viability of the ~1,000 agent scale. Key gaps it has that Liminara addresses: no hallucination provenance, no exact replay, no simulation/live benchmarking. Full analysis: `docs/research/mirofish_population_simulation.md`.
+- [MiroFish](https://github.com/mirofish) — LLM-backed social simulation, March 2026. Built in 10 days, #1 GitHub trending, $4.1M backing. Demonstrates commercial viability of the ~1,000 agent scale. Key gaps it has that Liminara addresses: no hallucination provenance, no exact replay, no simulation/live benchmarking. Full analysis: `docs/research/16_mirofish_population_simulation.md`.
 - [OASIS](https://github.com/camel-ai/oasis) — Open Agent Social Interaction Simulations by CAMEL-AI. The simulation engine underlying MiroFish. Scales to 1M agents. Recommended external executor for large-scale runs in this pack.
 - [Mesa](https://mesa.readthedocs.io/) — Python ABM framework.
 - [NetLogo](https://www.netlogo.org/) — Widely used ABM platform.

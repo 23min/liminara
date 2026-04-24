@@ -111,12 +111,90 @@ Liminara is **a runtime for reproducible nondeterministic computation**. It reco
 - Compatibility shims are banned by default. Any exception needs a named removal trigger in the milestone spec and tracking doc.
 - To change AI instruction behavior, edit `.ai-repo/` and run `./.ai/sync.sh`. Do not hand-edit generated instruction files except for the preserved `CLAUDE.md` Current Work section.
 
+## Doc-tree boundaries — bind-me vs. inform-me
+
+Liminara's `docs/` tree expresses two registers. Full reasoning in
+[ADR-0003](../../docs/decisions/0003-doc-tree-taxonomy.md).
+
+**Implementation (bind-me)** — operational artifacts the AI must respect
+first. These *reject wrong work*: a schema rejects invalid data; a
+policy violation blocks authoring.
+
+- `docs/governance/` — prose authoring rules for project artifacts
+  (truth model, shim policy, future schema-evolution policy).
+  Prose-binding on AI / human authors.
+- `docs/schemas/` — CUE schemas with fixtures co-located as
+  subdirectories: `docs/schemas/<topic>/schema.cue` +
+  `docs/schemas/<topic>/fixtures/v<N>/`. Machine-validated via `cue vet`.
+
+**Architecture (inform-me)** — design / reasoning artifacts the AI
+reads for context when iterating. These *inform right work*: they
+explain why the implementation is shaped as it is, without gating it.
+
+- `docs/architecture/` — design prose (live or decided-next
+  running-system descriptions). Supporting material (indexes,
+  references, derived docs) lives in named subdirectories.
+- `docs/decisions/` — ADRs (Nygard form; `NNNN-<slug>.md` filename).
+- `docs/research/` — exploration and investigation notes.
+- `docs/history/` — archived architecture; context, not authority.
+- `docs/analysis/` — strategic and compliance analysis.
+
+**Priority rule.** Implementation gates, architecture guides. When the
+AI is doing work, it respects implementation artifacts as a hard
+surface and reads architecture artifacts as context.
+
+**Rules vs. governance.** `.ai-repo/rules/` (this file and peers)
+governs *how AI operates the workflow* — TDD discipline, branch
+discipline, commit conventions, contract-matrix discipline.
+`docs/governance/` defines *how project artifacts behave* —
+truth-source adjudication, shim allowance, schema evolution. Both are
+bind-me; the difference is process vs. artifact governance.
+
+**On the word "spec".** Liminara uses it in three narrow senses,
+separated by location:
+
+- **Milestone specs** — acceptance criteria for implementation work;
+  live under `work/epics/<epic>/<id>-<slug>.md`.
+- **Design-intent prose** — "what-shall-be" descriptions; land in
+  `docs/architecture/` as decided-next content once approved.
+- **Nygard ratification** — "why we chose X's shape"; lands in
+  `docs/decisions/` as an ADR.
+
+There is deliberately **no `docs/specs/` directory.** The word's
+ambiguity is resolved by location.
+
+**On the word "contract".** Its components live in separate
+directories, not under a single `contracts/` subtree:
+
+- Contract-matrix discipline (the policy): this file, section below.
+- Contract-matrix inventory (the index): `docs/architecture/indexes/contract-matrix.md`.
+- Shim policy: `docs/governance/shim-policy.md`.
+- CUE schemas (machine-enforceable encoding): `docs/schemas/`.
+- Fixtures (test data): `docs/schemas/<topic>/fixtures/v<N>/`.
+
+## Author-sequenced thinking convention
+
+Files prefixed `NN_<descriptor>.md` (two-digit numeric prefix) are
+top-tier thinking docs in author sequence. The number reflects the
+order in which the author worked through the material; new files
+take the next available number; existing files are not renumbered.
+
+Descriptor case differs by directory:
+
+- `docs/architecture/`, `docs/analysis/`, `docs/brainstorm/`,
+  `docs/domain_packs/` — `NN_UPPERCASE_WITH_UNDERSCORES.md`.
+- `docs/research/` — `NN_lower_case_with_underscores.md`.
+
+Supporting material under these directories (indexes, references,
+derived docs) lives in named subdirectories with kebab-case
+filenames. Example: `docs/architecture/indexes/contract-matrix.md`.
+
 ## Contract matrix discipline
 
-`docs/architecture/contracts/01_CONTRACT_MATRIX.md` is the live ownership/status index for every first-class contract surface in the runtime. Drift here is silent failure: new contracts ship without rows, retired contracts leave stale rows, live-source paths rot. The following rules apply to every milestone that touches a contract surface.
+`docs/architecture/indexes/contract-matrix.md` is the live ownership/status index for every first-class contract surface in the runtime. Drift here is silent failure: new contracts ship without rows, retired contracts leave stale rows, live-source paths rot. The following rules apply to every milestone that touches a contract surface.
 
 - **Plan-time declaration.** Any milestone that creates, modifies, or retires a contract surface **must** include a `## Contract matrix changes` section in its spec with three bullets: rows added, rows updated, rows retired. If none apply, write "None — this milestone does not touch contract surfaces." Missing section blocks spec approval.
-- **Wrap-time check.** Before wrapping a milestone that declared matrix changes, the reviewer verifies that the declared rows are present in `01_CONTRACT_MATRIX.md` with correct live-source paths. Row absence blocks wrap.
+- **Wrap-time check.** Before wrapping a milestone that declared matrix changes, the reviewer verifies that the declared rows are present in `contract-matrix.md` with correct live-source paths. Row absence blocks wrap.
 - **Live-source accuracy.** When a live-source file in a matrix row is renamed, moved, deleted, or extracted to a submodule, the same PR updates the row. Finding drift after merge is a reviewer miss and should be noted in agent history.
 - **Boundary with ADRs.** A matrix row points at *what the contract is and where its live source lives*; an ADR under `docs/decisions/` explains *why the contract has that shape*. The two always cross-reference but never overlap.
 
@@ -169,7 +247,9 @@ Always include Co-Authored-By when GitHub Copilot contributed.
 ## Project structure
 
 - `docs/` — research, analysis, architecture, brainstorming
-- `docs/architecture/` — active architecture, contract docs, approved next-state plans
+- `docs/governance/` — binding artifact governance (truth model, shim policy, schema evolution)
+- `docs/schemas/` — CUE schemas with fixtures co-located as `<topic>/schema.cue` + `<topic>/fixtures/v<N>/`
+- `docs/architecture/` — active architecture, approved next-state plans; top-level `NN_` files are author-sequenced thinking, supporting material in subdirectories (e.g. `indexes/`)
 - `docs/history/` — archived architecture and superseded design material
 - `docs/analysis/` — strategic analysis, compliance, pack plans
 - `docs/decisions/` — Architecture Decision Records (ADRs)
@@ -294,6 +374,13 @@ Subagents dispatched via `Agent` run silently from the parent session's perspect
 
 ### Active milestone
 
+**E-22 Docs Foundation** — **complete** (closed 2026-04-24; epic-wrap commit pending on `epic/E-22-docs-foundation`; squash-merge to `main` pending). ADR-0003 flipped `proposed` → `accepted`. Archived to `work/done/E-22-docs-foundation/` (epic + 2 milestones + 2 tracking docs). Roadmap updated; E-23 resolves a prior ID collision (the former "E-22 Admin-pack" → E-23).
+- Milestones: M-DOCS-01 (framework prep — specsPath removed upstream, adapters regenerated) + M-DOCS-02 (doc-tree taxonomy — `docs/governance/`, `docs/architecture/indexes/`, bind-me/inform-me rule text, `NN_` convention, `researchPath`/`architecturePath` in artifact-layout, `docs/research/*` renumbered 01-18, E-21 planning prose adjusted).
+- Commits on epic branch (9 total): planning `c6a2454` + `ccec8b3` + `c6f9d4e`; M-DOCS-02 commits `ce5f7a1`, `4c2cbef`, `1e7992f`, `c61dec6`, `c08da56`, close-out `308a506`.
+- Decisions: D-2026-04-24-031 (reorg ratified), D-2026-04-24-032 (`specsPath` omission). ADR-0003 records the full bind-me / inform-me taxonomy.
+
+**Next: E-21 Pack Contribution Contract** — draft, four sub-epics (E-21a Contract Design → E-21b Runtime Pack Infrastructure → E-21c Pack DX → E-21d Radar Extraction + Migration). Docs Foundation was the prerequisite; E-21a is now unblocked and can begin.
+
 **M-WARN-01: Runtime Warning Contract** — **complete** (committed as `d39cb3e` along with M-WARN-02; ratification + runtime tightening that closed the absent-`warnings`-key gap on three Run.Server + two Run paths)
 
 **M-WARN-02: Observation + UI Surfacing** — **complete** (committed as `d39cb3e`)
@@ -323,15 +410,16 @@ Subagents dispatched via `Agent` run silently from the parent session's perspect
 - **Phase 4** (Observation Layer): **complete** — E-09 done, in `work/done/`
 - **Phase 5a** (Radar Correctness): **complete** — E-11 done, in `work/done/`
 - **Phase 5b** (Radar Complete): **complete** — E-10, E-11 done, in `work/done/`
-- **Phase 5c** (Radar Hardening): **in progress** — E-20 and E-19 done (both merged and archived); next is E-21 Pack Contribution Contract (draft — four sub-epics) and E-12 Op Sandbox
+- **Phase 5c** (Radar Hardening): **in progress** — E-20, E-19, and E-22 Docs Foundation done (all merged/archived); next is E-21 Pack Contribution Contract (draft — four sub-epics) and E-12 Op Sandbox
 - **Sequencing (D-013):** `Radar correctness -> Radar hardening -> VSME -> platform generalization`
 
 ### Key references
 
 - **Roadmap:** `work/roadmap.md` — full sequencing with status labels
-- **Decisions:** `work/decisions.md` (D-022 through D-026 are the most recent)
-- **Truth governance:** `docs/architecture/contracts/00_TRUTH_MODEL.md`, `docs/architecture/contracts/01_CONTRACT_MATRIX.md`, `docs/architecture/contracts/02_SHIM_POLICY.md`
+- **Decisions:** `work/decisions.md` (D-029 through D-032 are the most recent; E-22 added D-031 and D-032)
+- **Truth governance:** `docs/governance/truth-model.md`, `docs/architecture/indexes/contract-matrix.md`, `docs/governance/shim-policy.md`
 - **Archived architecture:** `docs/history/architecture/` — moved snapshots and design notes that are no longer current authority
-- **Phase 5c epic specs:** `work/done/E-19-warnings-degraded-outcomes/epic.md`, `work/epics/E-12-op-sandbox/epic.md`
+- **Phase 5c epic specs:** `work/epics/E-21-pack-contribution-contract/` (four sub-epics), `work/epics/E-12-op-sandbox/epic.md`; completed: `work/done/E-19-warnings-degraded-outcomes/epic.md`, `work/done/E-20-execution-truth/epic.md`, `work/done/E-22-docs-foundation/epic.md`
 - **Completed E-20:** `work/done/E-20-execution-truth/` (epic + milestone specs + tracking)
+- **Completed E-22:** `work/done/E-22-docs-foundation/` (epic + M-DOCS-01 + M-DOCS-02 + tracking docs)
 - **Known gaps:** `work/gaps.md` (sandbox spec, dag-map interactivity, remaining non-Radar execution-spec bridge cleanup)

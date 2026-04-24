@@ -7,8 +7,8 @@ owner: architecture
 last_reviewed: 2026-04-04
 source_of_truth:
   - work/roadmap.md
-  - docs/architecture/contracts/00_TRUTH_MODEL.md
-  - docs/architecture/contracts/01_CONTRACT_MATRIX.md
+  - docs/governance/truth-model.md
+  - docs/architecture/indexes/contract-matrix.md
 ---
 
 # Architecture Source Map
@@ -22,7 +22,7 @@ The historical phase-by-phase build plan is now archived at `docs/history/archit
 - **Program sequencing and active status:** `work/roadmap.md`
 - **Current architecture narrative:** `docs/architecture/01_CORE.md`
 - **Approved next-state execution contract:** `docs/architecture/08_EXECUTION_TRUTH_PLAN.md`
-- **Truth governance and contract ownership:** `docs/architecture/contracts/00_TRUTH_MODEL.md`, `docs/architecture/contracts/01_CONTRACT_MATRIX.md`, `docs/architecture/contracts/02_SHIM_POLICY.md`
+- **Truth governance and contract ownership:** `docs/governance/truth-model.md`, `docs/architecture/indexes/contract-matrix.md`, `docs/governance/shim-policy.md`
 - **Historical snapshots and superseded design notes:** `docs/history/`
 
 ## Resolution rules
@@ -34,6 +34,6 @@ The historical phase-by-phase build plan is now archived at `docs/history/archit
 
 ## Update protocol
 
-- When a contract changes, update the relevant row in `docs/architecture/contracts/01_CONTRACT_MATRIX.md`.
+- When a contract changes, update the relevant row in `docs/architecture/indexes/contract-matrix.md`.
 - When a document becomes non-authoritative, move it under `docs/history/` instead of leaving it in `docs/architecture/`.
 - When AI instruction behavior needs to change, edit `.ai-repo/` sources and run `./.ai/sync.sh` rather than hand-editing generated instruction files.

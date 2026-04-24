@@ -8,14 +8,14 @@ last_reviewed: 2026-04-04
 source_of_truth:
   - work/done/E-20-execution-truth/epic.md
   - work/done/E-20-execution-truth/M-TRUTH-01-execution-spec-outcome-design.md
-  - docs/architecture/contracts/02_SHIM_POLICY.md
+  - docs/governance/shim-policy.md
 ---
 
 # Execution Truth Plan
 
 ## Purpose
 
-This document is an approved next-state contract. Current runtime behavior remains governed by the live sources listed in `docs/architecture/contracts/01_CONTRACT_MATRIX.md`.
+This document is an approved next-state contract. Current runtime behavior remains governed by the live sources listed in `docs/architecture/indexes/contract-matrix.md`.
 
 Get Liminara back onto a contract that is true to its thesis:
 
@@ -100,7 +100,7 @@ If the system chooses to continue without a required dependency or model, the re
 
 ### Unified Op Shape
 
-Introduce `execution_spec/0` as the canonical op definition. Legacy callbacks may remain only as short-lived, removal-tracked exceptions under `docs/architecture/contracts/02_SHIM_POLICY.md`.
+Introduce `execution_spec/0` as the canonical op definition. Legacy callbacks may remain only as short-lived, removal-tracked exceptions under `docs/governance/shim-policy.md`.
 
 Target sections:
 

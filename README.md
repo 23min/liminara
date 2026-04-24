@@ -117,9 +117,9 @@ If you are new to the repository, start here:
 - [docs/guides/devcontainer_operations.md](docs/guides/devcontainer_operations.md) — local devcontainer lifecycle, persistence, cleanup, rebuild guidance
 - [work/roadmap.md](work/roadmap.md) — current sequencing and status
 - [work/decisions.md](work/decisions.md) — active architectural decisions
-- [docs/architecture/contracts/00_TRUTH_MODEL.md](docs/architecture/contracts/00_TRUTH_MODEL.md) — execution-truth foundation
-- [docs/architecture/contracts/01_CONTRACT_MATRIX.md](docs/architecture/contracts/01_CONTRACT_MATRIX.md) — contract overview
-- [docs/architecture/contracts/02_SHIM_POLICY.md](docs/architecture/contracts/02_SHIM_POLICY.md) — rules for temporary compatibility shims
+- [docs/governance/truth-model.md](docs/governance/truth-model.md) — execution-truth foundation
+- [docs/architecture/indexes/contract-matrix.md](docs/architecture/indexes/contract-matrix.md) — contract overview
+- [docs/governance/shim-policy.md](docs/governance/shim-policy.md) — rules for temporary compatibility shims
 
 ## Discussions
 
