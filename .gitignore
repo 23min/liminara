@@ -58,3 +58,4 @@ agent_runtime_specs.zip
 .claude/statusline.sh
 .codex/instructions.md
 .ai-repo/.framework-sync-sha
+.ai-repo/bin/
