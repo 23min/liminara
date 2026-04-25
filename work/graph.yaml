@@ -1080,6 +1080,30 @@ nodes:
       - source: spec-frontmatter
         file: work/done/E-08-otp-runtime/M-OTP-05-stress-testing.md
         value: complete
+  - id: M-PACK-A-01
+    kind: milestone
+    path: work/epics/E-21-pack-contribution-contract/M-PACK-A-01-contract-tdd-tooling.md
+    title: Liminara-project Contract-TDD tooling
+    status: draft
+    confidence: high
+  - id: M-PACK-A-02a
+    kind: milestone
+    path: work/epics/E-21-pack-contribution-contract/M-PACK-A-02a-foundational-contracts.md
+    title: Foundational contracts (5 ADRs)
+    status: draft
+    confidence: high
+  - id: M-PACK-A-02b
+    kind: milestone
+    path: work/epics/E-21-pack-contribution-contract/M-PACK-A-02b-packs-as-running-systems.md
+    title: Packs-as-running-systems (5 ADRs)
+    status: draft
+    confidence: high
+  - id: M-PACK-A-02c
+    kind: milestone
+    path: work/epics/E-21-pack-contribution-contract/M-PACK-A-02c-governance-contracts.md
+    title: Governance (8 ADRs)
+    status: draft
+    confidence: high
   - id: M-PORT-01
     kind: milestone
     path: work/done/E-10-port-executor/M-PORT-01-protocol-executor-runner.md
@@ -1292,6 +1316,22 @@ edges:
     evidence:
       - source: spec-frontmatter
         file: work/done/E-22-docs-foundation/M-DOCS-02-doc-tree-taxonomy.md
+  - type: depends_on
+    from: M-PACK-A-01
+    to: E-19
+    confidence: high
+  - type: depends_on
+    from: M-PACK-A-02a
+    to: M-PACK-A-01
+    confidence: high
+  - type: depends_on
+    from: M-PACK-A-02b
+    to: M-PACK-A-02a
+    confidence: high
+  - type: depends_on
+    from: M-PACK-A-02c
+    to: M-PACK-A-02a
+    confidence: high
   - type: depends_on
     from: M-PORT-02
     to: M-PORT-01
@@ -1705,6 +1745,22 @@ edges:
     evidence:
       - source: filesystem
         file: work/done/E-20-execution-truth/M-TRUTH-03-radar-semantic-cleanup.md
+  - type: parent
+    from: E-21
+    to: M-PACK-A-01
+    confidence: high
+  - type: parent
+    from: E-21
+    to: M-PACK-A-02a
+    confidence: high
+  - type: parent
+    from: E-21
+    to: M-PACK-A-02b
+    confidence: high
+  - type: parent
+    from: E-21
+    to: M-PACK-A-02c
+    confidence: high
   - type: parent
     from: E-22
     to: M-DOCS-01
