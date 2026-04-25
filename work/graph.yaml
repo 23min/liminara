@@ -792,12 +792,12 @@ nodes:
   - id: E-21
     kind: epic
     path: work/epics/E-21-pack-contribution-contract
-    status: planning
+    status: active
     confidence: high
     status_evidence:
       - source: spec-frontmatter
         file: work/epics/E-21-pack-contribution-contract/epic.md
-        value: planning
+        value: active
   - id: E-22
     kind: epic
     path: work/done/E-22-docs-foundation

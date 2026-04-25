@@ -178,11 +178,14 @@ Second domain pack. Proves generality beyond LLM/text workflows (geometry, struc
 
 _Rendered from `work/graph.yaml` by `wf-graph render`. Do not hand-edit — edit the graph and re-run._
 
+### active
+
+- **E-21** _(depends on: E-19)_
+
 ### planning
 
 - **E-11b** _(depends on: E-16)_
 - **E-12** _(depends on: E-20)_
-- **E-21** _(depends on: E-19)_
 
 ### proposed
 
