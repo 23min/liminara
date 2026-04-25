@@ -1,0 +1,81 @@
+#!/bin/sh
+# cue-vet — single entry point for CUE schema validation in Liminara.
+#
+# Usage:
+#   scripts/cue-vet <path/to/file.cue>   # vet a single .cue file
+#   scripts/cue-vet                      # walk docs/schemas/ and vet
+#                                        # every fixture against its
+#                                        # topic's HEAD schema (the
+#                                        # schema-evolution loop).
+#
+# Fixture-library layout (per M-PACK-A-01 AC6, converged with upstream
+# framework convention — see work/decisions.md D-2026-04-25-033):
+#
+#   docs/schemas/<topic>/schema.cue
+#   docs/schemas/<topic>/fixtures/v<N>/valid/<name>.yaml      # cue vet must accept
+#   docs/schemas/<topic>/fixtures/v<N>/invalid/<name>.yaml    # cue vet must reject
+#
+# No-arg mode runs two sub-walks with mirrored exit-code expectations.
+# A valid fixture that fails uses the standard failure-semantics format
+# from the parent sub-epic spec; an invalid fixture that *passes* is a
+# regression (the schema accepted a shape declared invalid) and uses a
+# distinct format identifying it as such.
+#
+# Failure-semantics formats:
+#
+#   <fixture path> fails against <topic>.cue at <schema path>: <CUE error>
+#   <fixture path> in invalid/ unexpectedly passed against <topic>.cue at <schema path>
+#
+# CUE version pin lives in repo-root .tool-versions; this script does
+# not parse the pin (the devcontainer Dockerfile installs the matching
+# binary). Run `cue version` if you need to verify the active version.
+
+set -eu
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+SCHEMAS_DIR="$REPO_ROOT/docs/schemas"
+
+if [ $# -gt 1 ]; then
+    echo "usage: $0 [path/to/file.cue]" >&2
+    exit 2
+fi
+
+if [ $# -eq 1 ]; then
+    exec cue vet "$1"
+fi
+
+# No-arg mode: schema-evolution loop.
+# An empty or absent fixture library is the M-PACK-A-01 wrap-state
+# (M-PACK-A-02a lands the first schemas + fixtures); exit 0.
+[ -d "$SCHEMAS_DIR" ] || exit 0
+
+exit_code=0
+for topic_dir in "$SCHEMAS_DIR"/*/; do
+    [ -d "$topic_dir" ] || continue
+    topic="$(basename "$topic_dir")"
+    schema="${topic_dir}schema.cue"
+    fixtures_dir="${topic_dir}fixtures"
+    [ -f "$schema" ] || continue
+    [ -d "$fixtures_dir" ] || continue
+
+    # Sub-walk 1: valid fixtures must pass cue vet.
+    for fixture in "$fixtures_dir"/v*/valid/*.yaml; do
+        [ -f "$fixture" ] || continue
+        if ! cue_err="$(cue vet "$schema" "$fixture" 2>&1)"; then
+            echo "$fixture fails against ${topic}.cue at $schema: $cue_err" >&2
+            exit_code=1
+        fi
+    done
+
+    # Sub-walk 2: invalid fixtures must fail cue vet. A pass is a regression.
+    for fixture in "$fixtures_dir"/v*/invalid/*.yaml; do
+        [ -f "$fixture" ] || continue
+        if cue vet "$schema" "$fixture" >/dev/null 2>&1; then
+            echo "$fixture in invalid/ unexpectedly passed against ${topic}.cue at $schema" >&2
+            exit_code=1
+        fi
+    done
+done
+
+exit "$exit_code"

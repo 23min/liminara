@@ -2,7 +2,7 @@
 id: M-PACK-A-01
 epic: E-21-pack-contribution-contract
 parent: E-21a-contract-design
-status: draft
+status: in-progress
 depends_on: E-19-warnings-degraded-outcomes
 ---
 
@@ -45,16 +45,17 @@ The generic, project-agnostic version of this tooling — a framework `design-co
    - `git commit --no-verify` continues to bypass the hook (developer escape hatch documented in the skill onboarding).
 
 5. **Schema-evolution loop: layered on `cue vet`, invocable as part of the same hook**
-   - The schema-evolution check is implemented as a loop (shell or mix task — language locked in *Design Notes*) that walks every fixture in the fixture library and runs `cue vet <topic>.cue <fixture>` against each fixture's HEAD topic schema.
+   - The schema-evolution check is implemented as a loop (shell or mix task — language locked in *Design Notes*) that walks every fixture under `fixtures/v<N>/valid/` and runs `cue vet <topic>.cue <fixture>` against each fixture's HEAD topic schema. Invalid fixtures (under `fixtures/v<N>/invalid/`) are not part of the schema-evolution invariant — they remain rejected by construction — so the schema-evolution loop walks `valid/` only.
    - The loop is invocable on demand from the same entry point as AC 3, and runs automatically inside the pre-commit hook per AC 4.
    - The loop's failure output matches the failure semantics specified in the parent sub-epic's "Schema-evolution check — specification" subsection: `<fixture path> fails against <topic>.cue at <schema path>: <CUE error>`.
-   - The loop does not implement a separate validation engine — every validation is a `cue vet` invocation. Implementation is bounded to roughly the size envisioned by the parent sub-epic spec ("~20 lines"); if implementation grows substantially beyond that, it is a signal the design has drifted from the spec and review must reconcile.
+   - The loop does not implement a separate validation engine — every validation is a `cue vet` invocation. Implementation is bounded to roughly the size envisioned by the parent sub-epic spec ("~20 lines"); the `valid/invalid/` split adds a second sub-walk with mirrored exit-code expectations, which doesn't materially expand the design — if implementation grows substantially beyond the budgeted size, it is a signal the design has drifted and review must reconcile.
    - At M-PACK-A-01's wrap, the fixture library is empty: M-PACK-A-02a lands the first schemas and fixtures. The loop must run cleanly (zero fixtures = zero failures = exit 0) against an empty library.
 
 6. **Fixture library directory-layout convention established**
-   - The convention `docs/schemas/<topic>/schema.cue` (paired schema) + `docs/schemas/<topic>/fixtures/v<N>/<name>.yaml` (fixture under its authored schema-version subdirectory) is documented as the layout the local entry point and the schema-evolution loop expect.
+   - The convention `docs/schemas/<topic>/schema.cue` (paired schema) + `docs/schemas/<topic>/fixtures/v<N>/{valid,invalid}/<name>.yaml` (fixture under its authored schema-version subdirectory, segregated by expected `cue vet` outcome) is documented as the layout the local entry point and the schema-evolution loop expect. The `valid/invalid/` split converges with the upstream framework convention from ai-workflow#37 / PR #72; rationale and trigger are recorded in `work/decisions.md` D-2026-04-25-033.
    - The `docs/schemas/` directory exists at wrap with at least one placeholder marker (e.g. a top-level `README.md` describing the layout) so M-PACK-A-02a can plug in without needing to negotiate the directory shape.
    - The local entry point and the schema-evolution loop both discover topic directories by walking `docs/schemas/*/`; adding a new topic requires no edits to the entry point or the loop.
+   - The local entry point's no-arg loop runs two sub-walks with mirrored exit-code expectations: every fixture under `fixtures/v<N>/valid/` must pass `cue vet` (exit 0); every fixture under `fixtures/v<N>/invalid/` must fail `cue vet` (exit non-zero). An invalid fixture that *passes* is a regression — the schema accepted a shape the contract author declared invalid — and is reported with a distinct failure-format string. The schema-evolution loop walks `valid/` only (invalid fixtures aren't part of the forward-compat invariant; they remain rejected by construction).
 
 7. **Liminara-local `design-contract` skill exists at `.ai-repo/skills/design-contract.md`**
    - The skill is authored as a flat `.md` source file at `.ai-repo/skills/design-contract.md` — never as a hand-written folder-form output under `.claude/skills/design-contract/`. Folder-form output is produced solely by `./.ai/sync.sh`, not by hand.
