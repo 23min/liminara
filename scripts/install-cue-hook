@@ -1,0 +1,51 @@
+#!/bin/sh
+# install-cue-hook — installs .git/hooks/pre-commit as a thin wrapper that
+# delegates to scripts/pre-commit-cue.
+#
+# Idempotent:
+#   - First run installs the wrapper.
+#   - Re-run on an already-installed wrapper (byte-for-byte match) is a
+#     no-op, exit 0.
+#   - If .git/hooks/pre-commit exists with different content (foreign
+#     hook from another source), prints a clear notice and exits non-zero
+#     without modifying the existing hook.
+#
+# `git commit --no-verify` continues to bypass; that is a git built-in,
+# not gated here.
+
+set -eu
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+HOOK_PATH="$REPO_ROOT/.git/hooks/pre-commit"
+
+# The wrapper body. The marker comment makes "ours vs. foreign" detection
+# legible to humans reading the installed hook.
+WRAPPER_BODY='#!/bin/sh
+# liminara-cue-hook (managed by scripts/install-cue-hook — do not edit)
+exec "$(git rev-parse --show-toplevel)/scripts/pre-commit-cue" "$@"
+'
+
+mkdir -p "$REPO_ROOT/.git/hooks"
+
+# Materialize the expected wrapper into a tmpfile so we can byte-compare
+# against any pre-existing hook with `cmp` (avoids shell command-
+# substitution stripping trailing newlines from one side of the compare).
+EXPECTED_TMP="$(mktemp)"
+trap 'rm -f "$EXPECTED_TMP"' EXIT
+printf '%s' "$WRAPPER_BODY" > "$EXPECTED_TMP"
+
+if [ -e "$HOOK_PATH" ]; then
+    if cmp -s "$HOOK_PATH" "$EXPECTED_TMP"; then
+        echo "install-cue-hook: pre-commit hook already installed (no-op)"
+        exit 0
+    fi
+    echo "install-cue-hook: $HOOK_PATH already exists with different content." >&2
+    echo "install-cue-hook: refusing to overwrite. Inspect the existing hook" >&2
+    echo "install-cue-hook: and either remove it or merge its content with" >&2
+    echo "install-cue-hook: scripts/pre-commit-cue, then re-run this installer." >&2
+    exit 1
+fi
+
+mv "$EXPECTED_TMP" "$HOOK_PATH"
+chmod +x "$HOOK_PATH"
+echo "install-cue-hook: installed $HOOK_PATH"

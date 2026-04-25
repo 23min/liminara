@@ -39,6 +39,16 @@ RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
 # uv — Astral package manager for Python
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
+# CUE — version pinned via repo-root .tool-versions (single source of truth
+# for the devcontainer, scripts/cue-vet, the pre-commit hook, and future CI).
+COPY .tool-versions /tmp/.tool-versions
+RUN CUE_VERSION="$(grep '^cue ' /tmp/.tool-versions | awk '{print $2}')" \
+    && ARCH="$(dpkg --print-architecture)" \
+    && curl -fsSL "https://github.com/cue-lang/cue/releases/download/v${CUE_VERSION}/cue_v${CUE_VERSION}_linux_${ARCH}.tar.gz" \
+       | tar -xz -C /usr/local/bin cue \
+    && chmod +x /usr/local/bin/cue \
+    && rm /tmp/.tool-versions
+
 # Hex + Rebar for root (used during image build)
 RUN mix local.hex --force && mix local.rebar --force
 

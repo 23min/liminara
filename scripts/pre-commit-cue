@@ -1,0 +1,53 @@
+#!/bin/sh
+# pre-commit-cue — pre-commit hook logic for CUE schema + fixture
+# validation. Invoked by .git/hooks/pre-commit (the thin wrapper installed
+# by scripts/install-cue-hook).
+#
+# Behavior:
+#   - For every staged .cue file: run `scripts/cue-vet <file>`. Block on
+#     any failure.
+#   - If any staged file lives under docs/schemas/<topic>/fixtures/v<N>/:
+#     run the schema-evolution loop (`scripts/cue-vet` no-arg). Block on
+#     any failure.
+#   - Otherwise: silent no-op. Do not invoke cue at all.
+#
+# `git commit --no-verify` continues to bypass the hook entirely — that's
+# git's built-in behavior, not implemented here.
+
+set -eu
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+CUE_VET="$REPO_ROOT/scripts/cue-vet"
+
+# Staged paths (added/copied/modified/renamed) — exclude deletions.
+STAGED="$(git diff --cached --name-only --diff-filter=ACMR)"
+
+if [ -z "$STAGED" ]; then
+    exit 0
+fi
+
+exit_code=0
+
+# Vet each staged .cue file individually.
+echo "$STAGED" | grep -E '\.cue$' | while IFS= read -r f; do
+    if ! "$CUE_VET" "$REPO_ROOT/$f"; then
+        echo "pre-commit-cue: cue vet failed on $f" >&2
+        exit 1
+    fi
+done || exit_code=$?
+
+if [ "$exit_code" -ne 0 ]; then
+    exit "$exit_code"
+fi
+
+# Run the schema-evolution loop if any fixture is staged. Fixtures live
+# under docs/schemas/<topic>/fixtures/v<N>/{valid,invalid}/ per the layout
+# convergence with upstream (work/decisions.md D-2026-04-25-033).
+if echo "$STAGED" | grep -qE '^docs/schemas/[^/]+/fixtures/v[^/]+/(valid|invalid)/'; then
+    if ! "$CUE_VET"; then
+        echo "pre-commit-cue: schema-evolution loop failed (staged fixture violates HEAD schema)" >&2
+        exit 1
+    fi
+fi
+
+exit 0
