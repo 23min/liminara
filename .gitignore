@@ -51,6 +51,9 @@ runtime/data/
 # Test/scratch output
 .scratch/
 
+# wf-graph runtime lock (POSIX flock acquired during `wf-graph apply`)
+work/graph.yaml.lock
+
 # Original brainstorm export (contents are in docs/brainstorm/)
 agent_runtime_specs.zip
 .claude/worktrees/
