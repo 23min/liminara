@@ -17,8 +17,8 @@
 - [x] AC4: Pre-commit hook installable via single idempotent command (`scripts/install-cue-hook`); blocks staged `.cue` violations and staged-fixture schema-evolution violations; no-op when neither is staged; `--no-verify` bypass intact.
 - [x] AC5: Schema-evolution loop (POSIX shell, colocated with `scripts/cue-vet`) — walks every fixture, runs `cue vet <topic>.cue <fixture>` per fixture, exits 0 on empty library, failure output matches spec format.
 - [x] AC6: Fixture-library directory layout (`docs/schemas/<topic>/schema.cue` + `docs/schemas/<topic>/fixtures/v<N>/<name>.yaml`) documented; `docs/schemas/` exists with at least a `README.md` placeholder; entry point + loop walk `docs/schemas/*/` (no edits to add a new topic).
-- [ ] AC7: `.ai-repo/skills/design-contract.md` authored as flat `.md` (no hand-written folder-form output); content is Liminara-specific bindings only; references admin-pack docs, contract-matrix index, reviewer rules; states the upstream framework dependency (ai-workflow#37); includes hook-install command in onboarding checklist.
-- [ ] AC8: `.ai-repo/rules/contract-design.md` authored — reviewer-enforceable, binds anchored admin-pack citations, contract-matrix wrap verification, boundary-library compile blocks, cross-pack-pressure rules; references contract-matrix index path + parent sub-epic spec path; does not duplicate generic-CUE-workflow content.
+- [x] AC7: `.ai-repo/skills/design-contract.md` authored as flat `.md` (no hand-written folder-form output); content is Liminara-specific bindings only; references admin-pack docs, contract-matrix index, reviewer rules; states the upstream framework dependency (ai-workflow#37); includes hook-install command in onboarding checklist.
+- [x] AC8: `.ai-repo/rules/contract-design.md` authored — reviewer-enforceable, binds anchored admin-pack citations, contract-matrix wrap verification, boundary-library compile blocks, cross-pack-pressure rules; references contract-matrix index path + parent sub-epic spec path; does not duplicate generic-CUE-workflow content.
 
 ## Decisions made during implementation
 
@@ -152,6 +152,52 @@ commit · _(pending milestone-end)_ · tests 6/6
 `scripts/tests/test-schemas-layout.sh` updated: check 4 now requires the `<topic>/fixtures/v<N>/{valid,invalid}` literal in the README, plus two new checks (4a, 4b) asserting the README explains the valid-must-pass and invalid-must-fail principles.
 
 commit · _(pending milestone-end)_ · tests 7/7
+
+### AC7 — Liminara `design-contract` skill overlay
+
+Authored at `.ai-repo/skills/design-contract.md` (210 lines, flat `.md` source — never hand-written folder-form output; the generated `.claude/skills/design-contract/SKILL.md` is produced by the next routine `./.ai/sync.sh` run, not as part of this milestone).
+
+The overlay sits on top of the upstream tech-neutral skill that landed during this session via [ai-workflow#37](https://github.com/23min/ai-workflow/issues/37) / PR #72. Original spec scope estimated ~30-line overlay assuming upstream had landed; the actual overlay grew to 210 lines because the four reviewer-discipline rules (anchored admin-pack citations, contract-matrix rows at wrap, Radar-primary / admin-pack-secondary references, reference-implementation citation shapes) each need rationale + worked examples + scope-exclusions to be authoring-actionable. Defensible against the spec's intent ("Liminara-specific bindings only") because the bindings *are* the discipline; without the rationale they're cargo-cult instructions.
+
+Structure:
+- **Header + read-in-this-order** — points at the four required reading sources (upstream skill, upstream CUE recipe, this overlay, AC8 reviewer rule).
+- **Liminara path overrides** — table of artifact → Liminara path. Documents the `docs/schemas/` prefix override (vs. upstream's `docs/architecture/contracts/`, retired in M-DOCS-02). Documents the `valid/invalid/` split per D-2026-04-25-033. Documents the ADR filename convention per D-2026-04-23-030.
+- **Local validation** — points at `scripts/cue-vet` (no-arg = full library + valid/invalid sub-walks) and `scripts/install-cue-hook` (one-time hook install). Notes `--no-verify` bypass.
+- **Reviewer discipline** — four rules, each with rationale and scope:
+  1. Anchored admin-pack citations on every pack-level ADR; D2-A approach (anchor target may not yet exist; record intended anchor and validate at E-22).
+  2. Contract-matrix rows at wrap, every contract surface (pointer to `.ai-repo/rules/liminara.md` *Contract matrix discipline* section).
+  3. Radar-primary / admin-pack-secondary reference structure; one-pack abstractions get rejected at review.
+  4. Reference-implementation citation shapes (existing `<file>:<line>` OR `M-PACK-*` milestone with named file). Lists acceptable scheduled references in E-21 (`examples/file_watch_demo`, admin-pack-shape proxy, Radar `pack.yaml` shim).
+- **Onboarding checklist** — six steps for first-time contract authors, including `bash scripts/install-cue-hook`.
+- **Cross-references** — paths to the contract-matrix index, contract-matrix-discipline rule section, AC8 reviewer rule, parent sub-epic spec, layout-convergence decision.
+- **Sync caveat** — this file is the source; never hand-edit `.claude/skills/design-contract/SKILL.md`; running `./.ai/sync.sh` is *not* part of M-PACK-A-01's commits (next routine sync produces the adapter output).
+
+Test added at `scripts/tests/test-design-contract-skill.sh` (POSIX shell, 16 grep-based structural checks). Asserts the file exists at the source-of-truth path; references upstream skill + recipe + the issue/PR; documents Liminara path overrides + valid/invalid split + D-033; references local tooling, contract-matrix index, parent sub-epic spec, AC8 rule path; documents anchored-citation discipline + D2-A approach; states Radar-primary / admin-pack-secondary; documents acceptable reference-impl citation shapes; states sync caveat. Branch-coverage spot-check verified (3 of 16 negatives directly exercised; remaining 13 follow identical structure — the AC6 README test uses the same shape and was exhaustively audited).
+
+Quality of the overlay's prose is a wrap-time reviewer pass, not a grep-able invariant — the test checks structure, not content quality.
+
+commit · _(pending milestone-end)_ · tests 16/16
+
+### AC8 — Liminara `contract-design` reviewer rule
+
+Authored at `.ai-repo/rules/contract-design.md` (163 lines). Codifies the four reviewer-discipline rules from AC7's overlay into machine-readable assertions the reviewer agent enforces at PR review time.
+
+Structure:
+- **Rule scope** — explicitly bounds the rule's territory: this file is *what reviewer enforces*; upstream skill is *what author follows*; AC7 overlay is *project-specific authoring bindings*. Together: skill teaches authoring; this rule enforces reviewer-side acceptance gates. The boundary prevents this file from drifting into a workflow walkthrough.
+- **Assertion 1** — Anchored admin-pack citations on every pack-level ADR. Format: `<file>.md §<section> — <description>`. Lists the 12 pack-level ADRs subject to the gate. Documents the D2-A E-22-pending allowance: the reviewer accepts the citation as a contract-for-future-content if the file + section anchor is named with specificity AND the description articulates *what* the cited section will provide; the substance is verified at E-22 against the materialized admin-pack content. Names ADRs not subject to the gate (ADR-LA-01, ADR-WIRE-01, ADR-BOUNDARY-01, ADR-EXECUTOR-01, ADR-EVOLUTION-01) and applies a weaker variant (substantive secondary, not TBD).
+- **Assertion 2** — Contract-matrix rows verified at wrap. References `.ai-repo/rules/liminara.md` *Contract matrix discipline* (the establishing rule). Three concrete checks: declared rows landed in the matrix; live-source paths exist at the cited location; "None — does not touch contract surfaces" milestones get a defensive verification. Wrap-blocking on miss.
+- **Assertion 3** — Radar-primary / admin-pack-secondary structure. One-pack abstractions get rejected at review with that explicit name. Documents the deliberate Radar-only exception (ADR-WIRE-01, ADR-EXECUTOR-01) gated by the parent sub-epic's *ADRs produced* table.
+- **Assertion 4** — Reference-implementation citation shapes. TBD explicitly rejected. Two acceptable shapes: existing `<file>:<line>` (must be real running code, not test/mock/draft) OR `M-PACK-*` milestone with named file/module. Lists pre-vetted scheduled references in E-21. Wrap-time deadline check on the *cited* milestone, not the ADR's own milestone.
+- **What the reviewer does NOT enforce** — explicit non-scope: the upstream skill's authoring workflow (bundle-as-PR is the contributor's discipline; reviewer just sees the bundle landed); per-CUE-language idioms (recipe handles those); schema-evolution-loop pass (pre-commit + CI gate by review time).
+- **References** — paths to the seven cross-referenced surfaces.
+
+Test added at `scripts/tests/test-contract-design-rule.sh` (POSIX shell, 11 grep-based structural checks). Asserts: file exists; names reviewer agent as consumer; codifies all 4 assertions including D2-A allowance and one-pack-abstraction failure mode; rejects TBD; documents both citation shapes; references contract-matrix index + parent sub-epic spec + AC7 overlay + upstream skill; does NOT duplicate upstream 7-step workflow headings (heuristic check on `^#+.*draft the ADR|...` patterns from upstream).
+
+GREEN required one minor reflow during implementation: the `**TBD is rejected.**` markdown bold initially spanned a newline, which broke the grep's line-based match for `TBD is rejected`. Reflowed to a single line; test passed.
+
+Branch-coverage spot-check: 3 of 11 negatives directly exercised (anchored-citation removal, duplicate-workflow-heading insertion, file:line citation removal — all fired their respective `fail()`). Remaining 8 follow identical grep-based structure to AC6 + AC7 tests which were exhaustively audited.
+
+commit · _(pending milestone-end)_ · tests 11/11
 
 ## Reviewer notes (optional)
 
