@@ -2,7 +2,8 @@
 id: M-PACK-A-01
 epic: E-21-pack-contribution-contract
 parent: E-21a-contract-design
-status: in-progress
+status: complete
+completed: 2026-04-25
 depends_on: E-19-warnings-degraded-outcomes
 ---
 

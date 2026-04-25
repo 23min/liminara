@@ -2,6 +2,27 @@
 
 Discovered work items deferred for later.
 
+## wf-graph apply skips spec frontmatter for flat-layout repos (filed upstream)
+**Discovered:** 2026-04-25 (M-PACK-A-01 start-milestone, status flip via `wf-graph apply --patch`)
+**Relates to:** `.ai/tools/wf-graph/internal/patch/write.go:124,137`, `.ai-repo/config/artifact-layout.json`
+**Severity:** Low — graph.yaml updates correctly; only the spec-frontmatter side of the atomicity contract is broken. Hand-edit is a one-line workaround.
+**Filed upstream:** [ai-workflow#80](https://github.com/23min/ai-workflow/issues/80)
+**Items:**
+- Tool unconditionally appends `/spec.md` to the node's `path` field, expecting folder-form `<id>/spec.md` shape. Liminara uses flat `<id>-<slug>.md` per `milestoneSpecPathTemplate` in `.ai-repo/config/artifact-layout.json`.
+- Workaround: hand-edit the spec frontmatter after `wf-graph apply --patch` succeeds for graph.yaml. Use case is rare (only at milestone status flips during start/wrap).
+**Trigger:** consume the upstream fix when ai-workflow#80 lands and the framework `.ai/` is synced. No Liminara-side action needed in the meantime.
+
+## Framework `.ai/` sync to upstream HEAD pending — pulls PR #72 deliverables on-disk
+**Discovered:** 2026-04-25 (M-PACK-A-01 AC7+AC8 authoring; upstream PR #72 closed mid-milestone)
+**Relates to:** [ai-workflow#37](https://github.com/23min/ai-workflow/issues/37) / PR #72, `.ai-repo/skills/design-contract.md` (AC7), `.ai-repo/rules/contract-design.md` (AC8), `work/decisions.md` D-2026-04-25-033
+**Severity:** Low — milestone deliverables stand alone; the upstream files are forward-references that will exist on-disk after the next routine framework sync.
+**Items:**
+- `.ai/skills/design-contract.md` (tech-neutral skill body) — referenced by AC7 overlay + AC8 reviewer rule
+- `.ai/docs/recipes/design-contract-cue.md` (CUE recipe) — referenced by AC7 overlay
+- `.ai/templates/adr.md` (additive `contract:` frontmatter block: schema, fixtures, worked_example, reference_implementation, schema_version) — needed by M-PACK-A-02a's first ADRs
+- `.claude/skills/design-contract/SKILL.md` (generated folder-form output) — produced by `./.ai/sync.sh` after the framework pull
+**Trigger:** routine framework sync. M-PACK-A-02a authors should verify the four files exist on-disk before drafting their first ADR; if not, run `bash .ai/sync.sh` (and pull the framework submodule first).
+
 ## Dependabot: security vulnerabilities in Python dependencies — plan under a security epic
 **Discovered:** 2026-04-22 (push to `main` after `.ai` framework bump; GitHub surfaced 2 open dependabot alerts)
 **Relates to:** `runtime/python/uv.lock`, `integrations/python/uv.lock`, future security epic

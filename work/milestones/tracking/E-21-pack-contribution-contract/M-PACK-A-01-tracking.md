@@ -1,10 +1,10 @@
 # M-PACK-A-01: Liminara-project Contract-TDD tooling — Tracking
 
 **Started:** 2026-04-25
-**Completed:** pending
-**Branch:** milestone/M-PACK-A-01 (cut from epic/E-21-pack-contribution-contract)
+**Completed:** 2026-04-25
+**Branch:** milestone/M-PACK-A-01 (cut from epic/E-21-pack-contribution-contract; merged 2026-04-25 via merge commit `a2ceca3` on `epic/E-21-pack-contribution-contract`)
 **Spec:** work/epics/E-21-pack-contribution-contract/M-PACK-A-01-contract-tdd-tooling.md
-**Commits:** _(filled at wrap)_
+**Commits:** `2921f2a` (AC1–AC6), `66ed62d` (AC7 + AC8), `0727a86` (builder agent-history)
 
 <!-- Status is not carried here. The milestone spec's frontmatter `status:` field is
      canonical. `**Completed:**` is filled iff the spec is `complete`. -->
@@ -209,7 +209,20 @@ commit · _(pending milestone-end)_ · tests 11/11
 
 ## Validation
 
-- _(filled at wrap with the validation pipeline result for this milestone's surfaces — no `runtime/` impact, so umbrella `mix test` is not the relevant gate; instead: `cue vet` smoke run on the library, devcontainer rebuild + `cue version` check, hook idempotency check, schema-evolution loop run.)_
+Wrap-time validation (2026-04-25). No `runtime/` impact this milestone, so umbrella `mix test` is not the relevant gate; per-AC POSIX-shell test suites are the validation pipeline.
+
+| Suite | Result | Sub-tests |
+|---|---|---|
+| `scripts/tests/test-tool-versions.sh` | PASS | 5/5 |
+| `scripts/tests/test-dockerfile-cue.sh` | PASS | 5/5 + runtime cue v0.16.1 install verify |
+| `scripts/tests/test-cue-vet.sh` | PASS | 16/16 |
+| `scripts/tests/test-install-cue-hook.sh` | PASS | 14/14 |
+| `scripts/tests/test-schemas-layout.sh` | PASS | 7/7 |
+| `scripts/tests/test-design-contract-skill.sh` | PASS | 16/16 |
+| `scripts/tests/test-contract-design-rule.sh` | PASS | 11/11 |
+| **Total** | **PASS** | **74/74** |
+
+Devcontainer rebuild not performed at wrap — that's a contributor-side integration verification done after merge. The runtime install check inside `test-dockerfile-cue.sh` proved cue 0.16.1 binary works against the cue-lang/cue release; the Dockerfile's COPY + RUN sequence is mechanically validated by the static checks.
 
 ## Deferrals
 
@@ -218,4 +231,18 @@ commit · _(pending milestone-end)_ · tests 11/11
      (wherever the repo tracks that) before the milestone archives, so the
      item survives the archive move. -->
 
-- **wf-graph spec-frontmatter update path-shape mismatch.** Observed during start-milestone: `wf-graph apply --patch` updated `work/graph.yaml` correctly but skipped the milestone spec frontmatter update with `open .../M-PACK-A-01-contract-tdd-tooling.md/spec.md: not a directory` — the tool appends `/spec.md` to `n.Path` unconditionally (`.ai/tools/wf-graph/internal/patch/write.go:124,137`), expecting folder-form `<id>/spec.md` rather than the flat `<id>-<slug>.md` form Liminara uses per `.ai-repo/config/artifact-layout.json`. The frontmatter was hand-edited as a workaround. Filed upstream: [ai-workflow#80](https://github.com/23min/ai-workflow/issues/80). Out of scope for M-PACK-A-01.
+- **wf-graph spec-frontmatter update path-shape mismatch.** Observed during start-milestone: `wf-graph apply --patch` updated `work/graph.yaml` correctly but skipped the milestone spec frontmatter update with `open .../M-PACK-A-01-contract-tdd-tooling.md/spec.md: not a directory` — the tool appends `/spec.md` to `n.Path` unconditionally (`.ai/tools/wf-graph/internal/patch/write.go:124,137`), expecting folder-form `<id>/spec.md` rather than the flat `<id>-<slug>.md` form Liminara uses per `.ai-repo/config/artifact-layout.json`. The frontmatter was hand-edited as a workaround. Filed upstream: [ai-workflow#80](https://github.com/23min/ai-workflow/issues/80). Mirrored to `work/gaps.md`. Out of scope for M-PACK-A-01.
+- **Framework `.ai/` sync to upstream HEAD pending.** Upstream PR #72 landed during this milestone (ai-workflow#37) shipping `.ai/skills/design-contract.md`, `.ai/docs/recipes/design-contract-cue.md`, and additive `.ai/templates/adr.md` `contract:` frontmatter fields. Pulling the framework submodule to upstream HEAD is a separate routine operation, not gated by M-PACK-A-01. Until then, the four upstream files referenced by AC7's overlay + AC8's reviewer rule don't exist on this repo's disk; the references are forward-looking. Mirrored to `work/gaps.md`.
+
+## Doc findings
+
+Manual targeted doc-lint sweep at wrap (2026-04-25). `doc-lint` is currently a skill (`.ai/skills/doc-lint.md`), not a CLI; ran a scoped grep-based pass over the milestone change-set instead.
+
+- **TODO/FIXME/XXX:** none in any of the 17 change-set files. Clean.
+- **Code-reference drift (file-path mentions in prose):** 9 hits classified:
+  - 5 are illustrative example filenames in `docs/schemas/README.md` prose (`canonical.yaml`, `with-secrets.yaml`, `multi-plan.yaml`, `missing-required.yaml`, `wrong-type.yaml`) — descriptive guidance for contributors choosing fixture filenames, not actual file references. **Dismissed as false positives.**
+  - 4 are upstream-framework files awaiting next routine `./.ai/sync.sh` (`.ai/skills/design-contract.md`, `.ai/docs/recipes/design-contract-cue.md`, `.claude/skills/design-contract/SKILL.md`, `templates/adr.md`). All four are documented as expected-pending in D-2026-04-25-033 and explicitly cited as forward-looking references inside AC7's overlay + AC8's reviewer rule. **Dismissed as documented-pending; the next framework sync resolves them all.**
+- **Contract drift / removed-feature docs / uncovered contract surface:** none. The milestone explicitly declared *Contract matrix changes: None* and ships only Liminara-local tooling — no first-class contract surface introduced.
+- **Superseded decisions, orphan files, template drift, index conflicts:** none in scope.
+
+`doc_health` delta: not measurable (no baseline; doc-lint CLI not in this repo).

@@ -1084,7 +1084,7 @@ nodes:
     kind: milestone
     path: work/epics/E-21-pack-contribution-contract/M-PACK-A-01-contract-tdd-tooling.md
     title: Liminara-project Contract-TDD tooling
-    status: in-progress
+    status: complete
     confidence: high
   - id: M-PACK-A-02a
     kind: milestone
