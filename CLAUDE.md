@@ -373,10 +373,11 @@ Subagents dispatched via `Agent` run silently from the parent session's perspect
 
 ## Current Work
 
-**Active focus:** none — E-22 Docs Foundation wrapped 2026-04-24; E-21a Pack Contribution Contract sub-epic specs drafted but parked.
-**Why now:** waiting on the user to commit to E-21a implementation push or pivot to E-12 Op Sandbox first (Phase 5c sequencing decision).
-**Parked:** `epic/E-21a-contract-design` — sub-epic specs + M-PACK-A-01 spec drafted, last touch 2026-04-17.
-**Open question:** start E-21a, or land E-12 (Op Sandbox) first?
+**Active focus:** E-21 Pack Contribution Contract — sub-epic E-21a (Contract Design). All four E-21a milestone specs drafted 2026-04-25 and committed to `main` at status `draft` (commit `706a917`): M-PACK-A-01 (Contract-TDD tooling), M-PACK-A-02a (foundational contracts — 5 ADRs), M-PACK-A-02b (packs-as-running-systems — 5 ADRs), M-PACK-A-02c (governance — 8 ADRs).
+**Why now:** Phase 5c sequencing decided 2026-04-25 — E-21 ships before E-12 (Op Sandbox). Contract authoring unblocks E-21b/c/d sub-epics; Op Sandbox's Surface B of ADR-FSSCOPE-01 is documented as deferred to E-12 and accepted as such.
+**Next action:** start M-PACK-A-01 via `/wf-start-milestone M-PACK-A-01`. The parked branch `epic/E-21a-contract-design` is superseded by the on-`main` drafts and should be retired or rebased when implementation begins.
+**Graph drift:** the four new milestone IDs (M-PACK-A-01, M-PACK-A-02a, M-PACK-A-02b, M-PACK-A-02c) are not yet in `work/graph.yaml`; ingest via `/wf-workflow-graph mutate` before or at start-milestone time.
+**Downstream-spec obligation:** when E-21b's milestone specs are drafted, three of them must declare contract-matrix rows in their own `## Contract matrix changes` sections — M-PACK-B-01b for `schema-evolution` and `multi-plan`, plus whichever E-21b milestone introduces artifact-emission-time content-type validation for `content-namespace` (and that spec needs an AC binding the validation to `Liminara.Executor` or `Liminara.Artifact.Store`).
 
 For structural state see:
 - `wf-graph report --status` — open epics with phase, activity, blocked-by, blocks
