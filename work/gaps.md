@@ -12,6 +12,16 @@ Discovered work items deferred for later.
 - Workaround: hand-edit the spec frontmatter after `wf-graph apply --patch` succeeds for graph.yaml. Use case is rare (only at milestone status flips during start/wrap).
 **Trigger:** consume the upstream fix when ai-workflow#80 lands and the framework `.ai/` is synced. No Liminara-side action needed in the meantime.
 
+## wf-graph diff-roadmap misses letter-suffixed epic IDs (filed upstream)
+**Discovered:** 2026-04-25 (M-PACK-A-01 wrap, post-wrap graph audit)
+**Relates to:** `wf-graph diff-roadmap` prose-side ID extraction; `work/roadmap.md` line 133 references E-11b but the tool's regex stops at `E-\d+` and doesn't match the letter suffix
+**Severity:** Low — false-positive `graph_only` reports for any epic ID with a letter suffix (E-11b today; legacy E-21a/b/c/d also affected). No real drift; the tool is just under-recognizing. Workaround is manual prose-vs-graph verification.
+**Filed upstream:** [ai-workflow#88](https://github.com/23min/ai-workflow/issues/88)
+**Items:**
+- Suggested upstream fix: extend regex from `E-\d+` to `E-\d+[a-z]?` (or `E-\d+\w*` for multi-character suffixes).
+- Liminara has D-2026-04-22-029 retiring sub-epics as a pattern after E-21, but legacy E-11b + grandfathered E-21a/b/c/d still need correct diff handling until the umbrella shape retires.
+**Trigger:** consume the upstream fix when ai-workflow#88 lands and the framework `.ai/` is synced. No Liminara-side action needed in the meantime.
+
 ## Framework `.ai/` sync to upstream HEAD pending — pulls PR #72 deliverables on-disk
 **Discovered:** 2026-04-25 (M-PACK-A-01 AC7+AC8 authoring; upstream PR #72 closed mid-milestone)
 **Relates to:** [ai-workflow#37](https://github.com/23min/ai-workflow/issues/37) / PR #72, `.ai-repo/skills/design-contract.md` (AC7), `.ai-repo/rules/contract-design.md` (AC8), `work/decisions.md` D-2026-04-25-033
