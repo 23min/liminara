@@ -372,56 +372,14 @@ Subagents dispatched via `Agent` run silently from the parent session's perspect
 
 
 ## Current Work
-<!-- Updated by start-milestone and wrap-milestone skills. -->
 
-### Active milestone
+**Active focus:** none — E-22 Docs Foundation wrapped 2026-04-24; E-21a Pack Contribution Contract sub-epic specs drafted but parked.
+**Why now:** waiting on the user to commit to E-21a implementation push or pivot to E-12 Op Sandbox first (Phase 5c sequencing decision).
+**Parked:** `epic/E-21a-contract-design` — sub-epic specs + M-PACK-A-01 spec drafted, last touch 2026-04-17.
+**Open question:** start E-21a, or land E-12 (Op Sandbox) first?
 
-**E-22 Docs Foundation** — **complete** (closed 2026-04-24; squash-merged to `main` as `390cee0`; archived to `work/done/E-22-docs-foundation/` — epic + 2 milestones + 2 tracking docs). ADR-0003 flipped `proposed` → `accepted`. Roadmap updated; E-23 resolves a prior ID collision (the former "E-22 Admin-pack" → E-23).
-- Milestones: M-DOCS-01 (framework prep — specsPath removed upstream, adapters regenerated) + M-DOCS-02 (doc-tree taxonomy — `docs/governance/`, `docs/architecture/indexes/`, bind-me/inform-me rule text, `NN_` convention, `researchPath`/`architecturePath` in artifact-layout, `docs/research/*` renumbered 01-18, E-21 planning prose adjusted).
-- Commits on epic branch (9 total): planning `c6a2454` + `ccec8b3` + `c6f9d4e`; M-DOCS-02 commits `ce5f7a1`, `4c2cbef`, `1e7992f`, `c61dec6`, `c08da56`, close-out `308a506`.
-- Decisions: D-2026-04-24-031 (reorg ratified), D-2026-04-24-032 (`specsPath` omission). ADR-0003 records the full bind-me / inform-me taxonomy.
-
-**E-21 Pack Contribution Contract** — `status: planning`, four sub-epics: E-21a Contract Design (`active`, drafting on worktree branch `epic/E-21a-contract-design`, 4 commits ahead of `main`) → E-21b Runtime Pack Infrastructure (`planning`) → E-21c Pack DX (`planning`) → E-21d Radar Extraction + Migration (`planning`). Docs Foundation was the prerequisite (closed E-22).
-
-**M-WARN-01: Runtime Warning Contract** — **complete** (committed as `d39cb3e` along with M-WARN-02; ratification + runtime tightening that closed the absent-`warnings`-key gap on three Run.Server + two Run paths)
-
-**M-WARN-02: Observation + UI Surfacing** — **complete** (committed as `d39cb3e`)
-- Spec: `work/done/E-19-warnings-degraded-outcomes/M-WARN-02-observation-ui-surfacing.md`
-- Tracking: `work/done/E-19-warnings-degraded-outcomes/M-WARN-02-tracking.md`
-
-**M-WARN-03: Radar adoption** — **complete** (committed as `629b902`)
-- Spec: `work/done/E-19-warnings-degraded-outcomes/M-WARN-03-radar-adoption.md`
-- Tracking: `work/done/E-19-warnings-degraded-outcomes/M-WARN-03-tracking.md`
-- Delivered: `radar_summarize.py` emits per-cluster `degraded` / `degradation_code` / `degradation_note` on every summary (explicit `false` / `nil` / `nil` on success); `ComposeBriefing` `Map.fetch!`es every summary field (including pre-existing `summary` / `key_takeaways`, harmonised strict-fetch across the whole artifact contract) and adds root `degraded` + sorted `degraded_cluster_ids`; `RenderHtml` renders a count-prefixed banner (`⚠ N of M cluster summaries are degraded`) with deduplicated notes, plus a per-cluster pill that falls back to the label "Degraded" when `degradation_note` is nil; new `degradation_pipeline_test.exs` + extended replay suite prove the full chain.
-- No backward-compat fallback — `ComposeBriefing` raises via `Map.fetch!` on any missing summary field.
-- Validation: liminara_radar 97/0, liminara_observation 272/0, liminara_web 198/0, liminara_core (run+contracts) 216/0, Python 79/0. Credo and dialyzer unchanged from M-WARN-02 baseline.
-- `radar_dedup` safe-default and fetch-error HTML surfacing explicitly deferred (see tracking Deferrals section).
-
-**M-WARN-04: Post-Review Bugfixes** — **complete** (closed 2026-04-21; 5 commits: `3e43f8a`, `8c445e3`, `e68aa98`, `93792f4`, `fac07bd`)
-- Spec: `work/done/E-19-warnings-degraded-outcomes/M-WARN-04-postreview-bugfixes.md`
-- Tracking: `work/done/E-19-warnings-degraded-outcomes/M-WARN-04-tracking.md`
-- Source: ultrareview `r2fg1c81b` (2026-04-20) produced four findings invalidating reachable E-19 paths.
-- Delivered: (1) `Run.Server.warning_payload/1` + synchronous `Liminara.Run.warning_payload/1` emit string-keyed wire-shape (bug_005); (2) new `"run_partial"` terminal event type with 1:1 event-type → `Run.Result.status` mapping and matching consumer clauses in `Run.Server`, `Observation.ViewModel`, `RunsLive.Show`, `RunsLive.Index` (merged_bug_001); (3) `RunsLive.Index.update_existing_run/3` direct-assigns `warning_count` from terminal payload, removed `update_warning_count/3` helper (bug_004); (4) `RunsLive.Show.build_nodes/1` reads `payload["warnings"]` on `op_completed` and populates per-node `:warnings` + `:degraded` so DAG pill and inspector Warnings section render on the event-log fallback path (bug_009); (5) new `warning_cross_layer_test.exs` regression guard exercises all four fixes in one file.
-- Validation: liminara_radar 97/0, liminara_observation 291/0, liminara_web 216/0, liminara_core (run + contracts) 182/55/0. Python ruff + format clean. Credo 7 (unchanged from M-WARN-03 baseline). Dialyzer 2 (both pre-existing, unchanged).
-- Decisions recorded: D-2026-04-20-025 (`run_partial` terminal event type), D-2026-04-20-026 (no backward-compat shims for in-flight contract fixes).
-
-**E-19 Warnings & Degraded Outcomes** — **complete** (merged to `main` as `3986f27`; archived to `work/done/` as `d8e7312`; roadmap updated).
-
-### Where things stand
-
-- **Phase 4** (Observation Layer): **complete** — E-09 done, in `work/done/`
-- **Phase 5a** (Radar Correctness): **complete** — E-11 done, in `work/done/`
-- **Phase 5b** (Radar Complete): **complete** — E-10, E-11 done, in `work/done/`
-- **Phase 5c** (Radar Hardening): **in progress** — E-20, E-19, and E-22 Docs Foundation done (all merged/archived); next is E-21 Pack Contribution Contract (draft — four sub-epics) and E-12 Op Sandbox
-- **Sequencing (D-013):** `Radar correctness -> Radar hardening -> VSME -> platform generalization`
-
-### Key references
-
-- **Roadmap:** `work/roadmap.md` — full sequencing with status labels
-- **Decisions:** `work/decisions.md` (D-029 through D-032 are the most recent; E-22 added D-031 and D-032)
-- **Truth governance:** `docs/governance/truth-model.md`, `docs/architecture/indexes/contract-matrix.md`, `docs/governance/shim-policy.md`
-- **Archived architecture:** `docs/history/architecture/` — moved snapshots and design notes that are no longer current authority
-- **Phase 5c epic specs:** `work/epics/E-21-pack-contribution-contract/` (four sub-epics), `work/epics/E-12-op-sandbox/epic.md`; completed: `work/done/E-19-warnings-degraded-outcomes/epic.md`, `work/done/E-20-execution-truth/epic.md`, `work/done/E-22-docs-foundation/epic.md`
-- **Completed E-20:** `work/done/E-20-execution-truth/` (epic + milestone specs + tracking)
-- **Completed E-22:** `work/done/E-22-docs-foundation/` (epic + M-DOCS-01 + M-DOCS-02 + tracking docs)
-- **Known gaps:** `work/gaps.md` (sandbox spec, dag-map interactivity, remaining non-Radar execution-spec bridge cleanup)
+For structural state see:
+- `wf-graph report --status` — open epics with phase, activity, blocked-by, blocks
+- `wf-graph render --mermaid --focus <id>` — dep graph centered on a node
+- `work/roadmap.md` — full sequencing with `[validated]` / `[decided next]` / `[directional thesis]` labels
+- `work/decisions.md` — operational + tactical decision log; `docs/decisions/` — ADRs
