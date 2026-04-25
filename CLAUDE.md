@@ -373,11 +373,35 @@ Subagents dispatched via `Agent` run silently from the parent session's perspect
 
 ## Current Work
 
-**Active focus:** E-21 Pack Contribution Contract — sub-epic E-21a (Contract Design). All four E-21a milestone specs drafted 2026-04-25 and committed to `main` at status `draft` (commit `706a917`): M-PACK-A-01 (Contract-TDD tooling), M-PACK-A-02a (foundational contracts — 5 ADRs), M-PACK-A-02b (packs-as-running-systems — 5 ADRs), M-PACK-A-02c (governance — 8 ADRs).
+**Active focus:** E-21 Pack Contribution Contract → sub-epic **E-21a** (Contract Design) → milestone *none yet*. All four E-21a milestone specs drafted 2026-04-25 (commits `706a917` + `4618036`) at status `draft`: M-PACK-A-01 (Contract-TDD tooling), M-PACK-A-02a (foundational contracts — 5 ADRs), M-PACK-A-02b (packs-as-running-systems — 5 ADRs), M-PACK-A-02c (governance — 8 ADRs). Specs live on both `main` and `epic/E-21-pack-contribution-contract` (the epic branch was fast-forwarded to main 2026-04-25).
 **Why now:** Phase 5c sequencing decided 2026-04-25 — E-21 ships before E-12 (Op Sandbox). Contract authoring unblocks E-21b/c/d sub-epics; Op Sandbox's Surface B of ADR-FSSCOPE-01 is documented as deferred to E-12 and accepted as such.
-**Next action:** start M-PACK-A-01 via `/wf-start-milestone M-PACK-A-01`. The parked branch `epic/E-21a-contract-design` is superseded by the on-`main` drafts and should be retired or rebased when implementation begins.
-**Graph drift:** the four new milestone IDs (M-PACK-A-01, M-PACK-A-02a, M-PACK-A-02b, M-PACK-A-02c) are not yet in `work/graph.yaml`; ingest via `/wf-workflow-graph mutate` before or at start-milestone time.
+**Active branch:** `epic/E-21-pack-contribution-contract` (the parent epic branch — see *E-21 sub-epic working rules* below for why there's no `epic/E-21a-...` branch).
+**Next action:** start M-PACK-A-01 via `/wf-start-milestone M-PACK-A-01` from `epic/E-21-pack-contribution-contract`. That cuts `milestone/M-PACK-A-01` from the epic branch.
+**Graph drift:** the four new milestone IDs (M-PACK-A-01, M-PACK-A-02a, M-PACK-A-02b, M-PACK-A-02c) are not yet in `work/graph.yaml`; ingest via `/wf-workflow-graph mutate` before or at start-milestone time. When ingesting, set `epic: E-21-pack-contribution-contract` on each — sub-epic IDs are not graph nodes (see working rules below).
 **Downstream-spec obligation:** when E-21b's milestone specs are drafted, three of them must declare contract-matrix rows in their own `## Contract matrix changes` sections — M-PACK-B-01b for `schema-evolution` and `multi-plan`, plus whichever E-21b milestone introduces artifact-emission-time content-type validation for `content-namespace` (and that spec needs an AC binding the validation to `Liminara.Executor` or `Liminara.Artifact.Store`).
+
+### E-21 sub-epic working rules — temporary, remove at wrap-epic E-21
+
+E-21 is split into four **sub-epics** (E-21a/b/c/d). Sub-epics are a Liminara-specific extension to the framework's standard 2-level (epic → milestone) structure: the framework has no sub-epic kind, no sub-epic lifecycle skills, and no sub-epic graph representation. To avoid confusion (the kind that produced the `epic/E-21a-contract-design`-branch-that-never-existed mistake on 2026-04-25), follow these rules for the duration of E-21:
+
+- **Branches.** One branch only — `epic/E-21-pack-contribution-contract`. **Never invent** `epic/E-21a-...`, `epic/E-21b-...`, etc. Milestone branches cut from the parent epic branch (`milestone/M-PACK-A-01` from `epic/E-21-pack-contribution-contract`).
+- **Lifecycle skills.**
+  - `plan-epic` is done; do not re-invoke per sub-epic.
+  - `plan-milestones` runs **once per sub-epic**, when that sub-epic becomes the next focus. Run it for E-21b only after E-21a wraps (or near it); same for E-21c, E-21d.
+  - `start-milestone` and `wrap-milestone` operate on milestone IDs and don't know about sub-epics — invoke them normally.
+  - `wrap-epic` runs **once**, when all of E-21a/b/c/d are done. There is no `wrap-sub-epic`. Sub-epic completion is informal: note it in CLAUDE.md *Current Work* and `work/decisions.md`.
+- **Filesystem.** Sub-epic specs and their milestone specs all live flat under `work/epics/E-21-pack-contribution-contract/`. Do not create per-sub-epic subfolders.
+- **wf-graph.**
+  - Sub-epics do not appear as nodes. Do not try to add E-21a/b/c/d to `graph.yaml`.
+  - Milestone nodes get `epic: E-21-pack-contribution-contract` (the parent ID), **not** the sub-epic ID.
+  - The `parent: E-21<x>-...` field in milestone-spec frontmatter is documentation only — the graph won't index it.
+- **Reporting.** `wf-graph report --status` shows E-21 once with no sub-epic breakdown. For sub-epic visibility, query `wf-graph query E-21-pack-contribution-contract --descendants` and group by track letter (M-PACK-A-* = E-21a, M-PACK-B-* = E-21b, M-PACK-C-* = E-21c, M-PACK-D-* = E-21d).
+- **CLAUDE.md *Current Work*.** Use three-coordinate prose (`E-21 → E-21<x> → M-PACK-...`). Update at sub-epic boundaries (e.g. starting E-21b) even though the framework only prescribes updates at milestone start/wrap.
+- **Long-lived epic branch.** E-21 spans all four sub-epics — likely months. Periodically merge `main` into `epic/E-21-pack-contribution-contract` to bound divergence; don't let it drift more than a few weeks.
+- **Audit warnings.** `workflow-audit` may flag the `parent:` field in milestone frontmatter as "unknown parent." Treat as a known false positive scoped to E-21.
+- **The restructure question.** Promoting each sub-epic to a top-level epic was considered 2026-04-25 and deferred (cost > benefit at this stage; full thought-trail in conversation history). If the friction grows, revisit at sub-epic transitions (e.g. moving from E-21a wrap to E-21b plan).
+
+These rules are the working-pattern for E-21 only. Future epics should not adopt the sub-epic pattern unless the framework grows native support.
 
 For structural state see:
 - `wf-graph report --status` — open epics with phase, activity, blocked-by, blocks
