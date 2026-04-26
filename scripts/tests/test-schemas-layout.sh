@@ -1,6 +1,6 @@
 #!/bin/sh
 # Smoke test for the docs/schemas/ fixture-library layout placeholder
-# (M-PACK-A-01 AC6).
+# (M-CONTRACT-01 AC6).
 #
 # Validates:
 #   - docs/schemas/ directory exists at repo root.

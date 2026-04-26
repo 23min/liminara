@@ -855,6 +855,30 @@ nodes:
       - source: spec-frontmatter
         file: work/epics/E-27-radar-extraction-and-migration/epic.md
         value: planning
+  - id: M-CONTRACT-01
+    kind: milestone
+    path: work/epics/E-24-contract-design/M-CONTRACT-01-contract-tdd-tooling.md
+    title: Liminara-project Contract-TDD tooling
+    status: complete
+    confidence: high
+  - id: M-CONTRACT-02
+    kind: milestone
+    path: work/epics/E-24-contract-design/M-CONTRACT-02-foundational-contracts.md
+    title: Foundational contracts (5 ADRs)
+    status: draft
+    confidence: high
+  - id: M-CONTRACT-03
+    kind: milestone
+    path: work/epics/E-24-contract-design/M-CONTRACT-03-packs-as-running-systems.md
+    title: Packs-as-running-systems (5 ADRs)
+    status: draft
+    confidence: high
+  - id: M-CONTRACT-04
+    kind: milestone
+    path: work/epics/E-24-contract-design/M-CONTRACT-04-governance-contracts.md
+    title: Governance (8 ADRs)
+    status: draft
+    confidence: high
   - id: M-CS-01
     kind: milestone
     path: work/done/E-02-python-compliance-sdk/M-CS-01-project-setup.md
@@ -1116,30 +1140,6 @@ nodes:
       - source: spec-frontmatter
         file: work/done/E-08-otp-runtime/M-OTP-05-stress-testing.md
         value: complete
-  - id: M-PACK-A-01
-    kind: milestone
-    path: work/epics/E-24-contract-design/M-PACK-A-01-contract-tdd-tooling.md
-    title: Liminara-project Contract-TDD tooling
-    status: complete
-    confidence: high
-  - id: M-PACK-A-02a
-    kind: milestone
-    path: work/epics/E-24-contract-design/M-PACK-A-02a-foundational-contracts.md
-    title: Foundational contracts (5 ADRs)
-    status: draft
-    confidence: high
-  - id: M-PACK-A-02b
-    kind: milestone
-    path: work/epics/E-24-contract-design/M-PACK-A-02b-packs-as-running-systems.md
-    title: Packs-as-running-systems (5 ADRs)
-    status: draft
-    confidence: high
-  - id: M-PACK-A-02c
-    kind: milestone
-    path: work/epics/E-24-contract-design/M-PACK-A-02c-governance-contracts.md
-    title: Governance (8 ADRs)
-    status: draft
-    confidence: high
   - id: M-PORT-01
     kind: milestone
     path: work/done/E-10-port-executor/M-PORT-01-protocol-executor-runner.md
@@ -1303,6 +1303,34 @@ nodes:
         file: work/done/E-19-warnings-degraded-outcomes/M-WARN-04-postreview-bugfixes.md
         value: complete
 edges:
+  - type: child_of
+    from: E-24
+    to: E-21
+    confidence: high
+    evidence:
+      - source: spec-frontmatter
+        file: work/epics/E-24-contract-design/epic.md
+  - type: child_of
+    from: E-25
+    to: E-21
+    confidence: high
+    evidence:
+      - source: spec-frontmatter
+        file: work/epics/E-25-runtime-pack-infrastructure/epic.md
+  - type: child_of
+    from: E-26
+    to: E-21
+    confidence: high
+    evidence:
+      - source: spec-frontmatter
+        file: work/epics/E-26-pack-dx/epic.md
+  - type: child_of
+    from: E-27
+    to: E-21
+    confidence: high
+    evidence:
+      - source: spec-frontmatter
+        file: work/epics/E-27-radar-extraction-and-migration/epic.md
   - type: depends_on
     from: E-11
     to: E-10
@@ -1346,28 +1374,63 @@ edges:
       - source: spec-frontmatter
         file: work/epics/E-21-pack-contribution-contract/epic.md
   - type: depends_on
+    from: E-24
+    to: E-19
+    confidence: high
+    evidence:
+      - source: spec-frontmatter
+        file: work/epics/E-24-contract-design/epic.md
+  - type: depends_on
+    from: E-25
+    to: E-24
+    confidence: high
+    evidence:
+      - source: spec-frontmatter
+        file: work/epics/E-25-runtime-pack-infrastructure/epic.md
+  - type: depends_on
+    from: E-26
+    to: E-24
+    confidence: high
+    evidence:
+      - source: spec-frontmatter
+        file: work/epics/E-26-pack-dx/epic.md
+  - type: depends_on
+    from: E-27
+    to: E-25
+    confidence: high
+    evidence:
+      - source: spec-frontmatter
+        file: work/epics/E-27-radar-extraction-and-migration/epic.md
+  - type: depends_on
+    from: E-27
+    to: E-26
+    confidence: high
+    evidence:
+      - source: spec-frontmatter
+        file: work/epics/E-27-radar-extraction-and-migration/epic.md
+  - type: depends_on
+    from: M-CONTRACT-01
+    to: E-19
+    confidence: high
+  - type: depends_on
+    from: M-CONTRACT-02
+    to: M-CONTRACT-01
+    confidence: high
+  - type: depends_on
+    from: M-CONTRACT-03
+    to: M-CONTRACT-02
+    confidence: high
+  - type: depends_on
+    from: M-CONTRACT-04
+    to: M-CONTRACT-02
+    confidence: high
+  - type: depends_on
     from: M-DOCS-02
     to: M-DOCS-01
     confidence: high
     evidence:
       - source: spec-frontmatter
         file: work/done/E-22-docs-foundation/M-DOCS-02-doc-tree-taxonomy.md
-  - type: depends_on
-    from: M-PACK-A-01
-    to: E-19
-    confidence: high
-  - type: depends_on
-    from: M-PACK-A-02a
-    to: M-PACK-A-01
-    confidence: high
-  - type: depends_on
-    from: M-PACK-A-02b
-    to: M-PACK-A-02a
-    confidence: high
-  - type: depends_on
-    from: M-PACK-A-02c
-    to: M-PACK-A-02a
-    confidence: high
   - type: depends_on
     from: M-PORT-02
     to: M-PORT-01
@@ -1782,22 +1845,6 @@ edges:
       - source: filesystem
         file: work/done/E-20-execution-truth/M-TRUTH-03-radar-semantic-cleanup.md
   - type: parent
-    from: E-24
-    to: M-PACK-A-01
-    confidence: high
-  - type: parent
-    from: E-24
-    to: M-PACK-A-02a
-    confidence: high
-  - type: parent
-    from: E-24
-    to: M-PACK-A-02b
-    confidence: high
-  - type: parent
-    from: E-24
-    to: M-PACK-A-02c
-    confidence: high
-  - type: parent
     from: E-22
     to: M-DOCS-01
     confidence: high
@@ -1811,66 +1858,19 @@ edges:
     evidence:
       - source: filesystem
         file: work/done/E-22-docs-foundation/M-DOCS-02-doc-tree-taxonomy.md
-  - type: child_of
+  - type: parent
     from: E-24
-    to: E-21
+    to: M-CONTRACT-01
     confidence: high
-    evidence:
-      - source: spec-frontmatter
-        file: work/epics/E-24-contract-design/epic.md
-  - type: child_of
-    from: E-25
-    to: E-21
-    confidence: high
-    evidence:
-      - source: spec-frontmatter
-        file: work/epics/E-25-runtime-pack-infrastructure/epic.md
-  - type: child_of
-    from: E-26
-    to: E-21
-    confidence: high
-    evidence:
-      - source: spec-frontmatter
-        file: work/epics/E-26-pack-dx/epic.md
-  - type: child_of
-    from: E-27
-    to: E-21
-    confidence: high
-    evidence:
-      - source: spec-frontmatter
-        file: work/epics/E-27-radar-extraction-and-migration/epic.md
-  - type: depends_on
+  - type: parent
     from: E-24
-    to: E-19
+    to: M-CONTRACT-02
     confidence: high
-    evidence:
-      - source: spec-frontmatter
-        file: work/epics/E-24-contract-design/epic.md
-  - type: depends_on
-    from: E-25
-    to: E-24
+  - type: parent
+    from: E-24
+    to: M-CONTRACT-03
     confidence: high
-    evidence:
-      - source: spec-frontmatter
-        file: work/epics/E-25-runtime-pack-infrastructure/epic.md
-  - type: depends_on
-    from: E-26
-    to: E-24
+  - type: parent
+    from: E-24
+    to: M-CONTRACT-04
     confidence: high
-    evidence:
-      - source: spec-frontmatter
-        file: work/epics/E-26-pack-dx/epic.md
-  - type: depends_on
-    from: E-27
-    to: E-25
-    confidence: high
-    evidence:
-      - source: spec-frontmatter
-        file: work/epics/E-27-radar-extraction-and-migration/epic.md
-  - type: depends_on
-    from: E-27
-    to: E-26
-    confidence: high
-    evidence:
-      - source: spec-frontmatter
-        file: work/epics/E-27-radar-extraction-and-migration/epic.md

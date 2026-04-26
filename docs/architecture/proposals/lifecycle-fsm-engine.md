@@ -151,28 +151,28 @@ These verbs route through the same propose-then-apply path as patch YAML, but sk
 
 #### S1: `start-milestone` with satisfied blockers
 
-User: *"start M-PACK-A-01."*
+User: *"start M-CONTRACT-01."*
 
-1. **LLM (intent):** resolves "M-PACK-A-01" to a node-id; recognizes the start event-type.
+1. **LLM (intent):** resolves "M-CONTRACT-01" to a node-id; recognizes the start event-type.
 2. **LLM (context):** reads the milestone spec, CLAUDE.md *Current Work*.
-3. **Engine (query):** `wf-graph query M-PACK-A-01 --transitions`. Returns: `current_state: draft, allowed_targets: [active, cancelled]`.
-4. **Engine (query):** `wf-graph query M-PACK-A-01 --blocked-by`. Returns: `[E-19 (status: complete)]`. Blockers in terminal state — guard satisfied.
-5. **LLM (compose):** invokes `wf-graph promote M-PACK-A-01 --to active --dry-run`.
+3. **Engine (query):** `wf-graph query M-CONTRACT-01 --transitions`. Returns: `current_state: draft, allowed_targets: [active, cancelled]`.
+4. **Engine (query):** `wf-graph query M-CONTRACT-01 --blocked-by`. Returns: `[E-19 (status: complete)]`. Blockers in terminal state — guard satisfied.
+5. **LLM (compose):** invokes `wf-graph promote M-CONTRACT-01 --to active --dry-run`.
 6. **Engine (preview):** validates; returns delta JSON: `would_succeed: true; effects: [graph mutation, frontmatter status flip]; propagation: [no downstream auto-transitions].`
-7. **LLM (relay):** *"This transition flips M-PACK-A-01 to active and updates `work/graph.yaml` + spec frontmatter atomically. The follow-up post-effect (cutting `milestone/M-PACK-A-01` branch from `epic/E-21-pack-contribution-contract`) is LLM-side. Apply?"*
+7. **LLM (relay):** *"This transition flips M-CONTRACT-01 to active and updates `work/graph.yaml` + spec frontmatter atomically. The follow-up post-effect (cutting `milestone/M-CONTRACT-01` branch from `epic/E-21-pack-contribution-contract`) is LLM-side. Apply?"*
 8. **Human:** approves.
-9. **Engine (apply):** `wf-graph promote M-PACK-A-01 --to active` writes graph.yaml + frontmatter atomically.
+9. **Engine (apply):** `wf-graph promote M-CONTRACT-01 --to active` writes graph.yaml + frontmatter atomically.
 10. **LLM (post-effects):** cuts the milestone branch; scaffolds the tracking doc; updates CLAUDE.md *Current Work*; stages commit.
 11. **Human:** approves commit; LLM commits.
 
 #### S2: `start-milestone` with unsatisfied blockers
 
-User: *"start M-PACK-A-02b."*
+User: *"start M-CONTRACT-03."*
 
 1. **LLM (intent + context):** as S1.
-2. **Engine (query):** `wf-graph query M-PACK-A-02b --blocked-by`. Returns: `[M-PACK-A-02a (status: draft)]`.
-3. **Engine (transition validation):** `wf-graph promote M-PACK-A-02b --to active --dry-run`. Returns: `would_succeed: false; reason: "blocker M-PACK-A-02a is not in terminal state"`.
-4. **LLM (relay):** *"M-PACK-A-02b can't start yet — its blocker M-PACK-A-02a is in `draft`, not a terminal state. Either start M-PACK-A-02a first, or override the dependency, or pick a different milestone."*
+2. **Engine (query):** `wf-graph query M-CONTRACT-03 --blocked-by`. Returns: `[M-CONTRACT-02 (status: draft)]`.
+3. **Engine (transition validation):** `wf-graph promote M-CONTRACT-03 --to active --dry-run`. Returns: `would_succeed: false; reason: "blocker M-CONTRACT-02 is not in terminal state"`.
+4. **LLM (relay):** *"M-CONTRACT-03 can't start yet — its blocker M-CONTRACT-02 is in `draft`, not a terminal state. Either start M-CONTRACT-02 first, or override the dependency, or pick a different milestone."*
 5. **No transition occurs.** Engine refuses; LLM presents the human-readable reason.
 
 This scenario shows how guards prevent invalid lifecycle moves *before* any spec is touched. Today, a skill could write `status: active` to frontmatter regardless of blockers — drift in slow motion. The FSM engine catches it deterministically.
@@ -182,8 +182,8 @@ This scenario shows how guards prevent invalid lifecycle moves *before* any spec
 User: *"wrap E-19."*
 
 1. **Engine (query + dry-run):** validate transition `E-19: active → complete`. Compute propagation: which downstream entities are unblocked?
-2. **Engine (preview):** `propagation: { unblocked: [M-PACK-A-01, ...] }`.
-3. **LLM (relay):** *"Wrapping E-19 unblocks the following downstream items: M-PACK-A-01 (in draft, will become eligible to start). Apply?"*
+2. **Engine (preview):** `propagation: { unblocked: [M-CONTRACT-01, ...] }`.
+3. **LLM (relay):** *"Wrapping E-19 unblocks the following downstream items: M-CONTRACT-01 (in draft, will become eligible to start). Apply?"*
 4. **Human:** approves.
 5. **Engine (apply):** atomic flip; downstream `blocked` entities (if any) auto-transition to `active` (or to whatever their pre-block state was).
 6. **LLM (post-effects):** merges `epic/E-19-...` into main; archives the epic folder; updates CLAUDE.md.
@@ -244,7 +244,7 @@ The following are real, unresolved choices the design will have to answer before
 
 **Q-3: How are auto-transitions triggered?**
 
-When E-19 → complete, dependents (M-PACK-A-01) become unblocked. Does the engine auto-transition `M-PACK-A-01: blocked → active`?
+When E-19 → complete, dependents (M-CONTRACT-01) become unblocked. Does the engine auto-transition `M-CONTRACT-01: blocked → active`?
 
 - **Option A:** Yes, automatic. One transition cascades.
 - **Option B:** No — the engine reports propagation, but each dependent's transition is human-initiated.

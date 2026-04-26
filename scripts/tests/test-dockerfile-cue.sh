@@ -1,5 +1,5 @@
 #!/bin/sh
-# Smoke test for the devcontainer CUE install contract (M-PACK-A-01 AC2).
+# Smoke test for the devcontainer CUE install contract (M-CONTRACT-01 AC2).
 #
 # Validates:
 #   - .devcontainer/devcontainer.json's build.context includes the repo root

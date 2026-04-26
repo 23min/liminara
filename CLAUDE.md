@@ -186,19 +186,19 @@ in a future epic" is rejected.
   code must be a real, running implementation today — not test code,
   not a mock, not a draft branch.
 - **Scheduled-to-exist implementation:** a Liminara milestone ID
-  (`M-PACK-B-01b`, `M-PACK-C-03`, etc.) **plus** the named file or
-  module the milestone will create. "Built in M-PACK-C-03" is too
-  abstract; "`examples/file_watch_demo` built in M-PACK-C-03" is
+  (`M-RUNTIME-02`, `M-DX-03`, etc.) **plus** the named file or
+  module the milestone will create. "Built in M-DX-03" is too
+  abstract; "`examples/file_watch_demo` built in M-DX-03" is
   acceptable. The named-file binding is the contract deadline.
 
 Acceptable scheduled references in E-21 (already vetted against the
 parent sub-epic's *Technical direction* §4):
 
-- `examples/file_watch_demo` — E-26 M-PACK-C-03 (ADR-FILEWATCH-01).
-- The admin-pack-shape proxy pack — E-25 M-PACK-B-01b loaded /
-  M-PACK-B-03 executed (secondary validator for multi-trigger +
+- `examples/file_watch_demo` — E-26 M-DX-03 (ADR-FILEWATCH-01).
+- The admin-pack-shape proxy pack — E-25 M-RUNTIME-02 loaded /
+  M-RUNTIME-04 executed (secondary validator for multi-trigger +
   multi-plan ADRs).
-- Radar generated `pack.yaml` shim — E-25 M-PACK-B-01b (validator of
+- Radar generated `pack.yaml` shim — E-25 M-RUNTIME-02 (validator of
   ADR-MANIFEST-01's CUE schema against Radar's real shape).
 
 The reviewer at wrap-milestone time of the *cited* milestone (not
@@ -537,9 +537,9 @@ Subagents dispatched via `Agent` run silently from the parent session's perspect
 
 ## Current Work
 
-**Active focus:** M-PACK-A-02a — Foundational contracts (5 ADRs: ADR-MANIFEST-01, ADR-PLAN-01, ADR-OPSPEC-01, ADR-REPLAY-01, ADR-WIRE-01). Lands first ADR content + CUE schemas + valid/invalid fixtures into the harness M-PACK-A-01 built. Owning epic is **E-24 (Pack Contract Design)**, child of umbrella **E-21**.
-**Why now:** M-PACK-A-01 wrapped 2026-04-25; the contract-TDD harness is live and the fixture library is empty by design. M-PACK-A-02a unblocks M-PACK-A-02b/c and the downstream peer epics (E-25 runtime, E-26 DX, E-27 Radar extraction).
-**Active branch:** `epic/E-21-pack-contribution-contract` carries the merged M-PACK-A-01 work; rename to `epic/E-24-contract-design` is recommended before cutting `milestone/M-PACK-A-02a` (per D-2026-04-26-034).
+**Active focus:** M-CONTRACT-02 — Foundational contracts (5 ADRs: ADR-MANIFEST-01, ADR-PLAN-01, ADR-OPSPEC-01, ADR-REPLAY-01, ADR-WIRE-01). Lands first ADR content + CUE schemas + valid/invalid fixtures into the harness M-CONTRACT-01 built. Owning epic is **E-24 (Pack Contract Design)**, child of umbrella **E-21**.
+**Why now:** M-CONTRACT-01 wrapped 2026-04-25; the contract-TDD harness is live and the fixture library is empty by design. M-CONTRACT-02 unblocks M-CONTRACT-03 and M-CONTRACT-04, and the downstream peer epics (E-25 runtime, E-26 DX, E-27 Radar extraction).
+**Active branch:** `epic/E-24-contract-design` carries the M-CONTRACT-01 merge plus the framework-bump + dead-code-audit + milestone-rename commits; cut `milestone/M-CONTRACT-02` from this branch when starting that work (per D-2026-04-26-034 and D-2026-04-26-035).
 
 For structural state see:
 - `wf-graph report --status` — open epics with phase, activity, blocked-by, blocks

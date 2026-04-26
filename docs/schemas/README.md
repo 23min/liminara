@@ -18,8 +18,8 @@ PR #72; rationale lives in `work/decisions.md` D-2026-04-25-033.
 
 The layout, validation runner, and schema-evolution discipline below are
 fixed conventions for the duration of E-21. They were locked in
-M-PACK-A-01 (the contract-TDD tooling milestone) and the first schemas +
-fixtures land in M-PACK-A-02a.
+M-CONTRACT-01 (the contract-TDD tooling milestone) and the first schemas +
+fixtures land in M-CONTRACT-02.
 
 ## Layout
 
@@ -119,12 +119,12 @@ and `docs/schemas/<topic>/fixtures/v*/*.yaml` to find fixtures. Drop a
 new directory matching the layout above and the validation runner picks
 it up.
 
-## Status (as of M-PACK-A-01 wrap)
+## Status (as of M-CONTRACT-01 wrap)
 
-This library is **empty by design**. M-PACK-A-01 ships only the layout
-convention, the runner, and the hook. M-PACK-A-02a lands the first
+This library is **empty by design**. M-CONTRACT-01 ships only the layout
+convention, the runner, and the hook. M-CONTRACT-02 lands the first
 schemas + fixtures (`manifest`, `plan`, `op-spec`, `replay`, `wire`),
-followed by M-PACK-A-02b (`surface`, `trigger`, `file-watch`, `fs-scope`,
-`secrets`) and M-PACK-A-02c (`content-namespace`, `executor`,
+followed by M-CONTRACT-03 (`surface`, `trigger`, `file-watch`, `fs-scope`,
+`secrets`) and M-CONTRACT-04 (`content-namespace`, `executor`,
 `schema-evolution`, `multi-plan`, `pack-layout`, `pack-registry`,
 `language-agnostic`, `boundary`).

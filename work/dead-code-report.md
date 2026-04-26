@@ -26,7 +26,7 @@
 - **Orphan fixtures:** `runtime/apps/*/test/support/fixtures/` not touched; no fixture orphans introduced.
 - **Stale ADRs:** ADR-0003 (`docs/decisions/0003-doc-tree-taxonomy.md`, modified) cites `docs/architecture/contract-matrix.md`, `00_TRUTH_MODEL.md`, `01_CONTRACT_MATRIX.md`, `02_SHIM_POLICY.md` — none exist on disk. Read in context: the first is named in the *rejected alternatives* section ("we considered this path"); the others are the OLD filenames being renamed *by this ADR* (lines 49–52: `X → Y` form). All correctly contextualized; **not** stale citations.
 - **Helpers retained "for stability":** N/A (no `.ex` source in change-set).
-- **Schema fields with no consumers:** `docs/schemas/` is README-only on this branch — schemas land in M-PACK-A-02a. No fields to sweep.
+- **Schema fields with no consumers:** `docs/schemas/` is README-only on this branch — schemas land in M-CONTRACT-02. No fields to sweep.
 - **Deprecated aliases:** none.
 
 ### Out-of-scope baseline (informational; not part of this milestone's findings)
@@ -37,7 +37,7 @@ The 96 + 19 hints fall into four clusters worth flagging for whoever scopes the 
 - ~20 **OTP `child_spec/1` / `start_link/1`** entries on `Liminara.*.Store`, `Liminara.*.Server`, `Liminara.*.Scheduler`. Invoked by supervisors; expected false positives.
 - **`LiminaraWeb.__using__/1` quoted helpers** (`router/0`, `channel/0`, `controller/0`, `live_view/0`, `live_component/0`, `html/0`, `verified_routes/0`, `static_paths/0`). Used via `use LiminaraWeb, :name` — Phoenix's standard module pattern; expected false positives.
 - **19 `should be private` flags worth real triage** — these are over-public functions where mix_unused saw no cross-module caller. A few worth examining when next touching that code: `Liminara.Run.Result.derive_degraded/2`, `Liminara.Plan.new/0`, `Liminara.Plan.add_node/4`, `LiminaraWeb.Router.browser/2`, `Liminara.Executor.Port.encode_request/3`, `Liminara.Event.Store.read_all/2`, `Liminara.Observation.Server.get_node/2`, `Liminara.Radar.Scheduler.ms_until_next/2`. Each becomes a finding when its file enters a milestone change-set.
-- **Likely-genuine dead candidates** (similar caveat — flag at next change-set hit): `Liminara.Run.Cli.degraded_banner/1`, `Liminara.Run.Cli.maybe_print_degraded_banner/2`, `Liminara.Warning.severities/0`, `Liminara.Observation.Layout.compute/2`. Worth grep-confirming during M-PACK-A-02a if any are in scope; otherwise wait for the natural milestone that touches those files.
+- **Likely-genuine dead candidates** (similar caveat — flag at next change-set hit): `Liminara.Run.Cli.degraded_banner/1`, `Liminara.Run.Cli.maybe_print_degraded_banner/2`, `Liminara.Warning.severities/0`, `Liminara.Observation.Layout.compute/2`. Worth grep-confirming during M-CONTRACT-02 if any are in scope; otherwise wait for the natural milestone that touches those files.
 
 ## Recipe: python
 

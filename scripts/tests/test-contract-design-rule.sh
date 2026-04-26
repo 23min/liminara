@@ -1,6 +1,6 @@
 #!/bin/sh
 # Smoke test for the Liminara contract-design reviewer rule
-# (M-PACK-A-01 AC8).
+# (M-CONTRACT-01 AC8).
 #
 # Validates structure (which assertions appear), not prose quality.
 # Quality is a wrap-time reviewer pass.
@@ -66,15 +66,15 @@ grep -qiE 'TBD.{0,15}(not|reject)|no TBD|TBD is rejected' "$RULE" \
     || fail "rule does not reject TBD reference-implementation citations (rule 4)"
 grep -qE 'file:line|<file>:<line>' "$RULE" \
     || fail "rule does not document the file:line citation shape (rule 4)"
-grep -qE 'M-PACK-[A-Z]-' "$RULE" \
-    || fail "rule does not document the M-PACK-* milestone citation shape (rule 4)"
+grep -qE 'M-(CONTRACT|RUNTIME|DX|RADX)-' "$RULE" \
+    || fail "rule does not document the Liminara milestone citation shape (rule 4)"
 
 # 7. References the contract-matrix index by path.
 grep -q 'docs/architecture/indexes/contract-matrix\.md' "$RULE" \
     || fail "rule does not reference docs/architecture/indexes/contract-matrix.md"
 
 # 8. References the parent sub-epic spec by path.
-grep -q 'E-21a-contract-design\.md' "$RULE" \
+grep -q 'E-24-contract-design\/epic\.md' "$RULE" \
     || fail "rule does not reference the parent sub-epic spec"
 
 # 9. References the AC7 authoring overlay.

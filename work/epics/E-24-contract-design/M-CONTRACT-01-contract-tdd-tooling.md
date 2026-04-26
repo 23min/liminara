@@ -1,5 +1,5 @@
 ---
-id: M-PACK-A-01
+id: M-CONTRACT-01
 epic: E-24
 parent: E-24
 status: complete

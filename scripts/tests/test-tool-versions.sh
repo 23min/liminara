@@ -1,5 +1,5 @@
 #!/bin/sh
-# Smoke test for .tool-versions contract (M-PACK-A-01 AC1).
+# Smoke test for .tool-versions contract (M-CONTRACT-01 AC1).
 # Validates: file exists at repo root, contains a parseable `cue` line,
 # canonical extractor returns a non-empty semver-shaped value.
 #

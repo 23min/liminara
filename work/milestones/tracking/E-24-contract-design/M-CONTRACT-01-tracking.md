@@ -1,9 +1,9 @@
-# M-PACK-A-01: Liminara-project Contract-TDD tooling — Tracking
+# M-CONTRACT-01: Liminara-project Contract-TDD tooling — Tracking
 
 **Started:** 2026-04-25
 **Completed:** 2026-04-25
-**Branch:** milestone/M-PACK-A-01 (cut from epic/E-21-pack-contribution-contract; merged 2026-04-25 via merge commit `a2ceca3` on `epic/E-21-pack-contribution-contract`)
-**Spec:** work/epics/E-21-pack-contribution-contract/M-PACK-A-01-contract-tdd-tooling.md
+**Branch:** milestone/M-CONTRACT-01 (cut from epic/E-21-pack-contribution-contract; merged 2026-04-25 via merge commit `a2ceca3` on `epic/E-21-pack-contribution-contract`)
+**Spec:** work/epics/E-21-pack-contribution-contract/M-CONTRACT-01-contract-tdd-tooling.md
 **Commits:** `2921f2a` (AC1–AC6), `66ed62d` (AC7 + AC8), `0727a86` (builder agent-history)
 
 <!-- Status is not carried here. The milestone spec's frontmatter `status:` field is
@@ -65,7 +65,7 @@ commit · _(pending milestone-end)_ · tests 2/2
 Single POSIX-shell entry point at `scripts/cue-vet` covers both ACs:
 
 - **Single-file mode** (`scripts/cue-vet path/to/file.cue`) — `exec`s `cue vet "$1"` so the cue exit code propagates verbatim. Used by the pre-commit hook (AC4) on each staged `.cue` file.
-- **No-arg mode** (`scripts/cue-vet`) — the schema-evolution loop. Walks `docs/schemas/<topic>/`, for each topic with a `schema.cue` and a `fixtures/` subtree, runs `cue vet <topic>/schema.cue <fixture>` against every `fixtures/v*/*.yaml`. Empty or missing `docs/schemas/` exits 0 — the M-PACK-A-01 wrap-state. Failure output format matches the parent sub-epic spec exactly: `<fixture path> fails against <topic>.cue at <schema path>: <CUE error>`.
+- **No-arg mode** (`scripts/cue-vet`) — the schema-evolution loop. Walks `docs/schemas/<topic>/`, for each topic with a `schema.cue` and a `fixtures/` subtree, runs `cue vet <topic>/schema.cue <fixture>` against every `fixtures/v*/*.yaml`. Empty or missing `docs/schemas/` exits 0 — the M-CONTRACT-01 wrap-state. Failure output format matches the parent sub-epic spec exactly: `<fixture path> fails against <topic>.cue at <schema path>: <CUE error>`.
 - **Too-many-args** prints `usage: scripts/cue-vet [path/to/file.cue]` to stderr and exits 2.
 - **cwd-independent** via `SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"`; resolves the schemas tree relative to its own location, not the caller's `$PWD`.
 
@@ -79,7 +79,7 @@ commit · _(pending milestone-end)_ · tests 13/13
 
 After AC4 landed, ai-workflow#37 / PR #72 closed upstream during the same session, shipping the tech-neutral `design-contract` skill + CUE recipe. Upstream prescribes `<topic>/<version>/{valid,invalid}/<name>.<ext>` for the fixture library and treats invalid fixtures as a non-optional principle. Liminara's flatter `fixtures/v<N>/<name>.yaml` shape (just shipped in AC3/AC5/AC6) had no place for invalid fixtures and would have flagged any committed invalid fixture as a permanent regression.
 
-Decision recorded in `work/decisions.md` D-2026-04-25-033; M-PACK-A-01 spec AC5 + AC6 amended; `E-24-contract-design.md` *Schema-evolution check — specification* subsection rewritten.
+Decision recorded in `work/decisions.md` D-2026-04-25-033; M-CONTRACT-01 spec AC5 + AC6 amended; `E-24-contract-design.md` *Schema-evolution check — specification* subsection rewritten.
 
 `scripts/cue-vet`'s no-arg loop refactored into two sub-walks:
 - `fixtures/v*/valid/*.yaml` → `cue vet` must exit 0 per fixture; failures use the standard format.
@@ -119,7 +119,7 @@ commit · _(pending milestone-end)_ · tests 14/14
 Discussed up-front and recorded in tracking-doc top section:
 
 - **Q1-B**: hook is a thin wrapper at `.git/hooks/pre-commit` that `exec`s `scripts/pre-commit-cue`. Edits to the wrapper-logic file take effect without re-running the installer.
-- **Q2-A**: when any fixture is staged, the hook runs the full no-arg schema-evolution loop. Per-affected-topic optimization is deferred — fixture library is empty at M-PACK-A-01 wrap and stays small through M-PACK-A-02*.
+- **Q2-A**: when any fixture is staged, the hook runs the full no-arg schema-evolution loop. Per-affected-topic optimization is deferred — fixture library is empty at M-CONTRACT-01 wrap and stays small through M-CONTRACT-02–04.
 - **Q3-A**: idempotency check is byte-equality via `cmp -s` (with a marker comment in the wrapper for human-legible diff context). Foreign hook = exit 1 with a clear notice.
 - **Q4-A**: install method is copy (not symlink). Symlink edge cases on cross-platform devcontainer hosts not worth navigating; the thin-wrapper design keeps the copy a fixed artifact.
 - **Q5**: tests run real `git init` / `git commit` inside `mktemp -d` sandboxes; never touch the real `.git/`. Same mock-cue heuristic as AC3, with the basename-match tightening.
@@ -127,14 +127,14 @@ Discussed up-front and recorded in tracking-doc top section:
 
 ### AC6 — `docs/schemas/` directory + layout README
 
-`docs/schemas/` directory created (empty, by design — M-PACK-A-02a lands the first schemas + fixtures). `docs/schemas/README.md` documents the layout convention end-to-end:
+`docs/schemas/` directory created (empty, by design — M-CONTRACT-02 lands the first schemas + fixtures). `docs/schemas/README.md` documents the layout convention end-to-end:
 
 - The pair-shape: `<topic>/schema.cue` + `<topic>/fixtures/v<N>/<name>.yaml`. Inline reference plus tree-form ASCII layout.
 - Why fixtures freeze at their authored version (the schema-evolution loop's whole point).
 - The `scripts/cue-vet` entry point — both modes (single-file + no-arg) — and the canonical failure-format reference back to the parent sub-epic spec.
 - The pre-commit hook's behavior + the `scripts/install-cue-hook` onboarding step.
 - The auto-discovery property (adding a new topic requires no edits to `cue-vet` or the hook — they walk `docs/schemas/*/`).
-- A wrap-state status block enumerating which milestones land which topics (M-PACK-A-02a/b/c).
+- A wrap-state status block enumerating which milestones land which topics (M-CONTRACT-02/b/c).
 
 Smoke test added at `scripts/tests/test-schemas-layout.sh` (POSIX shell, 6 checks). Asserts: directory exists, README exists, README documents the schema.cue layout, README documents the fixtures/v<N>/ layout, README references `scripts/cue-vet`, README mentions the schema-evolution loop / fixture-library walk. Branch-coverage audit: 5 of 6 fail() branches exercised by negative scenarios; the schema-evolution-mention branch is structurally reachable but my sed-based negative didn't catch the plural variant the regex accepts (deliberate flexibility in the regex, not a test bug).
 
@@ -167,10 +167,10 @@ Structure:
   1. Anchored admin-pack citations on every pack-level ADR; D2-A approach (anchor target may not yet exist; record intended anchor and validate at E-22).
   2. Contract-matrix rows at wrap, every contract surface (pointer to `.ai-repo/rules/liminara.md` *Contract matrix discipline* section).
   3. Radar-primary / admin-pack-secondary reference structure; one-pack abstractions get rejected at review.
-  4. Reference-implementation citation shapes (existing `<file>:<line>` OR `M-PACK-*` milestone with named file). Lists acceptable scheduled references in E-21 (`examples/file_watch_demo`, admin-pack-shape proxy, Radar `pack.yaml` shim).
+  4. Reference-implementation citation shapes (existing `<file>:<line>` OR `M-CONTRACT-*` / `M-RUNTIME-*` / `M-DX-*` / `M-RADX-*` milestone with named file). Lists acceptable scheduled references in E-21 (`examples/file_watch_demo`, admin-pack-shape proxy, Radar `pack.yaml` shim).
 - **Onboarding checklist** — six steps for first-time contract authors, including `bash scripts/install-cue-hook`.
 - **Cross-references** — paths to the contract-matrix index, contract-matrix-discipline rule section, AC8 reviewer rule, parent sub-epic spec, layout-convergence decision.
-- **Sync caveat** — this file is the source; never hand-edit `.claude/skills/design-contract/SKILL.md`; running `./.ai/sync.sh` is *not* part of M-PACK-A-01's commits (next routine sync produces the adapter output).
+- **Sync caveat** — this file is the source; never hand-edit `.claude/skills/design-contract/SKILL.md`; running `./.ai/sync.sh` is *not* part of M-CONTRACT-01's commits (next routine sync produces the adapter output).
 
 Test added at `scripts/tests/test-design-contract-skill.sh` (POSIX shell, 16 grep-based structural checks). Asserts the file exists at the source-of-truth path; references upstream skill + recipe + the issue/PR; documents Liminara path overrides + valid/invalid split + D-033; references local tooling, contract-matrix index, parent sub-epic spec, AC8 rule path; documents anchored-citation discipline + D2-A approach; states Radar-primary / admin-pack-secondary; documents acceptable reference-impl citation shapes; states sync caveat. Branch-coverage spot-check verified (3 of 16 negatives directly exercised; remaining 13 follow identical structure — the AC6 README test uses the same shape and was exhaustively audited).
 
@@ -187,7 +187,7 @@ Structure:
 - **Assertion 1** — Anchored admin-pack citations on every pack-level ADR. Format: `<file>.md §<section> — <description>`. Lists the 12 pack-level ADRs subject to the gate. Documents the D2-A E-22-pending allowance: the reviewer accepts the citation as a contract-for-future-content if the file + section anchor is named with specificity AND the description articulates *what* the cited section will provide; the substance is verified at E-22 against the materialized admin-pack content. Names ADRs not subject to the gate (ADR-LA-01, ADR-WIRE-01, ADR-BOUNDARY-01, ADR-EXECUTOR-01, ADR-EVOLUTION-01) and applies a weaker variant (substantive secondary, not TBD).
 - **Assertion 2** — Contract-matrix rows verified at wrap. References `.ai-repo/rules/liminara.md` *Contract matrix discipline* (the establishing rule). Three concrete checks: declared rows landed in the matrix; live-source paths exist at the cited location; "None — does not touch contract surfaces" milestones get a defensive verification. Wrap-blocking on miss.
 - **Assertion 3** — Radar-primary / admin-pack-secondary structure. One-pack abstractions get rejected at review with that explicit name. Documents the deliberate Radar-only exception (ADR-WIRE-01, ADR-EXECUTOR-01) gated by the parent sub-epic's *ADRs produced* table.
-- **Assertion 4** — Reference-implementation citation shapes. TBD explicitly rejected. Two acceptable shapes: existing `<file>:<line>` (must be real running code, not test/mock/draft) OR `M-PACK-*` milestone with named file/module. Lists pre-vetted scheduled references in E-21. Wrap-time deadline check on the *cited* milestone, not the ADR's own milestone.
+- **Assertion 4** — Reference-implementation citation shapes. TBD explicitly rejected. Two acceptable shapes: existing `<file>:<line>` (must be real running code, not test/mock/draft) OR `M-CONTRACT-*` / `M-RUNTIME-*` / `M-DX-*` / `M-RADX-*` milestone with named file/module. Lists pre-vetted scheduled references in E-21. Wrap-time deadline check on the *cited* milestone, not the ADR's own milestone.
 - **What the reviewer does NOT enforce** — explicit non-scope: the upstream skill's authoring workflow (bundle-as-PR is the contributor's discipline; reviewer just sees the bundle landed); per-CUE-language idioms (recipe handles those); schema-evolution-loop pass (pre-commit + CI gate by review time).
 - **References** — paths to the seven cross-referenced surfaces.
 
@@ -231,8 +231,8 @@ Devcontainer rebuild not performed at wrap — that's a contributor-side integra
      (wherever the repo tracks that) before the milestone archives, so the
      item survives the archive move. -->
 
-- **wf-graph spec-frontmatter update path-shape mismatch.** Observed during start-milestone: `wf-graph apply --patch` updated `work/graph.yaml` correctly but skipped the milestone spec frontmatter update with `open .../M-PACK-A-01-contract-tdd-tooling.md/spec.md: not a directory` — the tool appends `/spec.md` to `n.Path` unconditionally (`.ai/tools/wf-graph/internal/patch/write.go:124,137`), expecting folder-form `<id>/spec.md` rather than the flat `<id>-<slug>.md` form Liminara uses per `.ai-repo/config/artifact-layout.json`. The frontmatter was hand-edited as a workaround. Filed upstream: [ai-workflow#80](https://github.com/23min/ai-workflow/issues/80). Mirrored to `work/gaps.md`. Out of scope for M-PACK-A-01.
-- **Framework `.ai/` sync to upstream HEAD pending.** Upstream PR #72 landed during this milestone (ai-workflow#37) shipping `.ai/skills/design-contract.md`, `.ai/docs/recipes/design-contract-cue.md`, and additive `.ai/templates/adr.md` `contract:` frontmatter fields. Pulling the framework submodule to upstream HEAD is a separate routine operation, not gated by M-PACK-A-01. Until then, the four upstream files referenced by AC7's overlay + AC8's reviewer rule don't exist on this repo's disk; the references are forward-looking. Mirrored to `work/gaps.md`.
+- **wf-graph spec-frontmatter update path-shape mismatch.** Observed during start-milestone: `wf-graph apply --patch` updated `work/graph.yaml` correctly but skipped the milestone spec frontmatter update with `open .../M-CONTRACT-01-contract-tdd-tooling.md/spec.md: not a directory` — the tool appends `/spec.md` to `n.Path` unconditionally (`.ai/tools/wf-graph/internal/patch/write.go:124,137`), expecting folder-form `<id>/spec.md` rather than the flat `<id>-<slug>.md` form Liminara uses per `.ai-repo/config/artifact-layout.json`. The frontmatter was hand-edited as a workaround. Filed upstream: [ai-workflow#80](https://github.com/23min/ai-workflow/issues/80). Mirrored to `work/gaps.md`. Out of scope for M-CONTRACT-01.
+- **Framework `.ai/` sync to upstream HEAD pending.** Upstream PR #72 landed during this milestone (ai-workflow#37) shipping `.ai/skills/design-contract.md`, `.ai/docs/recipes/design-contract-cue.md`, and additive `.ai/templates/adr.md` `contract:` frontmatter fields. Pulling the framework submodule to upstream HEAD is a separate routine operation, not gated by M-CONTRACT-01. Until then, the four upstream files referenced by AC7's overlay + AC8's reviewer rule don't exist on this repo's disk; the references are forward-looking. Mirrored to `work/gaps.md`.
 
 ## Doc findings
 

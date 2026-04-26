@@ -2,7 +2,7 @@
 
 Instructions for agents to boot, drive, and verify Liminara end-to-end.
 
-This is a starting point — expand it as E-21 M-PACK-02 introduces the `e2e-harness` skill and the full scenario-test tooling.
+This is a starting point — expand it as E-26 M-DX-02 introduces the `e2e-harness` skill and the full scenario-test tooling.
 
 ## Quick Health Check
 
@@ -82,6 +82,6 @@ pkill -f 'sname liminara'   # targets only the named node
 
 If Phoenix is stuck, `Ctrl-C Ctrl-C` twice in the IEx prompt breaks out; use `:init.stop()` for clean shutdown when the supervisor tree needs to flush (event logs, LanceDB).
 
-## Notes for E-21 / M-PACK-02
+## Notes for E-26 / M-DX-02
 
 This file will be superseded or expanded by the `e2e-harness` skill (Playwright + `LiminaraTest.Harness` + `A2UICapture`). Until then, agents should follow the steps above for manual verification.

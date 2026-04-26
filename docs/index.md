@@ -1732,7 +1732,7 @@ sections:
   - Local validation — —
   - Pre-commit enforcement — —
   - Topic discovery is automatic — —
-  - Status (as of M-PACK-A-01 wrap) — —
+  - Status (as of M-CONTRACT-01 wrap) — —
 
 ## Reverse indexes
 

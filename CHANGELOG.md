@@ -16,12 +16,12 @@ This project has not yet cut a tagged release; everything to date lives under
   E-26 Pack DX (planning), E-27 Radar Extraction + Migration (planning).
   Connected via framework-native `parent: E-21` frontmatter on each child.
   See `work/decisions.md` D-2026-04-26-034.
-- **M-PACK-A-01 Contract-TDD tooling** (E-24, complete 2026-04-25). CUE in
+- **M-CONTRACT-01 Contract-TDD tooling** (E-24, complete 2026-04-25). CUE in
   the devcontainer, `cue vet` script + pre-commit hook with the
   schema-evolution loop, the `docs/schemas/<topic>/fixtures/v<N>/{valid,invalid}/`
   fixture-library convention, the `.ai-repo/skills/design-contract.md`
   authoring overlay, and the `.ai-repo/rules/contract-design.md` reviewer rule.
-  Fixture library is empty by design at wrap; M-PACK-A-02a lands the first
+  Fixture library is empty by design at wrap; M-CONTRACT-02 lands the first
   ADRs + schemas.
 - **Doc-tree taxonomy reorganization** (E-22, complete 2026-04-24).
   `docs/governance/` for prose authoring rules, `docs/schemas/` for CUE schemas
@@ -62,7 +62,7 @@ This project has not yet cut a tagged release; everything to date lives under
   - `wf-graph` 0.9.0 with `add-epic`, `add-milestone`, `promote`, `rename`
     verbs and `child_of` edge support.
   - `contract-verify` 0.1.0 binary + `verify-contracts` skill (will activate
-    when M-PACK-A-02a lands the first contract bundles).
+    when M-CONTRACT-02 lands the first contract bundles).
   - `check-contract-bundles` 0.1.0 binary + `workflow-audit §13`
     contract-bundle drift detection.
   - `design-contract` skill (tech-neutral) + CUE recipe + `contract:`
@@ -78,7 +78,7 @@ This project has not yet cut a tagged release; everything to date lives under
   retains the unifying narrative; each child is a normal peer epic with its
   own folder, branch, milestones, and lifecycle.
 - **Branch model** for the active E-21 family: `epic/E-24-contract-design`
-  carries the merged M-PACK-A-01 work (renamed from
+  carries the merged M-CONTRACT-01 work (renamed from
   `epic/E-21-pack-contribution-contract`). Future child epics get their own
   branches as they become active.
 - **Fixture-library layout** converged on the upstream framework's

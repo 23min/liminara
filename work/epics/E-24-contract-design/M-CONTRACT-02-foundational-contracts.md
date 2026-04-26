@@ -1,5 +1,5 @@
 ---
-id: M-PACK-A-02a
+id: M-CONTRACT-02
 epic: E-24
 parent: E-24
 status: draft

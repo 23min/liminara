@@ -121,13 +121,13 @@ Discovered work items deferred for later.
 
 ## `liminara_widgets` extraction — in-tree for E-26; extract when a second consumer arrives
 **Discovered:** 2026-04-23 (E-21 ultrareview — Finding 24)
-**Relates to:** E-26 M-PACK-C-02 (`liminara_widgets` lands in-tree), future submodule + Hex release
+**Relates to:** E-26 M-DX-02 (`liminara_widgets` lands in-tree), future submodule + Hex release
 **Severity:** Low — in-tree indefinitely is fine for the current deployment; the discipline is forward-compatibility with extraction, not immediate extraction.
-**Context:** `liminara_widgets` ships in E-26 M-PACK-C-02 as five generic A2UI widgets (`data_grid`, `json_viewer`, `dag_map` embedder, `content_card`, `banner`) with zero Liminara domain types by design. The library is **structurally reusable** by any A2UI consumer, but no external consumer exists today. Name chosen (`liminara_widgets` not `liminara_ui`): honest about being a widget library; doesn't mislead readers into expecting `%Run{}`/`%Artifact{}`-aware components (which a `liminara_ui` name would imply); doesn't collide with `ex_a2ui` naming the way `liminara_a2ui` would.
+**Context:** `liminara_widgets` ships in E-26 M-DX-02 as five generic A2UI widgets (`data_grid`, `json_viewer`, `dag_map` embedder, `content_card`, `banner`) with zero Liminara domain types by design. The library is **structurally reusable** by any A2UI consumer, but no external consumer exists today. Name chosen (`liminara_widgets` not `liminara_ui`): honest about being a widget library; doesn't mislead readers into expecting `%Run{}`/`%Artifact{}`-aware components (which a `liminara_ui` name would imply); doesn't collide with `ex_a2ui` naming the way `liminara_a2ui` would.
 **MVP decision:** keep in-tree inside the Liminara umbrella (`runtime/apps/liminara_widgets/` or equivalent). Reasons:
 - No external consumers today → extracting now is speculative investment.
-- `boundary` hex lib (ADR-BOUNDARY-01, lands in M-PACK-B-01a) enforces the zero-domain-types rule structurally via compile-time checks; the type-hygiene guarantee doesn't require submodule isolation.
-- In-tree keeps E-26 M-PACK-C-02's scope smaller — no separate Hex release cadence, no separate CI, no separate v0.1 → v1.0 maturity arc.
+- `boundary` hex lib (ADR-BOUNDARY-01, lands in M-RUNTIME-01) enforces the zero-domain-types rule structurally via compile-time checks; the type-hygiene guarantee doesn't require submodule isolation.
+- In-tree keeps E-26 M-DX-02's scope smaller — no separate Hex release cadence, no separate CI, no separate v0.1 → v1.0 maturity arc.
 **Forward-compatibility discipline** (what makes the extraction cheap when it happens):
 - Module docs written Hex-style (each public module documented; examples tested).
 - Public API surface stable enough that extraction is a git-filter-branch, not a rewrite.
@@ -142,10 +142,10 @@ Discovered work items deferred for later.
 
 ## Cross-version pack replay semantics — design space, not decided
 **Discovered:** 2026-04-23 (E-21 ultrareview — Finding 17)
-**Relates to:** E-24 ADR-REPLAY-01 (scope trimmed — pack-version skew removed), E-25 M-PACK-B-01b (provenance recording lands), E-17 Container Executor (natural home for hermetic replay), future VSME / DPP compliance epics
+**Relates to:** E-24 ADR-REPLAY-01 (scope trimmed — pack-version skew removed), E-25 M-RUNTIME-02 (provenance recording lands), E-17 Container Executor (natural home for hermetic replay), future VSME / DPP compliance epics
 **Severity:** Low today — Radar is one continuous version; single-operator deployments don't need cross-version replay. Rises to Medium when first pack ships a major-version bump mid-lifecycle, or when a regulator asks for byte-exact historical replay.
 **Context:** Today Liminara replays a run against whatever pack version is currently loaded. Works because the pack version at replay time matches the pack version at run-production time (one continuous Radar). When packs evolve mid-lifecycle (admin-pack ships v2.0; old runs from v1.5 exist in the event log), "what does replay mean?" becomes a real question. E-21 deliberately does not pick a policy — no pack has surfaced concrete pressure, and hermetic replay is expensive to bolt onto `:inline` + `:port` executors.
-**The provenance layer ships in E-25** (M-PACK-B-01b): each run's initial event records `pack_version` + `git_commit_hash`. This is cheap and unlocks audit workflows — "which code produced this run" is a recorded fact — without requiring the runtime to execute old code. **Provenance is separate from replayability**: most compliance disputes are resolved by reading the old code's source (by git hash), not by re-executing it in production.
+**The provenance layer ships in E-25** (M-RUNTIME-02): each run's initial event records `pack_version` + `git_commit_hash`. This is cheap and unlocks audit workflows — "which code produced this run" is a recorded fact — without requiring the runtime to execute old code. **Provenance is separate from replayability**: most compliance disputes are resolved by reading the old code's source (by git hash), not by re-executing it in production.
 **Design space (not decided; revisit when pressure surfaces):**
 1. **Single-version-with-provenance (current plan, post-E-21).** Runtime loads one pack version; replay uses that version; `pack_version` + `git_commit_hash` in events support "read the source" audit. Simplest. Matches the ship-when-you-need-it E-21 scope.
 2. **Compatibility-range replay.** Pack declares `replay_compat_range: "^1.0"` in manifest. Runtime loads one version; replay refuses if loaded version is outside the run's recorded compat range. Cheap to implement. Trust-based — compat is a policy claim, not a mechanical guarantee (unlike CUE schema unification, which *is* mechanical). Reasonable if a pack ships a breaking v2.0 but wants intra-1.x replays to work.
@@ -156,7 +156,7 @@ Discovered work items deferred for later.
 
 ## Secret-management maturity — pluggable SecretSource adapters + secret-observability hardening
 **Discovered:** 2026-04-23 (E-21 ultrareview — Finding 15)
-**Relates to:** E-25 M-PACK-B-02 (`SecretSource` behaviour + `EnvVar` adapter + `Secrets.Registry` + scrub + `:suspected_secret_leak` warning); ADR-SECRETS-01; future E-14 / production-deployment territory
+**Relates to:** E-25 M-RUNTIME-03 (`SecretSource` behaviour + `EnvVar` adapter + `Secrets.Registry` + scrub + `:suspected_secret_leak` warning); ADR-SECRETS-01; future E-14 / production-deployment territory
 **Severity:** Medium — MVP covers Boundary 1 reliably and Boundary 2 best-effort; richer hardening is demand-driven when deployment needs grow
 **Context:** Secret management has three distinct concerns and Liminara's E-21 MVP addresses the middle one:
 1. **Secret source / storage (where plaintext lives, who can read, audit).** *Industrial-strength solved problem.* HashiCorp Vault, AWS Secrets Manager, Azure Key Vault, GCP Secret Manager, Doppler, 1Password Connect. Liminara does **not** build a bespoke vault.
@@ -177,21 +177,21 @@ Discovered work items deferred for later.
 
 **Trigger for revisit:** (a) any deployment with more than one operator, or (b) any pack requiring short-lived / rotating secrets, or (c) admin-pack real-data deployment exposing a concrete need the MVP can't meet.
 
-## Radar generated `pack.yaml` shim — planned entry, activates on M-PACK-B-01b merge
+## Radar generated `pack.yaml` shim — planned entry, activates on M-RUNTIME-02 merge
 **Discovered:** 2026-04-23 (E-21 ultrareview — Finding 6)
-**Relates to:** E-25 M-PACK-B-01b (shim lands), E-27 M-PACK-D-01b (shim removed), `docs/governance/shim-policy.md`
+**Relates to:** E-25 M-RUNTIME-02 (shim lands), E-27 M-RADX-02 (shim removed), `docs/governance/shim-policy.md`
 **Severity:** N/A — this is a declared shim under policy, not a silent drift. Recorded here so the shim's survival across multiple milestones (B-01 → B-02 → B-03 → C-01..03 → early D-01) is visible.
-**Status:** **Planned.** This entry is promoted to active when M-PACK-B-01b merges and the shim file actually lives in-tree. Before that, the shim exists only as a spec commitment.
-**Context:** E-25 M-PACK-B-01b lands a generated `pack.yaml` for Radar in-tree so `PackLoader` can load Radar through the generic code path without a big-bang extraction. The file adapts Radar's current shape to the ADR-MANIFEST-01 schema; it preserves semantics (Radar's execution is identical), so it qualifies under the shim policy's allowed-exception rule. Full shim record in `work/epics/E-21-pack-contribution-contract/E-25-runtime-pack-infrastructure.md` → "Compatibility shims" section.
-**Items (survival-tracking only; the fix is E-27 M-PACK-D-01b):**
-- Shim file carries the required SHIM header comment (enforced at M-PACK-B-01b PR review)
+**Status:** **Planned.** This entry is promoted to active when M-RUNTIME-02 merges and the shim file actually lives in-tree. Before that, the shim exists only as a spec commitment.
+**Context:** E-25 M-RUNTIME-02 lands a generated `pack.yaml` for Radar in-tree so `PackLoader` can load Radar through the generic code path without a big-bang extraction. The file adapts Radar's current shape to the ADR-MANIFEST-01 schema; it preserves semantics (Radar's execution is identical), so it qualifies under the shim policy's allowed-exception rule. Full shim record in `work/epics/E-21-pack-contribution-contract/E-25-runtime-pack-infrastructure.md` → "Compatibility shims" section.
+**Items (survival-tracking only; the fix is E-27 M-RADX-02):**
+- Shim file carries the required SHIM header comment (enforced at M-RUNTIME-02 PR review)
 - Shim is not referenced as an authoritative manifest anywhere — it is `PackLoader` input only
 - Any change to Radar's shape during E-25/c regenerates the shim (or updates the hand-authored version) but does not add new shim files
-**Removal trigger:** E-27 M-PACK-D-01b replaces the in-tree generated manifest with `radar-pack`'s own authored canonical `pack.yaml`; the shim file is deleted in that same milestone.
+**Removal trigger:** E-27 M-RADX-02 replaces the in-tree generated manifest with `radar-pack`'s own authored canonical `pack.yaml`; the shim file is deleted in that same milestone.
 
 ## E-24 CI alignment — repo-wide CI pipeline + `cue vet` + schema-evolution as unbypassable gates
 **Discovered:** 2026-04-23 (E-21 ultrareview — Finding 5)
-**Relates to:** E-24 M-PACK-A-01 (local + pre-commit `cue vet`), `.devcontainer/Dockerfile`, future shared `tool-versions` file
+**Relates to:** E-24 M-CONTRACT-01 (local + pre-commit `cue vet`), `.devcontainer/Dockerfile`, future shared `tool-versions` file
 **Severity:** Medium — E-24 ships local + pre-commit enforcement in the interim; pre-commit is bypassable via `--no-verify`, so invalid CUE can land on a branch. Reviewer checklist covers the gap during PR review, but unbypassable CI enforcement is the real fix.
 **Context:** `.github/workflows/` is currently empty. E-24 deliberately does not take on "stand up repo-wide CI" as scope — that's a broader initiative (would also need to pick up Elixir tests, Python tests, dag-map tests, format/credo/dialyzer, etc.). The design decision at E-24 is that **the shared tool-versions file is the pinning mechanism CI will reuse verbatim**, so when CI eventually lands there is no drift between local and CI versions.
 **Items:**
@@ -206,24 +206,24 @@ Discovered work items deferred for later.
 Closed gap entries kept for history. Move new resolutions here rather than deleting.
 
 ### wf-graph apply skips spec frontmatter for flat-layout repos
-**Discovered:** 2026-04-25 (M-PACK-A-01 start-milestone, status flip via `wf-graph apply --patch`)
+**Discovered:** 2026-04-25 (M-CONTRACT-01 start-milestone, status flip via `wf-graph apply --patch`)
 **Resolved:** 2026-04-26 (framework bump `.ai` → `3fce1cb` consumed PR #81)
 **Relates to:** `.ai/tools/wf-graph/internal/patch/write.go`, `.ai-repo/config/artifact-layout.json`
 **Filed upstream:** [ai-workflow#80](https://github.com/23min/ai-workflow/issues/80) (closed by PR #81)
 **Fix:** Upstream introduced a `resolveSpecPath` helper that branches on the `.md` suffix in the node's `path` field. Folder-layout (`path` is a directory containing `spec.md`) and flat-layout (`path` already names a `.md` file) both work correctly. Liminara consumed the fix transparently when the framework submodule advanced to `9df1dc1+`.
 
 ### wf-graph diff-roadmap misses letter-suffixed epic IDs
-**Discovered:** 2026-04-25 (M-PACK-A-01 wrap, post-wrap graph audit)
+**Discovered:** 2026-04-25 (M-CONTRACT-01 wrap, post-wrap graph audit)
 **Resolved:** 2026-04-26 (framework bump consumed PR #98)
 **Relates to:** `wf-graph diff-roadmap` prose-side ID extraction; previous false-positive on E-11b and (now-retired) E-21a/b/c/d
 **Filed upstream:** [ai-workflow#88](https://github.com/23min/ai-workflow/issues/88) (closed by PR #98)
 **Fix:** Upstream introduced a parallel `idPatternDepGraph` regex that accepts `E-\d+[a-z]?` for the dep-graph extractor (the conservative `\bE-\d+\b` on the line-by-line RoadmapRow scanner stays put to avoid spawning ghost-node findings on letter-suffixed prose mentions without folder backing). E-11b now resolves cleanly. Liminara's E-21 sub-epics retired before the fix landed (per D-2026-04-26-034), so the legacy concern is moot — the surviving consumer of the fix is E-11b.
 
 ### Framework `.ai/` sync to upstream HEAD pending — pulls PR #72 deliverables on-disk
-**Discovered:** 2026-04-25 (M-PACK-A-01 AC7+AC8 authoring; upstream PR #72 closed mid-milestone)
+**Discovered:** 2026-04-25 (M-CONTRACT-01 AC7+AC8 authoring; upstream PR #72 closed mid-milestone)
 **Resolved:** 2026-04-26 (multiple framework syncs this session pulled `.ai/` to HEAD)
 **Relates to:** [ai-workflow#37](https://github.com/23min/ai-workflow/issues/37) / PR #72, `.ai-repo/skills/design-contract.md`, `.ai-repo/rules/contract-design.md`, D-2026-04-25-033
-**Fix:** `.ai/skills/design-contract.md`, `.ai/docs/recipes/design-contract-cue.md`, `.ai/templates/adr.md` `contract:` frontmatter fields, and `.claude/skills/design-contract/SKILL.md` are all on-disk after the routine bumps. M-PACK-A-02a authors will use the `contract:` frontmatter when authoring their first ADRs.
+**Fix:** `.ai/skills/design-contract.md`, `.ai/docs/recipes/design-contract-cue.md`, `.ai/templates/adr.md` `contract:` frontmatter fields, and `.claude/skills/design-contract/SKILL.md` are all on-disk after the routine bumps. M-CONTRACT-02 authors will use the `contract:` frontmatter when authoring their first ADRs.
 
 ### Workflow-audit: roadmap-scope and roadmap-presence drift not detected
 **Discovered:** 2026-04-23 (PackRegistry / E-22 admin-pack sequencing review)

@@ -8,7 +8,7 @@
 #      work/roadmap.md — the framework statusline grabs the first `E-NN`
 #      match anywhere, which is always E-01 in a chronological roadmap.
 #   3. Active milestone uses this repo's `milestoneIdPattern`
-#      (`M-<TRACK>-<NN>`, e.g. `M-PACK-A-01`) instead of the framework
+#      (`M-<TRACK>-<NN>`, e.g. `M-CONTRACT-01`) instead of the framework
 #      default (`m-E<NN>-<NN>-<slug>`).
 #
 # Wire-up: .claude/settings.json's `statusLine.command` points at

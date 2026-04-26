@@ -43,7 +43,7 @@ assertion. The substance of the citation is verified against
 materialized admin-pack content at E-22 by the same reviewer rule.
 
 ADRs whose secondary reference is *not* admin-pack (ADR-LA-01,
-ADR-WIRE-01, ADR-BOUNDARY-01, ADR-EXECUTOR-01, ADR-EVOLUTION-01) are
+ADR-WIRE-01, ADR-BOUNDARY-01, ADR-EYECUTOR-01, ADR-EVOLUTION-01) are
 not subject to this anchored-citation gate. Their secondary reference
 must still be substantive and not TBD; the reviewer applies a
 weaker variant of the same discipline.
@@ -91,7 +91,7 @@ forcing function against designing-for-Radar. The reviewer either
 requires the secondary reference to be added, or rejects the ADR.
 
 ADRs that are deliberately Radar-only (ADR-WIRE-01 covers Radar's
-existing port wire protocol; ADR-EXECUTOR-01 covers Radar's existing
+existing port wire protocol; ADR-EYECUTOR-01 covers Radar's existing
 `:inline` + `:port` taxonomy) are exceptions captured in the parent
 sub-epic spec's *ADRs produced* table. The reviewer accepts the
 exception when the table marks the ADR as primary-Radar-only with
@@ -109,19 +109,19 @@ in a future epic" is rejected.
   code must be a real, running implementation today — not test code,
   not a mock, not a draft branch.
 - **Scheduled-to-exist implementation:** a Liminara milestone ID
-  (`M-PACK-B-01b`, `M-PACK-C-03`, etc.) **plus** the named file or
-  module the milestone will create. "Built in M-PACK-C-03" is too
-  abstract; "`examples/file_watch_demo` built in M-PACK-C-03" is
+  (`M-RUNTIME-02`, `M-DX-03`, etc.) **plus** the named file or
+  module the milestone will create. "Built in M-DX-03" is too
+  abstract; "`examples/file_watch_demo` built in M-DX-03" is
   acceptable. The named-file binding is the contract deadline.
 
 Acceptable scheduled references in E-21 (already vetted against the
 parent sub-epic's *Technical direction* §4):
 
-- `examples/file_watch_demo` — E-26 M-PACK-C-03 (ADR-FILEWATCH-01).
-- The admin-pack-shape proxy pack — E-25 M-PACK-B-01b loaded /
-  M-PACK-B-03 executed (secondary validator for multi-trigger +
+- `examples/file_watch_demo` — E-26 M-DX-03 (ADR-FILEWATCH-01).
+- The admin-pack-shape proxy pack — E-25 M-RUNTIME-02 loaded /
+  M-RUNTIME-04 executed (secondary validator for multi-trigger +
   multi-plan ADRs).
-- Radar generated `pack.yaml` shim — E-25 M-PACK-B-01b (validator of
+- Radar generated `pack.yaml` shim — E-25 M-RUNTIME-02 (validator of
   ADR-MANIFEST-01's CUE schema against Radar's real shape).
 
 The reviewer at wrap-milestone time of the *cited* milestone (not
@@ -159,5 +159,5 @@ authoring ADR is reopened.
 - Contract-matrix discipline (parent rule):
   `.ai-repo/rules/liminara.md` *Contract matrix discipline* section
 - Parent sub-epic spec:
-  `work/epics/E-21-pack-contribution-contract/E-24-contract-design.md`
+  `work/epics/E-24-contract-design/epic.md`
 - Layout-convergence decision: `work/decisions.md` D-2026-04-25-033

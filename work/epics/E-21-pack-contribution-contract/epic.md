@@ -81,7 +81,7 @@ The admin-pack forcing-function argument (`roadmap.md:94`, also the "prevents on
 
 E-21 addresses this with two reinforcing mechanisms; neither alone is sufficient:
 
-1. **Anchored-citation discipline (E-24 success criterion).** Every pack-level ADR that cites admin-pack cites a specific file + section anchor, not "see admin-pack." The M-PACK-A-02* reviewer follows each anchor, reads the cited section, and judges whether the ADR's design genuinely satisfies the cited need. Unanchored citations block ADR merge. This is a review-time mechanical anti-ceremony check.
+1. **Anchored-citation discipline (E-24 success criterion).** Every pack-level ADR that cites admin-pack cites a specific file + section anchor, not "see admin-pack." The M-CONTRACT-02–04 reviewer follows each anchor, reads the cited section, and judges whether the ADR's design genuinely satisfies the cited need. Unanchored citations block ADR merge. This is a review-time mechanical anti-ceremony check.
 
 2. **Admin-pack-shape proxy pack (E-25 success criterion).** The multi-workflow test pack E-25 was going to build anyway (for multi-workflow plan dispatch validation) is explicitly shaped to exercise admin-pack's *pressure pattern*: three plan entrypoints, three trigger types (`:file_watch` + `:cron` + `:manual`), pack-instance state, declared secrets. **It is not admin-pack** — no bookkeeping domain; admin-pack's domain work remains in E-22. The proxy exists as a second *live* consumer of the contract during E-25, catching one-pack abstractions structurally where the anchored-citation discipline catches them by review.
 
@@ -110,10 +110,10 @@ These apply to every sub-epic:
 
 ## Milestone totals
 
-- **E-24** — 4 milestones (M-PACK-A-01, M-PACK-A-02a, M-PACK-A-02b, M-PACK-A-02c)
-- **E-25** — 4 milestones (M-PACK-B-01a, M-PACK-B-01b, M-PACK-B-02, M-PACK-B-03); M-PACK-B-01 was split at plan-time per the 2026-04-23 ultrareview sizing analysis
-- **E-26** — 3 milestones (M-PACK-C-01, M-PACK-C-02, M-PACK-C-03)
-- **E-27** — 3 milestones (M-PACK-D-01a, M-PACK-D-01b, M-PACK-D-02); M-PACK-D-01 was split at plan-time per the 2026-04-23 ultrareview sizing analysis
+- **E-24** — 4 milestones (M-CONTRACT-01, M-CONTRACT-02, M-CONTRACT-03, M-CONTRACT-04)
+- **E-25** — 4 milestones (M-RUNTIME-01, M-RUNTIME-02, M-RUNTIME-03, M-RUNTIME-04); M-RUNTIME-01 + M-RUNTIME-02 are a planned split of what was originally one milestone, per the 2026-04-23 ultrareview sizing analysis
+- **E-26** — 3 milestones (M-DX-01, M-DX-02, M-DX-03)
+- **E-27** — 3 milestones (M-RADX-01, M-RADX-02, M-RADX-03); M-RADX-01 + M-RADX-02 are a planned split of what was originally one milestone, per the 2026-04-23 ultrareview sizing analysis
 
 Total: **12 milestones across 4 sub-epics**.
 

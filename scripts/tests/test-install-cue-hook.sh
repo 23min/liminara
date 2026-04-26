@@ -1,5 +1,5 @@
 #!/bin/sh
-# Test scripts/install-cue-hook + scripts/pre-commit-cue (M-PACK-A-01 AC4).
+# Test scripts/install-cue-hook + scripts/pre-commit-cue (M-CONTRACT-01 AC4).
 #
 # Validates:
 #   - install-cue-hook installs .git/hooks/pre-commit on first run.

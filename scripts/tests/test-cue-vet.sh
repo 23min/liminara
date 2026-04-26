@@ -1,5 +1,5 @@
 #!/bin/sh
-# Test scripts/cue-vet entry point (M-PACK-A-01 AC3 + AC5).
+# Test scripts/cue-vet entry point (M-CONTRACT-01 AC3 + AC5).
 #
 # Validates:
 #   - Script exists and is executable.
@@ -12,7 +12,7 @@
 #     A valid fixture that fails or an invalid fixture that passes is a
 #     regression with a distinct failure-format string.
 #   - No-arg mode exits 0 on a missing or empty docs/schemas/ tree (the
-#     fixture library is empty at M-PACK-A-01 wrap; M-PACK-A-02a lands the
+#     fixture library is empty at M-CONTRACT-01 wrap; M-CONTRACT-02 lands the
 #     first fixtures).
 #   - Standard failure (valid rejected) output matches the spec format:
 #       <fixture path> fails against <topic>.cue at <schema path>: <CUE error>

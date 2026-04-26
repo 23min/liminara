@@ -1,6 +1,6 @@
 #!/bin/sh
 # Smoke test for the Liminara-local design-contract skill overlay
-# (M-PACK-A-01 AC7).
+# (M-CONTRACT-01 AC7).
 #
 # Validates structure (which references appear), not prose quality.
 # Quality is a wrap-time reviewer pass, not a grep-able invariant.
@@ -82,7 +82,7 @@ grep -qE '\.ai-repo/rules/liminara\.md' "$SKILL" \
     || fail "overlay does not reference .ai-repo/rules/liminara.md"
 
 # 10. References the parent sub-epic spec.
-grep -q 'E-21a-contract-design\.md' "$SKILL" \
+grep -q 'E-24-contract-design\/epic\.md' "$SKILL" \
     || fail "overlay does not reference the parent sub-epic spec"
 
 # 11. References the AC8 reviewer rule path.
@@ -106,8 +106,8 @@ grep -qiE 'admin-pack.*secondary|secondary.{0,30}admin-pack' "$SKILL" \
 # 15. Documents acceptable reference-implementation citation shapes for Liminara.
 grep -qE 'file:line|<file>:<line>' "$SKILL" \
     || fail "overlay does not document file:line citation shape for existing reference impls"
-grep -qE 'M-PACK-[A-Z]-' "$SKILL" \
-    || fail "overlay does not document M-PACK-* milestone citation shape for scheduled reference impls"
+grep -qE 'M-(CONTRACT|RUNTIME|DX|RADX)-' "$SKILL" \
+    || fail "overlay does not document the Liminara milestone citation shape for scheduled reference impls"
 
 # 16. States the sync caveat: source-of-truth lives here, generated
 #     folder-form output must not be hand-edited.
