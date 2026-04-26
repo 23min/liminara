@@ -12,13 +12,17 @@ excludePaths:
   - admin-pack/
   - .scratch/
   - .ai-repo/scratch/
-tool: exunused
-toolCmd: "cd runtime && mix exunused > /tmp/exunused.out 2>&1; cat /tmp/exunused.out"
+tool: mix_unused
+toolCmd: "cd runtime && MIX_ENV=dev mix compile --force 2>&1 | tee /tmp/mix-unused.out"
 ---
 
-# Dead-code recipe: Elixir (ExUnused)
+# Dead-code recipe: Elixir (mix_unused)
 
-ExUnused is a hex package: `{:exunused, "~> 0.4", only: :dev, runtime: false}` in `runtime/mix.exs`. The audit's first run will produce a `tool-failed` section until that dep is added and `mix deps.get` has run.
+`mix_unused` (hex package, github.com/hauleth/mix_unused) is a **compiler tracer**, not a separate mix task. It hooks into `mix compile` and emits unused-public-function hints at the end of the compile output. Wiring:
+
+- `{:mix_unused, "~> 0.4", only: :dev, runtime: false}` in `runtime/mix.exs`.
+- `compilers: extra_compilers(Mix.env()) ++ Mix.compilers()` in each umbrella app's project block, with `defp extra_compilers(:dev), do: [:unused]` and `defp extra_compilers(_), do: []` so the tracer is dev-only and never affects test/prod builds.
+- `mix compile --force` is required — incremental compile produces no hints when nothing recompiles.
 
 ## Things to look out for in this stack
 
@@ -43,9 +47,10 @@ OTP and Phoenix invoke many functions by name at runtime; they look unused to an
 
 ## Tool-specific notes
 
-- ExUnused's confidence levels: weight `:high` and `:medium` heavily; `:low` is noisy on OTP code.
-- ExUnused respects `@impl true`; missing `@impl` on real callbacks is itself a finding (lint-grade, file as needs-judgement if the function name matches a known behaviour callback).
-- Run from `runtime/` (the umbrella root), not the repo root. The composite `cd runtime && mix exunused` handles this.
+- `mix_unused` cannot detect dynamic dispatch via `apply/3` — its README is explicit. The full burden of the OTP/Phoenix/pack-op blind spots above falls on the LLM's judgement step.
+- Configure ignored callbacks via `unused: [ignore: [{Module, :func, arity}, ...]]` in each app's `mix.exs` `project()` if false-positive rate becomes too high — start with the LLM filtering and only add explicit ignores when a finding repeats across audits.
+- Hints appear at the end of `mix compile` output, after all compilation warnings. Format: `<file>:<line>: <Module>.<func>/<arity> is unused`.
+- Run from `runtime/` (the umbrella root). The `cd runtime && mix compile --force` composite handles this.
 
 ## Blind-spot families to sweep manually
 

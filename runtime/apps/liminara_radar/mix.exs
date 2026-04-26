@@ -11,10 +11,14 @@ defmodule LiminaraRadar.MixProject do
       lockfile: "../../mix.lock",
       elixir: "~> 1.18",
       elixirc_paths: elixirc_paths(Mix.env()),
+      compilers: extra_compilers(Mix.env()) ++ Mix.compilers(),
       start_permanent: Mix.env() == :prod,
       deps: deps()
     ]
   end
+
+  defp extra_compilers(:dev), do: [:unused]
+  defp extra_compilers(_), do: []
 
   # Run "mix help compile.app" to learn about applications.
   def application do
