@@ -1,11 +1,11 @@
 ---
-id: E-21d-radar-extraction-and-migration
-parent: E-21-pack-contribution-contract
+id: E-27
+parent: E-21
 phase: 5c
 status: planning
 depends_on:
-  - E-21b-runtime-pack-infrastructure
-  - E-21c-pack-dx
+  - E-25
+  - E-26
 ---
 
 # E-21d: Radar Extraction + Migration
