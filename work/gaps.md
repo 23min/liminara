@@ -2,37 +2,6 @@
 
 Discovered work items deferred for later.
 
-## wf-graph apply skips spec frontmatter for flat-layout repos (filed upstream)
-**Discovered:** 2026-04-25 (M-PACK-A-01 start-milestone, status flip via `wf-graph apply --patch`)
-**Relates to:** `.ai/tools/wf-graph/internal/patch/write.go:124,137`, `.ai-repo/config/artifact-layout.json`
-**Severity:** Low — graph.yaml updates correctly; only the spec-frontmatter side of the atomicity contract is broken. Hand-edit is a one-line workaround.
-**Filed upstream:** [ai-workflow#80](https://github.com/23min/ai-workflow/issues/80)
-**Items:**
-- Tool unconditionally appends `/spec.md` to the node's `path` field, expecting folder-form `<id>/spec.md` shape. Liminara uses flat `<id>-<slug>.md` per `milestoneSpecPathTemplate` in `.ai-repo/config/artifact-layout.json`.
-- Workaround: hand-edit the spec frontmatter after `wf-graph apply --patch` succeeds for graph.yaml. Use case is rare (only at milestone status flips during start/wrap).
-**Trigger:** consume the upstream fix when ai-workflow#80 lands and the framework `.ai/` is synced. No Liminara-side action needed in the meantime.
-
-## wf-graph diff-roadmap misses letter-suffixed epic IDs (filed upstream)
-**Discovered:** 2026-04-25 (M-PACK-A-01 wrap, post-wrap graph audit)
-**Relates to:** `wf-graph diff-roadmap` prose-side ID extraction; `work/roadmap.md` line 133 references E-11b but the tool's regex stops at `E-\d+` and doesn't match the letter suffix
-**Severity:** Low — false-positive `graph_only` reports for any epic ID with a letter suffix (E-11b today; legacy E-24/b/c/d also affected). No real drift; the tool is just under-recognizing. Workaround is manual prose-vs-graph verification.
-**Filed upstream:** [ai-workflow#88](https://github.com/23min/ai-workflow/issues/88)
-**Items:**
-- Suggested upstream fix: extend regex from `E-\d+` to `E-\d+[a-z]?` (or `E-\d+\w*` for multi-character suffixes).
-- Liminara has D-2026-04-22-029 retiring sub-epics as a pattern after E-21, but legacy E-11b + grandfathered E-24/b/c/d still need correct diff handling until the umbrella shape retires.
-**Trigger:** consume the upstream fix when ai-workflow#88 lands and the framework `.ai/` is synced. No Liminara-side action needed in the meantime.
-
-## Framework `.ai/` sync to upstream HEAD pending — pulls PR #72 deliverables on-disk
-**Discovered:** 2026-04-25 (M-PACK-A-01 AC7+AC8 authoring; upstream PR #72 closed mid-milestone)
-**Relates to:** [ai-workflow#37](https://github.com/23min/ai-workflow/issues/37) / PR #72, `.ai-repo/skills/design-contract.md` (AC7), `.ai-repo/rules/contract-design.md` (AC8), `work/decisions.md` D-2026-04-25-033
-**Severity:** Low — milestone deliverables stand alone; the upstream files are forward-references that will exist on-disk after the next routine framework sync.
-**Items:**
-- `.ai/skills/design-contract.md` (tech-neutral skill body) — referenced by AC7 overlay + AC8 reviewer rule
-- `.ai/docs/recipes/design-contract-cue.md` (CUE recipe) — referenced by AC7 overlay
-- `.ai/templates/adr.md` (additive `contract:` frontmatter block: schema, fixtures, worked_example, reference_implementation, schema_version) — needed by M-PACK-A-02a's first ADRs
-- `.claude/skills/design-contract/SKILL.md` (generated folder-form output) — produced by `./.ai/sync.sh` after the framework pull
-**Trigger:** routine framework sync. M-PACK-A-02a authors should verify the four files exist on-disk before drafting their first ADR; if not, run `bash .ai/sync.sh` (and pull the framework submodule first).
-
 ## Dependabot: security vulnerabilities in Python dependencies — plan under a security epic
 **Discovered:** 2026-04-22 (push to `main` after `.ai` framework bump; GitHub surfaced 2 open dependabot alerts)
 **Relates to:** `runtime/python/uv.lock`, `integrations/python/uv.lock`, future security epic
@@ -232,20 +201,35 @@ Discovered work items deferred for later.
 - When CI lands, the interim reviewer-checklist duty in E-24's risks table is removed (it exists only because pre-commit is bypassable).
 **Trigger:** when repo-wide CI becomes a priority — could be triggered by pre-commit bypass actually biting, by a second contributor joining, or by a production deployment milestone needing a build gate. Not urgent while the repo has a single committer.
 
-## Workflow-audit: roadmap-scope and roadmap-presence drift not detected
-**Discovered:** 2026-04-23 (PackRegistry / E-22 admin-pack sequencing review)
-**Relates to:** `.ai/skills/workflow-audit.md` Section 7 (ROADMAP.md Currency), framework repo `23min/ai-workflow`
-**Severity:** Medium — workflow-audit is the skill that's supposed to catch exactly this, and it didn't. Two real drifts (E-15 PackRegistry row overlapping E-25 scope; E-22 missing from the roadmap entirely despite being cited across E-21 specs + D-027) lived silently because the audit's roadmap checks don't cover scope-overlap or cross-surface reference completeness.
-**Context:** Section 7 of `workflow-audit` currently checks (a) in-progress items appear in roadmap, (b) completed epics have a shipped entry, (c) released epics are marked released, (d) roadmap entries don't reference deleted epic folders. It does not check whether an epic referenced across other surfaces (specs, decisions, tracking) actually has a roadmap row, nor whether two roadmap rows describe the same capability/primitive. Both were the load-bearing checks in this case.
-**Items:**
-- Add a Section 7 check: *referenced-epic-must-appear-on-roadmap* — for every epic ID referenced in `work/epics/*/`, `work/decisions.md`, and CLAUDE.md Current Work, verify a roadmap row exists for that ID. Mechanically checkable by grepping `E-\d{2}[a-z]?` across those surfaces and diffing against roadmap rows.
-- Add a Section 7 check: *capability-overlap detection* — flag cases where a named capability/primitive (e.g. `PackRegistry`, `TriggerManager`, `SurfaceRenderer`) appears in the scope of more than one active roadmap row. Mechanically checkable by extracting bolded/back-ticked capability names from each row and reporting names that appear in >1 open row.
-- Consider a companion check against the contract matrix (`docs/architecture/indexes/contract-matrix.md`) for repos that maintain one — runtime-level capabilities in the matrix should map to exactly one active epic row.
-**Trigger:** file as an issue on `23min/ai-workflow`; address when the framework opens a workflow-audit milestone. This is framework-level work, not Liminara-local — no workaround needed beyond manual review at epic planning time.
-
 ## Resolved
 
 Closed gap entries kept for history. Move new resolutions here rather than deleting.
+
+### wf-graph apply skips spec frontmatter for flat-layout repos
+**Discovered:** 2026-04-25 (M-PACK-A-01 start-milestone, status flip via `wf-graph apply --patch`)
+**Resolved:** 2026-04-26 (framework bump `.ai` → `3fce1cb` consumed PR #81)
+**Relates to:** `.ai/tools/wf-graph/internal/patch/write.go`, `.ai-repo/config/artifact-layout.json`
+**Filed upstream:** [ai-workflow#80](https://github.com/23min/ai-workflow/issues/80) (closed by PR #81)
+**Fix:** Upstream introduced a `resolveSpecPath` helper that branches on the `.md` suffix in the node's `path` field. Folder-layout (`path` is a directory containing `spec.md`) and flat-layout (`path` already names a `.md` file) both work correctly. Liminara consumed the fix transparently when the framework submodule advanced to `9df1dc1+`.
+
+### wf-graph diff-roadmap misses letter-suffixed epic IDs
+**Discovered:** 2026-04-25 (M-PACK-A-01 wrap, post-wrap graph audit)
+**Resolved:** 2026-04-26 (framework bump consumed PR #98)
+**Relates to:** `wf-graph diff-roadmap` prose-side ID extraction; previous false-positive on E-11b and (now-retired) E-21a/b/c/d
+**Filed upstream:** [ai-workflow#88](https://github.com/23min/ai-workflow/issues/88) (closed by PR #98)
+**Fix:** Upstream introduced a parallel `idPatternDepGraph` regex that accepts `E-\d+[a-z]?` for the dep-graph extractor (the conservative `\bE-\d+\b` on the line-by-line RoadmapRow scanner stays put to avoid spawning ghost-node findings on letter-suffixed prose mentions without folder backing). E-11b now resolves cleanly. Liminara's E-21 sub-epics retired before the fix landed (per D-2026-04-26-034), so the legacy concern is moot — the surviving consumer of the fix is E-11b.
+
+### Framework `.ai/` sync to upstream HEAD pending — pulls PR #72 deliverables on-disk
+**Discovered:** 2026-04-25 (M-PACK-A-01 AC7+AC8 authoring; upstream PR #72 closed mid-milestone)
+**Resolved:** 2026-04-26 (multiple framework syncs this session pulled `.ai/` to HEAD)
+**Relates to:** [ai-workflow#37](https://github.com/23min/ai-workflow/issues/37) / PR #72, `.ai-repo/skills/design-contract.md`, `.ai-repo/rules/contract-design.md`, D-2026-04-25-033
+**Fix:** `.ai/skills/design-contract.md`, `.ai/docs/recipes/design-contract-cue.md`, `.ai/templates/adr.md` `contract:` frontmatter fields, and `.claude/skills/design-contract/SKILL.md` are all on-disk after the routine bumps. M-PACK-A-02a authors will use the `contract:` frontmatter when authoring their first ADRs.
+
+### Workflow-audit: roadmap-scope and roadmap-presence drift not detected
+**Discovered:** 2026-04-23 (PackRegistry / E-22 admin-pack sequencing review)
+**Resolved:** 2026-04-26 (framework `workflow-audit` skill rewritten upstream — landed in the multi-bump window covered by `.ai` → `3fce1cb`)
+**Relates to:** `.ai/skills/workflow-audit.md` Section 7 (ROADMAP.md Currency), framework repo `23min/ai-workflow`
+**Fix:** The framework's `workflow-audit` skill now ships **§7.2 capability-overlap drift** (extracts back-ticked / bolded / CamelCase tokens from each open row's scope, flags any token appearing in >1 row) and **§7.3 referenced-epic-absence drift** (greps `epicIdPattern` across `epicRootPath/*/`, decisions, gaps, CLAUDE.md; diffs against roadmap rows; flags any ID referenced ≥3× without a row). Both were exactly the checks the gap requested. Both skipped this session's audit cleanly with zero findings — the post-migration roadmap is clean. Companion `contract-matrix` check (§7.4) is also present, advisory-only.
 
 ### Milestone/tracking template drift — consolidate at next milestone start
 **Discovered:** 2026-04-21 (post-framework-update doc-gardening pass)
