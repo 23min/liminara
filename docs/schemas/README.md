@@ -98,7 +98,7 @@ Inverted failure (an invalid fixture accepted by `cue vet`):
 ```
 
 Both formats are pinned by the parent sub-epic spec
-(`work/epics/E-21-pack-contribution-contract/E-21a-contract-design.md` →
+(`work/epics/E-21-pack-contribution-contract/E-24-contract-design.md` →
 *Schema-evolution check — specification*).
 
 ## Pre-commit enforcement

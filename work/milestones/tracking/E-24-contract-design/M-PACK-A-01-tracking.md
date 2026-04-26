@@ -79,7 +79,7 @@ commit · _(pending milestone-end)_ · tests 13/13
 
 After AC4 landed, ai-workflow#37 / PR #72 closed upstream during the same session, shipping the tech-neutral `design-contract` skill + CUE recipe. Upstream prescribes `<topic>/<version>/{valid,invalid}/<name>.<ext>` for the fixture library and treats invalid fixtures as a non-optional principle. Liminara's flatter `fixtures/v<N>/<name>.yaml` shape (just shipped in AC3/AC5/AC6) had no place for invalid fixtures and would have flagged any committed invalid fixture as a permanent regression.
 
-Decision recorded in `work/decisions.md` D-2026-04-25-033; M-PACK-A-01 spec AC5 + AC6 amended; `E-21a-contract-design.md` *Schema-evolution check — specification* subsection rewritten.
+Decision recorded in `work/decisions.md` D-2026-04-25-033; M-PACK-A-01 spec AC5 + AC6 amended; `E-24-contract-design.md` *Schema-evolution check — specification* subsection rewritten.
 
 `scripts/cue-vet`'s no-arg loop refactored into two sub-walks:
 - `fixtures/v*/valid/*.yaml` → `cue vet` must exit 0 per fixture; failures use the standard format.

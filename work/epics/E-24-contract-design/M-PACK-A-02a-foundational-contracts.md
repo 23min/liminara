@@ -14,14 +14,14 @@ Ship the five foundational ADRs every other E-21 sub-epic blocks on — manifest
 
 ## Context
 
-E-21a sets up the contract-design pipeline; M-PACK-A-01 has shipped the local tooling that loop runs on (CUE in the devcontainer, `cue vet` invocation script, pre-commit hook, `docs/schemas/<topic>/fixtures/v<N>/` directory layout convention, `.ai-repo/skills/design-contract.md`, `.ai-repo/rules/contract-design.md`). The schema-evolution loop itself was deferred to this milestone — without first schemas it had nothing to walk.
+E-24 sets up the contract-design pipeline; M-PACK-A-01 has shipped the local tooling that loop runs on (CUE in the devcontainer, `cue vet` invocation script, pre-commit hook, `docs/schemas/<topic>/fixtures/v<N>/` directory layout convention, `.ai-repo/skills/design-contract.md`, `.ai-repo/rules/contract-design.md`). The schema-evolution loop itself was deferred to this milestone — without first schemas it had nothing to walk.
 
 Two upstream contracts feed into the ADRs this milestone produces:
 
 - **M-TRUTH-01 (E-20, merged)** locked the canonical Elixir-side execution contract: `execution_spec/0`'s five sections (`identity`, `determinism`, `execution`, `isolation`, `contracts`), the `OpResult` shape, and the warning struct. ADR-OPSPEC-01 codifies that contract as CUE — schema-freezing only, with no runtime semantics changes.
 - **E-19 (Warnings & Degraded Outcomes, merged)** locked the warning-bearing terminal-event taxonomy: `Run.Server.finish_run/2` emits `run_completed` for `:success`, `run_partial` for `:partial`, `run_failed` for `:failed` (per D-2026-04-20-025). ADR-OPSPEC-01 codifies this taxonomy alongside the warning shape.
 
-The five ADRs must land together because every downstream sub-epic spec already cites them: E-21b's PackLoader binds to ADR-MANIFEST-01 + ADR-PLAN-01 + ADR-WIRE-01 + ADR-REPLAY-01; E-21c's SDK binds to ADR-MANIFEST-01 + ADR-PLAN-01 + ADR-OPSPEC-01 + ADR-WIRE-01; E-21d's Radar extraction must satisfy all five.
+The five ADRs must land together because every downstream sub-epic spec already cites them: E-25's PackLoader binds to ADR-MANIFEST-01 + ADR-PLAN-01 + ADR-WIRE-01 + ADR-REPLAY-01; E-26's SDK binds to ADR-MANIFEST-01 + ADR-PLAN-01 + ADR-OPSPEC-01 + ADR-WIRE-01; E-27's Radar extraction must satisfy all five.
 
 Provenance recording — pack_version + git_commit_hash captured in a run's initial event, used by ADR-REPLAY-01's worked example as a hand-off to that mechanism — is a separate M-PACK-B-01b acceptance criterion, not this milestone's concern. ADR-REPLAY-01 cross-references it without specifying it. Pack-version skew during replay (replaying a run authored against pack version X with pack version Y loaded) is explicitly out of scope and pointed at `work/gaps.md` → "Cross-version pack replay semantics."
 
@@ -70,15 +70,15 @@ Provenance recording — pack_version + git_commit_hash captured in a run's init
 
 9. **Anchored-citation discipline holds for every pack-level ADR in this milestone whose secondary reference is admin-pack** — per the parent epic's *ADRs produced* table that's **ADR-MANIFEST-01, ADR-PLAN-01, ADR-OPSPEC-01**. Each such ADR cites a specific file + section anchor inside `admin-pack/v2/docs/architecture/` (e.g. `bookkeeping-pack-on-liminara.md §4.2 — per-receipt lifecycle`), not a generic "see admin-pack" reference. Reviewer follows each anchor, reads the cited section, and judges whether the ADR's design genuinely satisfies the cited need — unanchored citations or substance-failing citations block ADR merge. ADR-WIRE-01 and ADR-REPLAY-01 have no admin-pack secondary and are exempt from this gate.
 
-10. **Reference implementations are concrete.** Every named reference implementation in this milestone's ADR set satisfies the parent epic's reviewer rubric: (a) the owning milestone is named specifically (not just "E-21c"); (b) the reference's shape is concretely described, not gestured at; (c) for scheduled references, a matching acceptance criterion exists in the named owning milestone's spec binding the reference's shape to the ADR. Where this milestone references work in milestones that have not yet been spec'd (e.g. M-PACK-B-01b for provenance recording, M-PACK-C-03 for `examples/file_watch_demo`), the cross-binding is recorded as a forward dependency and the named owning milestone's spec must satisfy it when authored.
+10. **Reference implementations are concrete.** Every named reference implementation in this milestone's ADR set satisfies the parent epic's reviewer rubric: (a) the owning milestone is named specifically (not just "E-26"); (b) the reference's shape is concretely described, not gestured at; (c) for scheduled references, a matching acceptance criterion exists in the named owning milestone's spec binding the reference's shape to the ADR. Where this milestone references work in milestones that have not yet been spec'd (e.g. M-PACK-B-01b for provenance recording, M-PACK-C-03 for `examples/file_watch_demo`), the cross-binding is recorded as a forward dependency and the named owning milestone's spec must satisfy it when authored.
 
 11. **Contract-matrix rows declared in `## Contract matrix changes` below land in `docs/architecture/indexes/contract-matrix.md`** as part of this milestone's merge, per `.ai-repo/rules/liminara.md` Contract matrix discipline. Live-source paths in the new rows are accurate at merge time; the existing warning-contract row's `Approved next` column is updated to point at the merged ADR-OPSPEC-01 path rather than at the unmerged spec.
 
 ## Constraints
 
-- **No runtime code moves.** This milestone is contract documentation + CUE schemas + fixtures + the schema-evolution loop only. ADR-OPSPEC-01 is schema-freezing of M-TRUTH-01's already-merged shape; ADR-REPLAY-01 documents the protocol the live runtime already implements. Anything that changes runtime behaviour belongs to E-21b.
-- **No SDK.** No Python or Elixir SDK code, no ergonomic wrappers, no scaffolders. Those are E-21c.
-- **No PackLoader internals.** ADRs may specify what data PackLoader receives and emits; they may not prescribe how it implements its load algorithm. PackLoader internals are E-21b's concern.
+- **No runtime code moves.** This milestone is contract documentation + CUE schemas + fixtures + the schema-evolution loop only. ADR-OPSPEC-01 is schema-freezing of M-TRUTH-01's already-merged shape; ADR-REPLAY-01 documents the protocol the live runtime already implements. Anything that changes runtime behaviour belongs to E-25.
+- **No SDK.** No Python or Elixir SDK code, no ergonomic wrappers, no scaffolders. Those are E-26.
+- **No PackLoader internals.** ADRs may specify what data PackLoader receives and emits; they may not prescribe how it implements its load algorithm. PackLoader internals are E-25's concern.
 - **No per-payload CUE schemas.** ADR-CONTENT-01 (M-PACK-A-02c) defines the namespace shape for content-type identifiers; per-payload schemas (what fields a `radar.cluster_summary@1` artifact body carries) are demand-driven per pack and out of scope.
 - **No compatibility shims.** Per D-2026-04-20-026 and the repo-wide shim policy: contract documentation reflects the live + decided-next shape with no fallback clauses for legacy fixture shapes. A schema that needs to evolve evolves additively (CUE unification-compatible) or bumps major version with a deprecation ADR (per ADR-EVOLUTION-01, M-PACK-A-02c) — never via a dual-shape accept-both schema.
 - **Schema files cannot reference unmerged schemas circularly.** ADR-MANIFEST-01's `schema_version` field references ADR-EVOLUTION-01 (M-PACK-A-02c) for the algorithm; the cross-reference is documentary, not a CUE import. ADR-MANIFEST-01's CUE schema validates the field shape; ADR-EVOLUTION-01 will, when written, validate the field's algorithmic semantics.
@@ -93,26 +93,26 @@ Provenance recording — pack_version + git_commit_hash captured in a run's init
 - **ADR-OPSPEC-01's source-of-truth bindings.** The CUE schema mirrors `runtime/apps/liminara_core/lib/liminara/execution_spec.ex`, `runtime/apps/liminara_core/lib/liminara/op_result.ex`, `runtime/apps/liminara_core/lib/liminara/warning.ex`, `runtime/apps/liminara_core/lib/liminara/run.ex` (`Run.Result`), and the `run_completed` / `run_partial` / `run_failed` payload shapes in `runtime/apps/liminara_core/lib/liminara/run/server.ex`'s `finish_run/2`. Field rename or shape divergence between live source and schema fails the contract-matrix wrap-time check.
 - **ADR-REPLAY-01's source-of-truth bindings.** The protocol description mirrors `runtime/apps/liminara_core/lib/liminara/run/server.ex` (`rebuild_from_events/2`, `result_from_event_log/1`, the `{:continue, {:rebuild, events}}` re-entry path). The reference implementation is the existing test suite at `runtime/apps/liminara_core/test/liminara/run/replay_test.exs`.
 - **ADR-WIRE-01's source-of-truth bindings.** The protocol description mirrors `runtime/apps/liminara_core/lib/liminara/executor/port.ex`. Wire-level warning payload shape is the string-keyed shape locked by M-WARN-04 + D-2026-04-20-026.
-- **Cross-references.** Every ADR's frontmatter or body cites: M-TRUTH-01 spec path (where the upstream contract was locked), the parent sub-epic spec (`work/epics/E-21-pack-contribution-contract/E-21a-contract-design.md`), and the relevant decisions log entries (D-2026-04-20-025, D-2026-04-05-023, D-2026-04-22-028, D-2026-04-23-030). ADR-OPSPEC-01 also cites the merged E-19 epic.
+- **Cross-references.** Every ADR's frontmatter or body cites: M-TRUTH-01 spec path (where the upstream contract was locked), the parent sub-epic spec (`work/epics/E-21-pack-contribution-contract/E-24-contract-design.md`), and the relevant decisions log entries (D-2026-04-20-025, D-2026-04-05-023, D-2026-04-22-028, D-2026-04-23-030). ADR-OPSPEC-01 also cites the merged E-19 epic.
 - **Worked-example fixture parity.** Each ADR's worked example must match a committed valid fixture verbatim — when the ADR is rendered alongside the fixture, the YAML body is identical. This enforces that the ADR's authored example is one the schema validates, catching drift between worked-example prose and the actual data shape.
 
 ## Out of Scope
 
-- **Runtime code (PackLoader, PackRegistry, Executor dispatch, TriggerManager, SurfaceRenderer, SecretSource, FSScope enforcer, A2UI MultiProvider).** Owned by E-21b.
-- **SDK and tooling (Python SDK, Elixir SDK, `liminara-new-pack`, `liminara-test-harness`, e2e-harness skill, widgets, `examples/file_watch_demo`).** Owned by E-21c.
-- **Radar extraction.** Owned by E-21d.
-- **The other 13 ADRs in E-21a's *ADRs produced* table.** Owned by M-PACK-A-02b (5 ADRs: SURFACE-01, TRIGGER-01, FILEWATCH-01, FSSCOPE-01, SECRETS-01) and M-PACK-A-02c (8 ADRs: REGISTRY-01, MULTIPLAN-01, EXECUTOR-01, EVOLUTION-01, LAYOUT-01, BOUNDARY-01, CONTENT-01, LA-01).
+- **Runtime code (PackLoader, PackRegistry, Executor dispatch, TriggerManager, SurfaceRenderer, SecretSource, FSScope enforcer, A2UI MultiProvider).** Owned by E-25.
+- **SDK and tooling (Python SDK, Elixir SDK, `liminara-new-pack`, `liminara-test-harness`, e2e-harness skill, widgets, `examples/file_watch_demo`).** Owned by E-26.
+- **Radar extraction.** Owned by E-27.
+- **The other 13 ADRs in E-24's *ADRs produced* table.** Owned by M-PACK-A-02b (5 ADRs: SURFACE-01, TRIGGER-01, FILEWATCH-01, FSSCOPE-01, SECRETS-01) and M-PACK-A-02c (8 ADRs: REGISTRY-01, MULTIPLAN-01, EXECUTOR-01, EVOLUTION-01, LAYOUT-01, BOUNDARY-01, CONTENT-01, LA-01).
 - **Per-content-type payload CUE schemas.** Demand-driven per pack; the namespace shape lands in ADR-CONTENT-01 (M-PACK-A-02c).
 - **Pack-version skew during replay.** Deferred to `work/gaps.md` → "Cross-version pack replay semantics."
 - **Provenance recording in run initial events.** Owned by M-PACK-B-01b as a runtime concern; ADR-REPLAY-01 references it but does not specify it.
-- **Repo-wide CI integration of the schema-evolution loop.** Deferred to the separate CI initiative tracked in `work/gaps.md` as the "E-21a CI alignment" follow-up; this milestone delivers local + pre-commit invocation only.
+- **Repo-wide CI integration of the schema-evolution loop.** Deferred to the separate CI initiative tracked in `work/gaps.md` as the "E-24 CI alignment" follow-up; this milestone delivers local + pre-commit invocation only.
 
 ## Dependencies
 
 - **M-PACK-A-01 must be merged.** Provides the CUE toolchain in the devcontainer (pinned via shared tool-versions file), the `cue vet` invocation script, the pre-commit hook, the `docs/schemas/<topic>/fixtures/v<N>/` directory layout convention, the `.ai-repo/skills/design-contract.md` project binding, and the `.ai-repo/rules/contract-design.md` reviewer rule. Without these, this milestone has no harness to run schemas or fixtures against. Spec path: `work/epics/E-21-pack-contribution-contract/M-PACK-A-01-*.md` (parked branch).
-- **E-19 must be merged.** Provides the warning-bearing terminal-event taxonomy (`run_completed` / `run_partial` / `run_failed`) and the `Liminara.Warning` struct shape ADR-OPSPEC-01 codifies. Spec path: `work/done/E-19-warnings-degraded-outcomes/epic.md`.
+- **E-19 must be merged.** Provides the warning-bearing terminal-event taxonomy (`run_completed` / `run_partial` / `run_failed`) and the `Liminara.Warning` struct shape ADR-OPSPEC-01 codifies. Spec path: `work/done/E-19/epic.md`.
 - **M-TRUTH-01 (E-20) must be merged.** Provides the canonical Elixir-side execution contract ADR-OPSPEC-01 codifies as CUE. Spec path: `work/done/E-20-execution-truth/M-TRUTH-01-execution-spec-outcome-design.md`.
-- **Parent sub-epic spec.** `work/epics/E-21-pack-contribution-contract/E-21a-contract-design.md` — defines the per-ADR content requirements this milestone implements.
+- **Parent sub-epic spec.** `work/epics/E-21-pack-contribution-contract/E-24-contract-design.md` — defines the per-ADR content requirements this milestone implements.
 
 ## Contract matrix changes
 
@@ -121,28 +121,28 @@ Per `.ai-repo/rules/liminara.md` Contract matrix discipline. Reviewer verifies t
 **Rows added** (one per topic this milestone ships a schema for):
 
 - `manifest` — Live source: `docs/schemas/manifest/schema.cue`. Approved next: ADR-EVOLUTION-01 (M-PACK-A-02c) when it lands. Drift guard: `cue vet` + schema-evolution loop.
-- `plan-as-data` — Live source: `docs/schemas/plan/schema.cue`. Approved next: PackLoader binding in E-21b. Drift guard: `cue vet` + schema-evolution loop.
-- `op-execution-spec` — Live source: `docs/schemas/op-execution-spec/schema.cue` plus the Elixir source files it mirrors (`runtime/apps/liminara_core/lib/liminara/execution_spec/`, `op_result.ex`, `warning.ex`, `run.ex`). Approved next: SDK bindings in E-21c. Drift guard: `cue vet` + schema-evolution loop + cross-binding check between schema field names and Elixir struct fields.
+- `plan-as-data` — Live source: `docs/schemas/plan/schema.cue`. Approved next: PackLoader binding in E-25. Drift guard: `cue vet` + schema-evolution loop.
+- `op-execution-spec` — Live source: `docs/schemas/op-execution-spec/schema.cue` plus the Elixir source files it mirrors (`runtime/apps/liminara_core/lib/liminara/execution_spec/`, `op_result.ex`, `warning.ex`, `run.ex`). Approved next: SDK bindings in E-26. Drift guard: `cue vet` + schema-evolution loop + cross-binding check between schema field names and Elixir struct fields.
 - `replay-protocol` — Live source: `docs/schemas/replay-protocol/schema.cue` plus `runtime/apps/liminara_core/lib/liminara/run/server.ex` (`rebuild_from_events/2`, `result_from_event_log/1`). Approved next: provenance recording in M-PACK-B-01b. Drift guard: existing replay test suite at `runtime/apps/liminara_core/test/liminara/run/replay_test.exs`.
-- `wire-protocol` — Live source: `docs/schemas/wire-protocol/schema.cue` plus `runtime/apps/liminara_core/lib/liminara/executor/port.ex`. Approved next: SDK port bindings in E-21c. Drift guard: `cue vet` + the existing port executor tests.
+- `wire-protocol` — Live source: `docs/schemas/wire-protocol/schema.cue` plus `runtime/apps/liminara_core/lib/liminara/executor/port.ex`. Approved next: SDK port bindings in E-26. Drift guard: `cue vet` + the existing port executor tests.
 
 (Authors should verify these row names against any naming conventions already in use in `docs/architecture/indexes/contract-matrix.md` at write time and reconcile if a different canonical name is in use; the row's *what the contract is* role is the binding part, the row label is editorial.)
 
 **Rows updated:**
 
-- **Warning and degraded-success contract** (existing row). The `Approved next` column currently points at `work/epics/E-21-pack-contribution-contract/E-21a-contract-design.md (ADR-OPSPEC-01 will codify warning shape + the run_completed/run_partial/run_failed terminal event taxonomy)`. Update to point at the merged ADR-OPSPEC-01 path (`docs/decisions/NNNN-op-execution-spec.md` — actual NNNN known at merge) and the merged CUE schema path (`docs/schemas/op-execution-spec/schema.cue`). The `Live source` column is unchanged — runtime code is unchanged by this milestone. The `Drift guard` text is updated to reflect that the warning + terminal-event shape now has a CUE codification that downstream consumers bind to.
+- **Warning and degraded-success contract** (existing row). The `Approved next` column currently points at `work/epics/E-21-pack-contribution-contract/E-24-contract-design.md (ADR-OPSPEC-01 will codify warning shape + the run_completed/run_partial/run_failed terminal event taxonomy)`. Update to point at the merged ADR-OPSPEC-01 path (`docs/decisions/NNNN-op-execution-spec.md` — actual NNNN known at merge) and the merged CUE schema path (`docs/schemas/op-execution-spec/schema.cue`). The `Live source` column is unchanged — runtime code is unchanged by this milestone. The `Drift guard` text is updated to reflect that the warning + terminal-event shape now has a CUE codification that downstream consumers bind to.
 
 **Rows retired:** None.
 
 ## References
 
-- Parent sub-epic: `work/epics/E-21-pack-contribution-contract/E-21a-contract-design.md`
+- Parent sub-epic: `work/epics/E-21-pack-contribution-contract/E-24-contract-design.md`
 - Parent epic: `work/epics/E-21-pack-contribution-contract/epic.md`
 - Predecessor milestone: `work/epics/E-21-pack-contribution-contract/M-PACK-A-01-*.md` (parked branch)
 - Upstream contracts:
   - `work/done/E-20-execution-truth/M-TRUTH-01-execution-spec-outcome-design.md` (canonical execution contract)
-  - `work/done/E-19-warnings-degraded-outcomes/epic.md` (warning + terminal-event taxonomy)
-  - `work/done/E-19-warnings-degraded-outcomes/M-WARN-01-runtime-warning-contract.md` (warning shape detail)
+  - `work/done/E-19/epic.md` (warning + terminal-event taxonomy)
+  - `work/done/E-19/M-WARN-01-runtime-warning-contract.md` (warning shape detail)
 - Live runtime sources mirrored:
   - `runtime/apps/liminara_core/lib/liminara/execution_spec/`
   - `runtime/apps/liminara_core/lib/liminara/op_result.ex`

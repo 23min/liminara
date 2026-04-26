@@ -2,17 +2,17 @@
 id: E-21-pack-contribution-contract
 phase: 5c
 status: active
-depends_on: E-19-warnings-degraded-outcomes
+depends_on: E-19
 composed_of:
-  - E-21a-contract-design
-  - E-21b-runtime-pack-infrastructure
-  - E-21c-pack-dx
-  - E-21d-radar-extraction-and-migration
+  - E-24-contract-design
+  - E-25-runtime-pack-infrastructure
+  - E-26-pack-dx
+  - E-27-radar-extraction-and-migration
 ---
 
 # E-21: Pack Contribution Contract
 
-This folder groups the four epics that together establish Liminara's pack contribution contract. Each sub-epic is independently landable; together they turn Liminara into a language-agnostic runtime that loads external packs from manifests.
+E-21 is an **umbrella epic** with four peer-epic children (E-24, E-25, E-26, E-27) connected via the framework-native `parent: E-21` frontmatter. Each child epic is independently landable on its own branch; together they turn Liminara into a language-agnostic runtime that loads external packs from manifests. The umbrella has no milestones of its own — its decomposition is the four children. (Migration to this shape recorded in `work/decisions.md` D-2026-04-26-034.)
 
 ## Goal
 
@@ -22,18 +22,18 @@ The contract is a **data schema**, not a set of libraries. A pack is a repositor
 
 Validate the contract by extracting Radar into its own pack repo while it keeps running end-to-end, and by ensuring admin-pack (E-22) can be authored start-to-finish without touching Liminara's source.
 
-## Why four sub-epics
+## Why four child epics
 
 The pack contribution work spans four clearly distinct concerns with different audiences, risk profiles, and review cadences:
 
 | Sub-epic | Audience | Risk | What ships |
 |---|---|---|---|
-| **E-21a** Contract Design | Contract reviewers | Low — docs only | ADRs, CUE schemas, fixtures, `design-contract` skill, `cue vet` CI |
-| **E-21b** Runtime Pack Infrastructure | Runtime committers | Medium — internal plumbing; Radar must keep running | PackLoader, PackRegistry, SurfaceRenderer, SecretSource, TriggerManager, A2UI MultiProvider |
-| **E-21c** Pack DX | Pack authors (external) | Medium — public surfaces on PyPI + Hex | Python SDK, Elixir SDK, `liminara_widgets` widgets, `liminara-new-pack`, `liminara-test-harness`, e2e-harness skill, `file_watch_demo` reference pack |
-| **E-21d** Radar Extraction + Migration | Reviewer + regression watchers | High — could break Radar | Radar moves to external `radar-pack` submodule; pack authoring guide; admin-pack-ready checkpoint |
+| **E-24** Contract Design | Contract reviewers | Low — docs only | ADRs, CUE schemas, fixtures, `design-contract` skill, `cue vet` CI |
+| **E-25** Runtime Pack Infrastructure | Runtime committers | Medium — internal plumbing; Radar must keep running | PackLoader, PackRegistry, SurfaceRenderer, SecretSource, TriggerManager, A2UI MultiProvider |
+| **E-26** Pack DX | Pack authors (external) | Medium — public surfaces on PyPI + Hex | Python SDK, Elixir SDK, `liminara_widgets` widgets, `liminara-new-pack`, `liminara-test-harness`, e2e-harness skill, `file_watch_demo` reference pack |
+| **E-27** Radar Extraction + Migration | Reviewer + regression watchers | High — could break Radar | Radar moves to external `radar-pack` submodule; pack authoring guide; admin-pack-ready checkpoint |
 
-Keeping these as separate, letter-suffixed epics under the shared `E-21-*` folder gives us a single narrative landing page (this file) plus four focused landable spec files.
+Keeping these as four peer-epic children of an umbrella E-21 (rather than one 12-milestone epic) gives us per-phase lifecycle granularity, parallel branches, and a single narrative landing page (this file).
 
 ## Sub-epic sequencing
 
@@ -41,25 +41,25 @@ Keeping these as separate, letter-suffixed epics under the shared `E-21-*` folde
   E-19 (Warnings & Degraded Outcomes)
        │
        ▼
-  E-21a — Contract Design
+  E-24 — Contract Design
        │
        ├─────────────┐
        ▼             ▼
-  E-21b — Runtime  E-21c — DX
+  E-25 — Runtime  E-26 — DX
        │             │
        └──────┬──────┘
               ▼
-        E-21d — Radar Extraction + Migration
+        E-27 — Radar Extraction + Migration
               │
               ▼
         E-22 — Admin-pack (external)
 ```
 
-**E-21a** is the critical-path gate: it ships zero code but defines everything downstream builds on. It must land first.
+**E-24** is the critical-path gate: it ships zero code but defines everything downstream builds on. It must land first.
 
-**E-21b** and **E-21c** can run in parallel after E-21a lands — different audiences, different surfaces, weakly coupled. E-21c can consume E-21b's runtime surfaces via integration tests even before E-21b is fully shipped, as long as the wire protocol from E-21a is stable.
+**E-25** and **E-26** can run in parallel after E-24 lands — different audiences, different surfaces, weakly coupled. E-26 can consume E-25's runtime surfaces via integration tests even before E-25 is fully shipped, as long as the wire protocol from E-24 is stable.
 
-**E-21d** is the capstone — it cannot start until both E-21b and E-21c are merged, because extraction exercises them both.
+**E-27** is the capstone — it cannot start until both E-25 and E-26 are merged, because extraction exercises them both.
 
 ## Shared context
 
@@ -77,13 +77,13 @@ When a pack processes many items (100 receipts), the UI aggregation (metro map w
 
 ### Forcing function is time-displaced — two mechanisms close the gap
 
-The admin-pack forcing-function argument (`roadmap.md:94`, also the "prevents one-pack abstraction" claim throughout this epic) has a structural honesty gap: **admin-pack ships in E-22, which starts *after* E-21d wraps**. Throughout all of E-21, admin-pack exists only as `admin-pack/v2/docs/architecture/` — a document, not a running pack. A ceremonial admin-pack citation ("see bookkeeping-pack-on-liminara.md") can dress up what is in fact one-pack (Radar-only) abstraction.
+The admin-pack forcing-function argument (`roadmap.md:94`, also the "prevents one-pack abstraction" claim throughout this epic) has a structural honesty gap: **admin-pack ships in E-22, which starts *after* E-27 wraps**. Throughout all of E-21, admin-pack exists only as `admin-pack/v2/docs/architecture/` — a document, not a running pack. A ceremonial admin-pack citation ("see bookkeeping-pack-on-liminara.md") can dress up what is in fact one-pack (Radar-only) abstraction.
 
 E-21 addresses this with two reinforcing mechanisms; neither alone is sufficient:
 
-1. **Anchored-citation discipline (E-21a success criterion).** Every pack-level ADR that cites admin-pack cites a specific file + section anchor, not "see admin-pack." The M-PACK-A-02* reviewer follows each anchor, reads the cited section, and judges whether the ADR's design genuinely satisfies the cited need. Unanchored citations block ADR merge. This is a review-time mechanical anti-ceremony check.
+1. **Anchored-citation discipline (E-24 success criterion).** Every pack-level ADR that cites admin-pack cites a specific file + section anchor, not "see admin-pack." The M-PACK-A-02* reviewer follows each anchor, reads the cited section, and judges whether the ADR's design genuinely satisfies the cited need. Unanchored citations block ADR merge. This is a review-time mechanical anti-ceremony check.
 
-2. **Admin-pack-shape proxy pack (E-21b success criterion).** The multi-workflow test pack E-21b was going to build anyway (for multi-workflow plan dispatch validation) is explicitly shaped to exercise admin-pack's *pressure pattern*: three plan entrypoints, three trigger types (`:file_watch` + `:cron` + `:manual`), pack-instance state, declared secrets. **It is not admin-pack** — no bookkeeping domain; admin-pack's domain work remains in E-22. The proxy exists as a second *live* consumer of the contract during E-21b, catching one-pack abstractions structurally where the anchored-citation discipline catches them by review.
+2. **Admin-pack-shape proxy pack (E-25 success criterion).** The multi-workflow test pack E-25 was going to build anyway (for multi-workflow plan dispatch validation) is explicitly shaped to exercise admin-pack's *pressure pattern*: three plan entrypoints, three trigger types (`:file_watch` + `:cron` + `:manual`), pack-instance state, declared secrets. **It is not admin-pack** — no bookkeeping domain; admin-pack's domain work remains in E-22. The proxy exists as a second *live* consumer of the contract during E-25, catching one-pack abstractions structurally where the anchored-citation discipline catches them by review.
 
 The trade-off: pulling admin-pack itself forward into E-21 would fully retire the concern but steals focus from E-21 without user-visible outcome. This two-mechanism combination is defense in depth at plan-time cost, not a code-building cost.
 
@@ -97,23 +97,23 @@ Liminara's replay-correctness property reinforces this: plans stored as immutabl
 
 These apply to every sub-epic:
 
-- **Language-agnostic by construction.** No language is privileged. The runtime is Elixir internally; pack authors can use any language. The Python SDK is the first polished binding because that's where packs are today; other language SDKs can be added without framework changes. (ADR-LA-01 in E-21a.)
+- **Language-agnostic by construction.** No language is privileged. The runtime is Elixir internally; pack authors can use any language. The Python SDK is the first polished binding because that's where packs are today; other language SDKs can be added without framework changes. (ADR-LA-01 in E-24.)
 - **Contract-as-data.** The contract is CUE schemas + wire protocols. Packs can be written without any Liminara SDK if they emit valid data. SDKs are ergonomics.
-- **Backward compatibility by schema evolution.** Every pack manifest declares `schema_version` (shape specified by ADR-MANIFEST-01); additive schema changes stay backward-compatible by CUE unification; breaking changes bump major version with a deprecation window. The pack-runtime compatibility algorithm (how a pack declaring version X loads — or doesn't — against a runtime running version Y, including historical-schema maintenance and deprecation-window semantics) is specified by ADR-EVOLUTION-01; `PackLoader` enforces it at load time (E-21b acceptance criterion). The local + pre-commit schema-evolution check validates every historical fixture against the current schemas — it is a loop over `cue vet`, not a separate validation engine; specification in E-21a's "Schema-evolution check — specification" subsection. Forward compatibility (current fixtures against historical schemas) is explicitly not a goal. **Design-space shortlist ADR-EVOLUTION-01 chooses from:** (P1) strict major match with additive tolerance; (P2) multiple historical schemas with a deprecation window; (P3) no version field, unify-or-fail at load; (P4) pack declares compat range.
+- **Backward compatibility by schema evolution.** Every pack manifest declares `schema_version` (shape specified by ADR-MANIFEST-01); additive schema changes stay backward-compatible by CUE unification; breaking changes bump major version with a deprecation window. The pack-runtime compatibility algorithm (how a pack declaring version X loads — or doesn't — against a runtime running version Y, including historical-schema maintenance and deprecation-window semantics) is specified by ADR-EVOLUTION-01; `PackLoader` enforces it at load time (E-25 acceptance criterion). The local + pre-commit schema-evolution check validates every historical fixture against the current schemas — it is a loop over `cue vet`, not a separate validation engine; specification in E-24's "Schema-evolution check — specification" subsection. Forward compatibility (current fixtures against historical schemas) is explicitly not a goal. **Design-space shortlist ADR-EVOLUTION-01 chooses from:** (P1) strict major match with additive tolerance; (P2) multiple historical schemas with a deprecation window; (P3) no version field, unify-or-fail at load; (P4) pack declares compat range.
 - **No library imports from packs into Liminara internals.** Packs may depend on `liminara-pack-sdk` (Python), `liminara_pack_sdk` (Elixir, optional), or nothing. They may NOT depend on `liminara_core`, `liminara_observation`, `liminara_web`, `ex_a2ui`, `dag_map`, or `liminara_widgets`. Credo boundary rules enforce this for in-tree code; for external packs, the property is structural.
-- **Contract-first discipline.** No milestone in any sub-epic is accepted as done without its ADRs, CUE schemas, fixtures passing `cue vet`, worked examples, and named reference implementation(s). Radar is the primary reference implementation; `examples/file_watch_demo` (shipped in E-21c) is the secondary reference for `:file_watch`.
-- **Radar extraction must not regress.** At every merge point during E-21d, Radar must still execute end-to-end, replay correctly, and surface in the observation UI.
-- **E-19 first.** Op declarations expose warning surfaces; the SDK reflects the E-19 contract. E-19 must merge before E-21a begins.
+- **Contract-first discipline.** No milestone in any sub-epic is accepted as done without its ADRs, CUE schemas, fixtures passing `cue vet`, worked examples, and named reference implementation(s). Radar is the primary reference implementation; `examples/file_watch_demo` (shipped in E-26) is the secondary reference for `:file_watch`.
+- **Radar extraction must not regress.** At every merge point during E-27, Radar must still execute end-to-end, replay correctly, and surface in the observation UI.
+- **E-19 first.** Op declarations expose warning surfaces; the SDK reflects the E-19 contract. E-19 must merge before E-24 begins.
 - **Wire-level A2UI compliance.** MultiProvider is server-side plumbing only. Wire format stays A2UI v0.9.
 - **Compatibility shims banned.** Any exception needs a named removal trigger in the owning milestone spec.
 - **No main-branch work.** Executed on `epic/E-21-pack-contribution-contract`; milestone branches from it. Submodule pointers (Radar, admin-pack, ex_a2ui, dag_map) update only after the submodule repo merges.
 
 ## Milestone totals
 
-- **E-21a** — 4 milestones (M-PACK-A-01, M-PACK-A-02a, M-PACK-A-02b, M-PACK-A-02c)
-- **E-21b** — 4 milestones (M-PACK-B-01a, M-PACK-B-01b, M-PACK-B-02, M-PACK-B-03); M-PACK-B-01 was split at plan-time per the 2026-04-23 ultrareview sizing analysis
-- **E-21c** — 3 milestones (M-PACK-C-01, M-PACK-C-02, M-PACK-C-03)
-- **E-21d** — 3 milestones (M-PACK-D-01a, M-PACK-D-01b, M-PACK-D-02); M-PACK-D-01 was split at plan-time per the 2026-04-23 ultrareview sizing analysis
+- **E-24** — 4 milestones (M-PACK-A-01, M-PACK-A-02a, M-PACK-A-02b, M-PACK-A-02c)
+- **E-25** — 4 milestones (M-PACK-B-01a, M-PACK-B-01b, M-PACK-B-02, M-PACK-B-03); M-PACK-B-01 was split at plan-time per the 2026-04-23 ultrareview sizing analysis
+- **E-26** — 3 milestones (M-PACK-C-01, M-PACK-C-02, M-PACK-C-03)
+- **E-27** — 3 milestones (M-PACK-D-01a, M-PACK-D-01b, M-PACK-D-02); M-PACK-D-01 was split at plan-time per the 2026-04-23 ultrareview sizing analysis
 
 Total: **12 milestones across 4 sub-epics**.
 
@@ -182,7 +182,7 @@ These surface repeatedly across the sub-epics' scopes; capturing them once here:
 | Admin-pack itself | E-22 |
 | Fan-out / dynamic DAGs (per-item parallelism within a DAG) | E-16 (Phase 7) |
 | Cross-run artifact queries | E-23 |
-| Multi-instance pack tenancy | Post-E-21, demand-driven — E-21b ships single-instance `PackRegistry.get/1`; multi-instance tenancy (per-instance config, storage partitioning, per-instance run timelines) gets a new numbered epic only when a third pack surfaces a tenancy requirement the existing lookup cannot satisfy |
+| Multi-instance pack tenancy | Post-E-21, demand-driven — E-25 ships single-instance `PackRegistry.get/1`; multi-instance tenancy (per-instance config, storage partitioning, per-instance run timelines) gets a new numbered epic only when a third pack surfaces a tenancy requirement the existing lookup cannot satisfy |
 | Hard FS isolation (Landlock) | E-12 |
 | Container / wasm / remote executors | TBD post-VSME |
 | Per-content-type **payload** CUE schemas (what fields each specific content-type's artifact body carries) | Demand-driven per pack. ADR-CONTENT-01 defines the namespace / identifier shape / collision / evolution rules in MVP; per-payload schemas are authored by packs when they want mechanical payload validation. |
@@ -194,7 +194,7 @@ These surface repeatedly across the sub-epics' scopes; capturing them once here:
 | Additional language SDKs (Rust, Go, Java, TS) | Demand-driven |
 | `liminara_widgets` `pdf_viewer` widget | E-22 (admin-pack receipts/statements) or earlier if a named consumer demands it |
 | `liminara_widgets` `timeline` widget | Demand-driven (no current consumer; process-mining pack is the likely trigger) |
-| Pack-registered custom LiveView routes (UI escape hatch) | Demand-driven; E-21 requires declarative surfaces rendered by `SurfaceRenderer`. If a view cannot be expressed with `liminara_widgets` widgets, amend E-21c to add the missing widget rather than open this hatch. |
+| Pack-registered custom LiveView routes (UI escape hatch) | Demand-driven; E-21 requires declarative surfaces rendered by `SurfaceRenderer`. If a view cannot be expressed with `liminara_widgets` widgets, amend E-26 to add the missing widget rather than open this hatch. |
 | Provider op libraries (pdf, llm, gmail, etc.) | Post-extraction of Radar and admin-pack |
 | Gate-queue UI as runtime primitive | Pack-level in E-21; may become framework-level later |
 | Bundle abstraction as runtime primitive | Pack-level in E-21; may become framework-level later |
@@ -206,9 +206,9 @@ These surface repeatedly across the sub-epics' scopes; capturing them once here:
 - Decision **D-014**: roadmap status labels.
 - Decision **D-2026-04-01-001**: A2UI as secondary observation UI — this initiative promotes A2UI to primary pack UI surface.
 - Decision **D-2026-04-01-003**: Python ops via `:port` — retained; this initiative generalizes the port protocol to any language.
-- **M-TRUTH-01**: Execution spec + outcome design. E-21a codifies its structs as CUE.
+- **M-TRUTH-01**: Execution spec + outcome design. E-24 codifies its structs as CUE.
 - **E-19**: Warnings & Degraded Outcomes (prerequisite).
 - **E-12**: Op Sandbox (downstream; hard FS enforcement).
-- **E-11**: Radar (done; reference implementation that E-21d extracts).
+- **E-11**: Radar (done; reference implementation that E-27 extracts).
 - Admin-pack architecture: `admin-pack/v2/docs/architecture/bookkeeping-pack-on-liminara.md`, `admin-pack/v2/docs/architecture/repo-layout.md`.
 - Comparable systems: Argo Workflows, Flyte, Kubeflow Pipelines, GitHub Actions, N8N, Zapier, Windmill, Temporal.

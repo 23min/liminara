@@ -10,7 +10,7 @@ depends_on: M-PACK-A-02a
 
 ## Goal
 
-Ship the five ADRs that define how a loaded pack interacts with the world — UI surfaces, triggers, file-watch semantics, filesystem scope, and secrets — each paired with a CUE schema, valid + invalid fixtures, a worked example, and a named reference implementation. After this milestone, E-21b's runtime plumbing (`SurfaceRenderer`, `TriggerManager`, file-watch loop, FS-scope enforcement, `SecretSource`) has a fixed contract to build against.
+Ship the five ADRs that define how a loaded pack interacts with the world — UI surfaces, triggers, file-watch semantics, filesystem scope, and secrets — each paired with a CUE schema, valid + invalid fixtures, a worked example, and a named reference implementation. After this milestone, E-25's runtime plumbing (`SurfaceRenderer`, `TriggerManager`, file-watch loop, FS-scope enforcement, `SecretSource`) has a fixed contract to build against.
 
 ## Context
 
@@ -19,13 +19,13 @@ M-PACK-A-02a has merged: ADR-MANIFEST-01, ADR-PLAN-01, ADR-OPSPEC-01, ADR-REPLAY
 Live runtime context this milestone references but does not modify:
 
 - `runtime/apps/liminara_radar/lib/liminara/radar/scheduler.ex` — Radar's GenServer scheduler. Per D-2026-04-01-008 and D-2026-04-02-017, schedule state is not persisted; on restart, the next-fire time is recomputed from the wall clock. ADR-TRIGGER-01 codifies this as fire-and-forget.
-- `runtime/apps/liminara_core/lib/liminara/executor.ex` — the executor that performs MVP's advisory FS-scope check (ADR-FSSCOPE-01 Surface A). E-21b M-PACK-B-03 wires the check; this milestone documents its contract shape.
-- `Liminara.Secrets.Registry` (decided-next, lands in E-21b M-PACK-B-02) — the per-run registry that powers ADR-SECRETS-01 Boundary 1 scrubbing.
+- `runtime/apps/liminara_core/lib/liminara/executor.ex` — the executor that performs MVP's advisory FS-scope check (ADR-FSSCOPE-01 Surface A). E-25 M-PACK-B-03 wires the check; this milestone documents its contract shape.
+- `Liminara.Secrets.Registry` (decided-next, lands in E-25 M-PACK-B-02) — the per-run registry that powers ADR-SECRETS-01 Boundary 1 scrubbing.
 - `Liminara.Warning` and the `:suspected_secret_leak` warning code (E-19's contract, shipped) — the channel ADR-SECRETS-01 Boundary 2 emits through.
 
 E-12 (Op Sandbox) is approved-next but not yet implemented. ADR-FSSCOPE-01 Surface B (runtime conformance — Landlock or audit-hook based) lands in E-12; this milestone specifies the contract shape so E-12 can implement it without redesign. Admin-pack ships in E-22, time-displaced from this contract work; per the parent sub-epic's anchored-citation discipline, every pack-level ADR here cites a specific file + section anchor inside `admin-pack/v2/docs/architecture/`.
 
-`examples/file_watch_demo` is the named reference implementation for ADR-FILEWATCH-01. It is **scheduled** (E-21c M-PACK-C-03), not yet built; this milestone cites it under the parent sub-epic's "Reference implementations are named at ADR-writing time, either existing or scheduled-to-exist in a specific named milestone" rule (Technical direction §4).
+`examples/file_watch_demo` is the named reference implementation for ADR-FILEWATCH-01. It is **scheduled** (E-26 M-PACK-C-03), not yet built; this milestone cites it under the parent sub-epic's "Reference implementations are named at ADR-writing time, either existing or scheduled-to-exist in a specific named milestone" rule (Technical direction §4).
 
 ## Acceptance Criteria
 
@@ -34,7 +34,7 @@ E-12 (Op Sandbox) is approved-next but not yet implemented. ADR-FSSCOPE-01 Surfa
    - Each ADR uses the Nygard form (Status, Context, Decision, Consequences) with status `accepted` at merge.
    - Each ADR's frontmatter cites its keyword placeholder ID (`ADR-SURFACE-01`, `ADR-TRIGGER-01`, `ADR-FILEWATCH-01`, `ADR-FSSCOPE-01`, `ADR-SECRETS-01`) as the working title cross-reference.
 
-2. **Each ADR ships the default content set defined by E-21a**
+2. **Each ADR ships the default content set defined by E-24**
    - Paired CUE schema lives at `docs/schemas/<topic>/schema.cue` (one topic per ADR; `<topic>` slugs locked in *Design Notes*).
    - Valid fixtures live under `docs/schemas/<topic>/fixtures/v1.0.0/`; invalid fixtures (demonstrating what `cue vet` rejects) live alongside under a named subdirectory or filename convention locked in *Design Notes*.
    - At least one worked example showing realistic pack snippets is embedded in the ADR body or referenced inline from a fixture.
@@ -57,13 +57,13 @@ E-12 (Op Sandbox) is approved-next but not yet implemented. ADR-FSSCOPE-01 Surfa
 5. **ADR-FILEWATCH-01 specifies file-watch semantics**
    - The ADR specifies, at minimum: debounce window, coalescing behaviour for rapid sequential events on the same path, scan-on-startup (whether files present at boot are processed), de-duplication policy (how the same file is or is not re-processed), an in-memory event queue, and rescan-on-restart behaviour (the runtime rescans the watched directory at boot rather than relying on durable queue state).
    - The schema captures the watch declaration's data shape (watched path or paths, glob patterns, debounce window, dedup key shape).
-   - The primary reference implementation is `examples/file_watch_demo`, cited as scheduled in **E-21c M-PACK-C-03** with the parent sub-epic's named-scheduled-reference rule satisfied: M-PACK-C-03 has a matching acceptance criterion binding the demo's shape to this ADR (verified at this milestone's review by reading the M-PACK-C-03 spec); the demo's intended shape is described concretely in the ADR (single watch directory, one or more glob patterns, an op that consumes each detected file, a fixture data set demonstrating debounce and dedup).
+   - The primary reference implementation is `examples/file_watch_demo`, cited as scheduled in **E-26 M-PACK-C-03** with the parent sub-epic's named-scheduled-reference rule satisfied: M-PACK-C-03 has a matching acceptance criterion binding the demo's shape to this ADR (verified at this milestone's review by reading the M-PACK-C-03 spec); the demo's intended shape is described concretely in the ADR (single watch directory, one or more glob patterns, an op that consumes each detected file, a fixture data set demonstrating debounce and dedup).
    - The secondary reference is admin-pack receipt intake, cited with a specific file + section anchor under `admin-pack/v2/docs/architecture/`.
 
 6. **ADR-FSSCOPE-01 specifies two distinct contract surfaces, not one**
    - The Decision section names both surfaces explicitly:
-     - **Surface A — Declaration integrity.** Does the op's declared `runtime_read_paths` / `runtime_write_paths` (from `ExecutionSpec.Isolation`) resolve under the pack's declared FS-scope root? Source of truth: the declared data. Check time: before invocation. Implementation: `Liminara.Executor`'s advisory check, **shipped in MVP** via E-21b M-PACK-B-03; warning event on violation; op still runs. Surface A is not strengthened by E-12.
-     - **Surface B — Runtime conformance.** Do the op's actual filesystem syscalls (`open`, `openat`, `renameat`, …) stay within the declared FS-scope root? Source of truth: runtime behaviour. Check time: during op execution. Implementation: Landlock or equivalent kernel sandbox, **added in E-12** (not shipped in MVP). Layer 2 Python-runner audit hooks per `work/gaps.md` "Op sandbox" entry + D-2026-04-02-011 are an alternative implementation; which lands first is an E-12-era choice, not an E-21a choice.
+     - **Surface A — Declaration integrity.** Does the op's declared `runtime_read_paths` / `runtime_write_paths` (from `ExecutionSpec.Isolation`) resolve under the pack's declared FS-scope root? Source of truth: the declared data. Check time: before invocation. Implementation: `Liminara.Executor`'s advisory check, **shipped in MVP** via E-25 M-PACK-B-03; warning event on violation; op still runs. Surface A is not strengthened by E-12.
+     - **Surface B — Runtime conformance.** Do the op's actual filesystem syscalls (`open`, `openat`, `renameat`, …) stay within the declared FS-scope root? Source of truth: runtime behaviour. Check time: during op execution. Implementation: Landlock or equivalent kernel sandbox, **added in E-12** (not shipped in MVP). Layer 2 Python-runner audit hooks per `work/gaps.md` "Op sandbox" entry + D-2026-04-02-011 are an alternative implementation; which lands first is an E-12-era choice, not an E-24 choice.
    - The ADR states explicitly that **both surfaces are first-class contract shapes from the start**, and that the runtime implementation of Surface B arrives in E-12. Neither is a shim under `docs/governance/shim-policy.md` (the policy's lie-preservation test fails for both).
    - The ADR does **not** claim "advisory is an intermediate contract, not a shim"; the Consequences section explicitly retracts that one-surface framing.
    - The ADR's test-coverage guidance specifies that Surface A's fixture (op declares a path outside FS-scope root → warning) does **not** cover Surface B's fixture (op writes a path outside FS-scope root without declaring it → Landlock kill / audit-hook warning); the ADR notes that E-12 will need its own fixtures.
@@ -77,8 +77,8 @@ E-12 (Op Sandbox) is approved-next but not yet implemented. ADR-FSSCOPE-01 Surfa
    - The ADR states explicitly which failure modes are caught (direct logger leak via marker; pack-op stringify-return; exception message containing secret) and which are not (split across fields; base64-encoded; hashed).
    - The ADR's authoring-guide section codifies the pack-code discipline rule: "never `str(secret)` or include secrets in exception messages; use the SDK-provided `scrub_secrets(text)` helper when you must render a string that might touch them."
    - The ADR does **not** claim runtime-enforced secret safety. The `SecretSource` behaviour is the plumbing for *secret delivery* — env var in MVP; Vault, Azure Key Vault, Doppler as future adapters per `work/gaps.md` "Secret-management maturity" entry. The ADR cross-references that gap as the home of further hardening.
-   - The CUE schema captures the secret-declaration shape that lives in `pack.yaml` (declared secret name, source identifier, optional metadata) and the `SecretSource` behaviour's declarative surface (the data side; the Elixir behaviour itself is an E-21b artefact).
-   - The worked example includes the three-case deliberate-leak fixture from E-21b M-PACK-B-02 (direct logger leak; pack-op stringify-return; split-across-fields unrecoverable case) with the expected outcome for each.
+   - The CUE schema captures the secret-declaration shape that lives in `pack.yaml` (declared secret name, source identifier, optional metadata) and the `SecretSource` behaviour's declarative surface (the data side; the Elixir behaviour itself is an E-25 artefact).
+   - The worked example includes the three-case deliberate-leak fixture from E-25 M-PACK-B-02 (direct logger leak; pack-op stringify-return; split-across-fields unrecoverable case) with the expected outcome for each.
    - The primary reference is Radar's API key configuration (existing); the secondary reference is admin-pack's Gmail credentials, cited with a specific file + section anchor under `admin-pack/v2/docs/architecture/`.
 
 8. **Anchored-citation discipline holds for every secondary reference**
@@ -99,9 +99,9 @@ E-12 (Op Sandbox) is approved-next but not yet implemented. ADR-FSSCOPE-01 Surfa
 
 ## Constraints
 
-- **No runtime code moves.** This milestone produces only ADRs, CUE schemas, fixtures, worked examples, and contract-matrix rows. PackLoader, TriggerManager, SurfaceRenderer, the FS-scope enforcer, and `SecretSource` implementations all belong to E-21b.
+- **No runtime code moves.** This milestone produces only ADRs, CUE schemas, fixtures, worked examples, and contract-matrix rows. PackLoader, TriggerManager, SurfaceRenderer, the FS-scope enforcer, and `SecretSource` implementations all belong to E-25.
 - **ADRs document shape, not behaviour.** Each ADR specifies the contract surface a runtime component must respect; it does not prescribe the component's internals. The parent sub-epic's risk row ("ADR scope creeps into runtime design") applies — reviewers reject ADR text that prescribes PackLoader / TriggerManager / SurfaceRenderer internals.
-- **`examples/file_watch_demo` is scheduled, not built here.** ADR-FILEWATCH-01 cites it as a scheduled reference; the milestone that actually authors the demo is **E-21c M-PACK-C-03**. This milestone's reviewer verifies M-PACK-C-03's spec contains a matching acceptance criterion binding the demo's shape to ADR-FILEWATCH-01; the demo files themselves are not produced here.
+- **`examples/file_watch_demo` is scheduled, not built here.** ADR-FILEWATCH-01 cites it as a scheduled reference; the milestone that actually authors the demo is **E-26 M-PACK-C-03**. This milestone's reviewer verifies M-PACK-C-03's spec contains a matching acceptance criterion binding the demo's shape to ADR-FILEWATCH-01; the demo files themselves are not produced here.
 - **No code changes to `liminara_core`, `liminara_observation`, `liminara_web`, or any pack module.** The validation pipeline (`mix format`, `mix credo`, `mix dialyzer`, app suites) for those apps is not exercised by this milestone; only `cue vet` and the schema-evolution loop are exercised.
 - **No compatibility shims.** Per repo policy, any exception requires a named removal trigger in the spec; none are anticipated for this milestone.
 - **No main-branch work.** Executed on `epic/E-21-pack-contribution-contract` per the parent epic's branching rule; spec is drafted on `main` with `status: draft`.
@@ -126,9 +126,9 @@ E-12 (Op Sandbox) is approved-next but not yet implemented. ADR-FSSCOPE-01 Surfa
   - **E-12 (Op Sandbox)** — ADR-FSSCOPE-01 Surface B implementation home.
   - **E-14 (Postgres + Oban)** — ADR-TRIGGER-01 escalation path for richer catch-up semantics.
   - **E-19's warning contract** (`Liminara.Warning`, the `:suspected_secret_leak` warning code) — ADR-SECRETS-01 Boundary 2 emission channel.
-  - **E-21b M-PACK-B-02 three-case leak fixture** — ADR-SECRETS-01's worked example pulls from this fixture's three cases; the milestone's reviewer verifies the fixture's shape is described concretely in M-PACK-B-02's spec at this milestone's review (or the description is added to M-PACK-B-02's spec as a matching acceptance criterion if not already present).
-  - **E-21b M-PACK-B-03 advisory FS-scope check** — ADR-FSSCOPE-01 Surface A's MVP implementation; the milestone's reviewer verifies M-PACK-B-03's spec binds the advisory check's shape to ADR-FSSCOPE-01.
-  - **E-21c M-PACK-C-03 `examples/file_watch_demo`** — ADR-FILEWATCH-01's primary reference (scheduled).
+  - **E-25 M-PACK-B-02 three-case leak fixture** — ADR-SECRETS-01's worked example pulls from this fixture's three cases; the milestone's reviewer verifies the fixture's shape is described concretely in M-PACK-B-02's spec at this milestone's review (or the description is added to M-PACK-B-02's spec as a matching acceptance criterion if not already present).
+  - **E-25 M-PACK-B-03 advisory FS-scope check** — ADR-FSSCOPE-01 Surface A's MVP implementation; the milestone's reviewer verifies M-PACK-B-03's spec binds the advisory check's shape to ADR-FSSCOPE-01.
+  - **E-26 M-PACK-C-03 `examples/file_watch_demo`** — ADR-FILEWATCH-01's primary reference (scheduled).
   - **`work/gaps.md` "Op sandbox: layered isolation not implemented"** — ADR-FSSCOPE-01 Surface B's gap-tracking home.
   - **`work/gaps.md` "Secret-management maturity — pluggable SecretSource adapters + secret-observability hardening"** — ADR-SECRETS-01's gap-tracking home for further hardening (Vault / Key Vault / Doppler adapters; capability-proxy approaches).
 
@@ -140,16 +140,16 @@ E-12 (Op Sandbox) is approved-next but not yet implemented. ADR-FSSCOPE-01 Surfa
 
 ## Out of Scope
 
-- **Runtime code.** PackLoader, TriggerManager, SurfaceRenderer, file-watch loop, FS-scope enforcer, `SecretSource` behaviour implementation, `Liminara.Secrets.Registry` — all in E-21b.
-- **SDK or scaffolder.** `liminara-pack-sdk` (Python and Elixir), widgets, scaffolder, test harness — all in E-21c.
-- **Building `examples/file_watch_demo`.** Cited as scheduled here; built in E-21c M-PACK-C-03.
-- **Radar extraction.** ADR-LAYOUT-01 and the actual move to a `radar-pack` submodule are E-21d.
-- **Other ADRs in E-21a.** ADR-EXECUTOR-01, ADR-EVOLUTION-01, ADR-LAYOUT-01, ADR-BOUNDARY-01, ADR-CONTENT-01, ADR-LA-01, ADR-REGISTRY-01, ADR-MULTIPLAN-01 — all in M-PACK-A-02c.
+- **Runtime code.** PackLoader, TriggerManager, SurfaceRenderer, file-watch loop, FS-scope enforcer, `SecretSource` behaviour implementation, `Liminara.Secrets.Registry` — all in E-25.
+- **SDK or scaffolder.** `liminara-pack-sdk` (Python and Elixir), widgets, scaffolder, test harness — all in E-26.
+- **Building `examples/file_watch_demo`.** Cited as scheduled here; built in E-26 M-PACK-C-03.
+- **Radar extraction.** ADR-LAYOUT-01 and the actual move to a `radar-pack` submodule are E-27.
+- **Other ADRs in E-24.** ADR-EXECUTOR-01, ADR-EVOLUTION-01, ADR-LAYOUT-01, ADR-BOUNDARY-01, ADR-CONTENT-01, ADR-LA-01, ADR-REGISTRY-01, ADR-MULTIPLAN-01 — all in M-PACK-A-02c.
 - **Pluggable `SecretSource` adapters beyond `EnvVar`.** Vault, Azure Key Vault, Doppler — demand-driven per `work/gaps.md`. ADR-SECRETS-01 specifies the behaviour shape; concrete adapters are future work.
 - **Capability-proxy secret delivery (Approach D).** Runtime-mediated HTTP / SMTP / subprocess proxies that resolve opaque handles at send time — tracked in `work/gaps.md`, deferred until a pack actually requires Boundary-2 guarantee rather than best-effort signal.
 - **E-12 Surface B implementation.** ADR-FSSCOPE-01 specifies the contract; the runtime implementation (Landlock or audit-hook based) lands in E-12.
 - **Per-payload CUE schemas for content-types.** Owned by ADR-CONTENT-01 in M-PACK-A-02c (and even there the per-payload schemas are explicitly demand-driven, not in-scope).
-- **Repo-wide CI integration of `cue vet` + schema-evolution loop.** Tracked as `work/gaps.md` "E-21a CI alignment"; M-PACK-A-01 and the present milestone rely on local + pre-commit enforcement.
+- **Repo-wide CI integration of `cue vet` + schema-evolution loop.** Tracked as `work/gaps.md` "E-24 CI alignment"; M-PACK-A-01 and the present milestone rely on local + pre-commit enforcement.
 
 ## Dependencies
 
@@ -162,11 +162,11 @@ E-12 (Op Sandbox) is approved-next but not yet implemented. ADR-FSSCOPE-01 Surfa
 Per `.ai-repo/rules/liminara.md` Contract matrix discipline.
 
 - **Rows added:**
-  - `surface-declaration` — Live source: paired CUE schema at `docs/schemas/surface-declaration/schema.cue` + ADR-SURFACE-01. Approved next: `runtime/apps/liminara_web/` `SurfaceRenderer` implementation in E-21b. Drift guard: surface declarations validate against the schema; new widgets land via catalog edits, not ad-hoc declaration shapes.
-  - `trigger` — Live source: paired CUE schema at `docs/schemas/trigger/schema.cue` + ADR-TRIGGER-01. Approved next: `TriggerManager` implementation in E-21b plus existing `runtime/apps/liminara_radar/lib/liminara/radar/scheduler.ex` for the cron path. Drift guard: trigger declarations validate against the schema; cron restart-recovery is fire-and-forget per the ADR's worked example, with E-14 named as the escalation path.
-  - `file-watch` — Live source: paired CUE schema at `docs/schemas/file-watch/schema.cue` + ADR-FILEWATCH-01. Approved next: file-watch loop in E-21b plus `examples/file_watch_demo` in E-21c M-PACK-C-03 as the named reference implementation. Drift guard: file-watch declarations validate against the schema; debounce / coalesce / scan-on-startup / dedup / rescan-on-restart semantics are fixed by the ADR.
-  - `fs-scope` — Live source: paired CUE schema at `docs/schemas/fs-scope/schema.cue` + ADR-FSSCOPE-01. Approved next: **two surfaces** — Surface A (declaration integrity) live in `runtime/apps/liminara_core/lib/liminara/executor.ex` advisory check landed by E-21b M-PACK-B-03; Surface B (runtime conformance) deferred to E-12 (Landlock or Layer 2 audit hooks). The matrix row text cites both surfaces; Surface B's live-source field reads "deferred to E-12" until that epic merges, at which point the same row is updated with the live source path. Drift guard: declaration integrity is checked advisory-only in MVP and emits a warning on violation; runtime conformance is enforced when E-12 lands.
-  - `secrets` — Live source: paired CUE schema at `docs/schemas/secrets/schema.cue` + ADR-SECRETS-01. Approved next: `Liminara.Secrets.Registry` + `SecretSource` behaviour + `EnvVar` adapter in E-21b M-PACK-B-02; `:suspected_secret_leak` warning emission per E-19's warning contract. Drift guard: secret declarations validate against the schema; Boundary 1 scrubbing is a runtime guarantee; Boundary 2 is best-effort signal with documented unrecoverable cases.
+  - `surface-declaration` — Live source: paired CUE schema at `docs/schemas/surface-declaration/schema.cue` + ADR-SURFACE-01. Approved next: `runtime/apps/liminara_web/` `SurfaceRenderer` implementation in E-25. Drift guard: surface declarations validate against the schema; new widgets land via catalog edits, not ad-hoc declaration shapes.
+  - `trigger` — Live source: paired CUE schema at `docs/schemas/trigger/schema.cue` + ADR-TRIGGER-01. Approved next: `TriggerManager` implementation in E-25 plus existing `runtime/apps/liminara_radar/lib/liminara/radar/scheduler.ex` for the cron path. Drift guard: trigger declarations validate against the schema; cron restart-recovery is fire-and-forget per the ADR's worked example, with E-14 named as the escalation path.
+  - `file-watch` — Live source: paired CUE schema at `docs/schemas/file-watch/schema.cue` + ADR-FILEWATCH-01. Approved next: file-watch loop in E-25 plus `examples/file_watch_demo` in E-26 M-PACK-C-03 as the named reference implementation. Drift guard: file-watch declarations validate against the schema; debounce / coalesce / scan-on-startup / dedup / rescan-on-restart semantics are fixed by the ADR.
+  - `fs-scope` — Live source: paired CUE schema at `docs/schemas/fs-scope/schema.cue` + ADR-FSSCOPE-01. Approved next: **two surfaces** — Surface A (declaration integrity) live in `runtime/apps/liminara_core/lib/liminara/executor.ex` advisory check landed by E-25 M-PACK-B-03; Surface B (runtime conformance) deferred to E-12 (Landlock or Layer 2 audit hooks). The matrix row text cites both surfaces; Surface B's live-source field reads "deferred to E-12" until that epic merges, at which point the same row is updated with the live source path. Drift guard: declaration integrity is checked advisory-only in MVP and emits a warning on violation; runtime conformance is enforced when E-12 lands.
+  - `secrets` — Live source: paired CUE schema at `docs/schemas/secrets/schema.cue` + ADR-SECRETS-01. Approved next: `Liminara.Secrets.Registry` + `SecretSource` behaviour + `EnvVar` adapter in E-25 M-PACK-B-02; `:suspected_secret_leak` warning emission per E-19's warning contract. Drift guard: secret declarations validate against the schema; Boundary 1 scrubbing is a runtime guarantee; Boundary 2 is best-effort signal with documented unrecoverable cases.
 
 - **Rows updated:** none expected. The reviewer cross-checks the existing matrix at this milestone's review to confirm no row name in the parent sub-epic's plan-time list ("rows added") collides with an existing row. If a collision is found, the spec is amended at review.
 
@@ -174,14 +174,14 @@ Per `.ai-repo/rules/liminara.md` Contract matrix discipline.
 
 ## References
 
-- Parent sub-epic: `work/epics/E-21-pack-contribution-contract/E-21a-contract-design.md` (in particular the "ADRs produced" table, the "Per-ADR content requirements beyond the default set" subsection, and the anchored-citation success criterion).
+- Parent sub-epic: `work/epics/E-21-pack-contribution-contract/E-24-contract-design.md` (in particular the "ADRs produced" table, the "Per-ADR content requirements beyond the default set" subsection, and the anchored-citation success criterion).
 - Parent epic: `work/epics/E-21-pack-contribution-contract/epic.md`.
 - Predecessor milestone: `work/epics/E-21-pack-contribution-contract/M-PACK-A-01-contract-tdd-tooling.md`.
-- Successor milestones depending on this work: `work/epics/E-21-pack-contribution-contract/E-21b-runtime-pack-infrastructure.md` (M-PACK-B-02 SecretSource + Registry + scrub; M-PACK-B-03 advisory FS-scope check), `work/epics/E-21-pack-contribution-contract/E-21c-pack-dx.md` (M-PACK-C-03 `examples/file_watch_demo`).
+- Successor milestones depending on this work: `work/epics/E-21-pack-contribution-contract/E-25-runtime-pack-infrastructure.md` (M-PACK-B-02 SecretSource + Registry + scrub; M-PACK-B-03 advisory FS-scope check), `work/epics/E-21-pack-contribution-contract/E-26-pack-dx.md` (M-PACK-C-03 `examples/file_watch_demo`).
 - Decisions: D-2026-04-01-008 (GenServer scheduler), D-2026-04-02-011 (layered sandbox), D-2026-04-02-017 (Oban deferred / GenServer scheduler reaffirmed), D-2026-04-23-030 (ADR filename / ID convention).
 - E-12 epic spec: `work/epics/E-12-op-sandbox/epic.md`.
 - E-14 epic (Postgres + Oban): roadmap entry at `work/roadmap.md`.
-- E-19: `work/done/E-19-warnings-degraded-outcomes/epic.md` and `M-WARN-01-runtime-warning-contract.md`.
+- E-19: `work/done/E-19/epic.md` and `M-WARN-01-runtime-warning-contract.md`.
 - Contract matrix: `docs/architecture/indexes/contract-matrix.md`.
 - Shim policy: `docs/governance/shim-policy.md`.
 - Gaps: `work/gaps.md` ("Op sandbox: layered isolation not implemented"; "Secret-management maturity — pluggable SecretSource adapters + secret-observability hardening").

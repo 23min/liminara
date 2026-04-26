@@ -75,6 +75,170 @@ These values are resolved from framework defaults in .ai/paths.md and repo overr
 
 ## Project-Specific Rules
 
+# Contract Design — reviewer rule (Liminara)
+
+This rule is enforced by the **reviewer agent** at PR review time on
+any PR that lands or modifies a Liminara contract surface (ADR + CUE
+schema + fixtures + worked example + reference implementation). It
+codifies four reviewer-discipline assertions specific to Liminara that
+the upstream tech-neutral skill at `.ai/skills/design-contract.md`
+deliberately does not carry.
+
+## Rule scope
+
+This rule defines **what the reviewer enforces**. The upstream skill at
+`.ai/skills/design-contract.md` defines **what the contract author
+follows**. The Liminara overlay at `.ai-repo/skills/design-contract.md`
+binds upstream's workflow to Liminara's path and policy choices.
+Together: skill teaches authoring; this rule enforces reviewer-side
+acceptance gates.
+
+The rule does not duplicate the upstream 7-step workflow — chasing
+that cross-reference is the author's job and the upstream skill's
+content. A reviewer reading this file should land on four
+assertions, not a workflow walkthrough.
+
+## Assertion 1 — Pack-level ADRs cite admin-pack with file + section anchor
+
+The pack-level ADRs in E-21 (ADR-MANIFEST-01, ADR-PLAN-01,
+ADR-OPSPEC-01, ADR-SURFACE-01, ADR-TRIGGER-01, ADR-FILEWATCH-01,
+ADR-FSSCOPE-01, ADR-SECRETS-01, ADR-CONTENT-01, ADR-LAYOUT-01,
+ADR-REGISTRY-01, ADR-MULTIPLAN-01) must each cite a **specific file +
+section anchor** inside `admin-pack/v2/docs/architecture/`. Format:
+`<file>.md §<section> — <description>` (e.g.
+`bookkeeping-pack-on-liminara.md §4.2 — per-receipt lifecycle`). A
+generic "see admin-pack" reference fails this assertion.
+
+**E-22-pending allowance.** `admin-pack/v2/docs/architecture/` becomes
+a real submodule in E-22, after E-21 wraps. The cited anchor target
+may not yet exist on disk during E-21 review. The reviewer accepts the
+citation as a contract-for-future-content if and only if (a) the
+file + section anchor is named with specificity, and (b) the
+description articulates *what* the cited section is expected to
+provide. Vague placeholders (`admin-pack-design.md §TBD`) fail this
+assertion. The substance of the citation is verified against
+materialized admin-pack content at E-22 by the same reviewer rule.
+
+ADRs whose secondary reference is *not* admin-pack (ADR-LA-01,
+ADR-WIRE-01, ADR-BOUNDARY-01, ADR-EXECUTOR-01, ADR-EVOLUTION-01) are
+not subject to this anchored-citation gate. Their secondary reference
+must still be substantive and not TBD; the reviewer applies a
+weaker variant of the same discipline.
+
+## Assertion 2 — Contract-matrix rows verified at wrap
+
+Per `.ai-repo/rules/liminara.md` *Contract matrix discipline* (the
+project rule that establishes the matrix), every milestone that
+creates, modifies, or retires a contract surface declares its row
+deltas in the milestone spec's `## Contract matrix changes` section.
+The reviewer at wrap-milestone time:
+
+- Verifies that every row declared in the spec's *Contract matrix
+  changes* section landed in `docs/architecture/indexes/contract-matrix.md`
+  with the correct columns (contract name, owning ADR, live-source
+  path, status).
+- Checks that the live-source path actually exists at the cited
+  location (no rotted paths from a renamed or moved live source).
+- Flags absent rows or rotted paths as **wrap-blocking**. The
+  milestone does not wrap until the matrix matches its declared
+  deltas.
+
+For milestones that explicitly declare "None — this milestone does
+not touch contract surfaces," the reviewer verifies the milestone
+indeed didn't touch any first-class contract surface (a defensive
+check against silent contract creation).
+
+## Assertion 3 — Radar-primary / admin-pack-secondary structure
+
+Pack-level contract ADRs in E-21 must structure their references as
+two tiers:
+
+- **Primary reference:** the Radar surface that exercises this
+  contract today, cited as `<file>:<line>` into `runtime/apps/...`
+  (or another committed source location). The cited code must
+  demonstrate the contract on real work today, not in a test or mock.
+- **Secondary reference:** the admin-pack surface that will exercise
+  the contract once admin-pack is authored, cited per Assertion 1.
+
+A pack-level ADR with only a Radar reference and no admin-pack
+secondary fails this assertion as a **one-pack abstraction** — a
+shape derived from a single consumer rarely survives the second
+consumer's pressure, and the secondary reference is the cheapest
+forcing function against designing-for-Radar. The reviewer either
+requires the secondary reference to be added, or rejects the ADR.
+
+ADRs that are deliberately Radar-only (ADR-WIRE-01 covers Radar's
+existing port wire protocol; ADR-EXECUTOR-01 covers Radar's existing
+`:inline` + `:port` taxonomy) are exceptions captured in the parent
+sub-epic spec's *ADRs produced* table. The reviewer accepts the
+exception when the table marks the ADR as primary-Radar-only with
+secondary "—".
+
+## Assertion 4 — Reference-implementation citation shapes
+
+The `contract.reference_implementation` frontmatter field on a
+contract-backed ADR must take one of two acceptable shapes.
+**TBD is rejected.** "Built later" is rejected. "Something demo-ish
+in a future epic" is rejected.
+
+- **Existing implementation:** `<file>:<line>` citation into a
+  committed source location (typically `runtime/apps/...`). The cited
+  code must be a real, running implementation today — not test code,
+  not a mock, not a draft branch.
+- **Scheduled-to-exist implementation:** a Liminara milestone ID
+  (`M-PACK-B-01b`, `M-PACK-C-03`, etc.) **plus** the named file or
+  module the milestone will create. "Built in M-PACK-C-03" is too
+  abstract; "`examples/file_watch_demo` built in M-PACK-C-03" is
+  acceptable. The named-file binding is the contract deadline.
+
+Acceptable scheduled references in E-21 (already vetted against the
+parent sub-epic's *Technical direction* §4):
+
+- `examples/file_watch_demo` — E-26 M-PACK-C-03 (ADR-FILEWATCH-01).
+- The admin-pack-shape proxy pack — E-25 M-PACK-B-01b loaded /
+  M-PACK-B-03 executed (secondary validator for multi-trigger +
+  multi-plan ADRs).
+- Radar generated `pack.yaml` shim — E-25 M-PACK-B-01b (validator of
+  ADR-MANIFEST-01's CUE schema against Radar's real shape).
+
+The reviewer at wrap-milestone time of the *cited* milestone (not
+the ADR's own milestone) verifies the named file/module materialized.
+Reference-impl deadlines that slip beyond their cited milestone get
+either re-cited (with a follow-up decision-log entry) or the
+authoring ADR is reopened.
+
+## What the reviewer does not enforce
+
+- **Authoring workflow steps.** The 7-step bundle-as-PR discipline
+  (draft ADR → schema → valid + invalid fixtures → worked example →
+  reference implementation → verify locally → open PR) is enforced by
+  the upstream skill's checklist that the contributor follows.
+  Reviewer side: the bundle either lands intact in the PR or doesn't.
+  Missing artifacts in the PR are flagged as bundle-incomplete; the
+  reviewer doesn't re-walk the workflow.
+- **Per-CUE-language idioms.** Constraint syntax, `close()` discipline,
+  default-merging gotchas, code-generation pipelines — all handled by
+  the upstream recipe at `.ai/docs/recipes/design-contract-cue.md`.
+  The reviewer reads `cue vet` output, not the contributor's CUE.
+- **Schema-evolution-loop pass.** The pre-commit hook + CI both gate
+  on this; by the time review starts, the loop has passed. The
+  reviewer asserts the discipline (Assertion 2's wrap-time check
+  covers it indirectly) but doesn't re-run the loop.
+
+## References
+
+- Upstream tech-neutral skill: `.ai/skills/design-contract.md`
+- Upstream CUE recipe: `.ai/docs/recipes/design-contract-cue.md`
+- Liminara authoring overlay (AC7):
+  `.ai-repo/skills/design-contract.md`
+- Contract-matrix index:
+  `docs/architecture/indexes/contract-matrix.md`
+- Contract-matrix discipline (parent rule):
+  `.ai-repo/rules/liminara.md` *Contract matrix discipline* section
+- Parent sub-epic spec:
+  `work/epics/E-21-pack-contribution-contract/E-24-contract-design.md`
+- Layout-convergence decision: `work/decisions.md` D-2026-04-25-033
+
 # Liminara — Project Rules
 
 ## What this is
@@ -373,34 +537,9 @@ Subagents dispatched via `Agent` run silently from the parent session's perspect
 
 ## Current Work
 
-**Active focus:** M-PACK-A-02a — Foundational contracts (5 ADRs: ADR-MANIFEST-01, ADR-PLAN-01, ADR-OPSPEC-01, ADR-REPLAY-01, ADR-WIRE-01). First milestone to land actual ADR content + CUE schemas + valid/invalid fixtures into the harness M-PACK-A-01 just built. Sits inside E-21 → E-21a (Contract Design).
-**Why now:** M-PACK-A-01 wrapped 2026-04-25 (merge `a2ceca3` on `epic/E-21-pack-contribution-contract`); the contract-TDD harness is live and the fixture library is empty by design waiting for first content. M-PACK-A-02a unblocks M-PACK-A-02b/c plus the rest of E-21 (E-21b runtime infrastructure + E-21c DX + E-21d Radar extraction).
-**Active branch:** `epic/E-21-pack-contribution-contract` (return to the epic branch after milestone merge; cut `milestone/M-PACK-A-02a` from here when starting).
-**Open question:** before starting M-PACK-A-02a, pull the framework `.ai/` to upstream HEAD so PR #72's deliverables (`.ai/skills/design-contract.md`, `.ai/docs/recipes/design-contract-cue.md`, `.ai/templates/adr.md` `contract:` frontmatter fields) exist on-disk and are usable from the new ADRs. Tracked in `work/gaps.md`. Run `bash .ai/sync.sh` after the framework submodule pull.
-**Downstream-spec obligation:** when E-21b's milestone specs are drafted, three of them must declare contract-matrix rows in their own `## Contract matrix changes` sections — M-PACK-B-01b for `schema-evolution` and `multi-plan`, plus whichever E-21b milestone introduces artifact-emission-time content-type validation for `content-namespace` (and that spec needs an AC binding the validation to `Liminara.Executor` or `Liminara.Artifact.Store`).
-
-### E-21 sub-epic working rules — temporary, remove at wrap-epic E-21
-
-E-21 is split into four **sub-epics** (E-21a/b/c/d). Sub-epics are a Liminara-specific extension to the framework's standard 2-level (epic → milestone) structure: the framework has no sub-epic kind, no sub-epic lifecycle skills, and no sub-epic graph representation. To avoid confusion (the kind that produced the `epic/E-21a-contract-design`-branch-that-never-existed mistake on 2026-04-25), follow these rules for the duration of E-21:
-
-- **Branches.** One branch only — `epic/E-21-pack-contribution-contract`. **Never invent** `epic/E-21a-...`, `epic/E-21b-...`, etc. Milestone branches cut from the parent epic branch (`milestone/M-PACK-A-01` from `epic/E-21-pack-contribution-contract`).
-- **Lifecycle skills.**
-  - `plan-epic` is done; do not re-invoke per sub-epic.
-  - `plan-milestones` runs **once per sub-epic**, when that sub-epic becomes the next focus. Run it for E-21b only after E-21a wraps (or near it); same for E-21c, E-21d.
-  - `start-milestone` and `wrap-milestone` operate on milestone IDs and don't know about sub-epics — invoke them normally.
-  - `wrap-epic` runs **once**, when all of E-21a/b/c/d are done. There is no `wrap-sub-epic`. Sub-epic completion is informal: note it in CLAUDE.md *Current Work* and `work/decisions.md`.
-- **Filesystem.** Sub-epic specs and their milestone specs all live flat under `work/epics/E-21-pack-contribution-contract/`. Do not create per-sub-epic subfolders.
-- **wf-graph.**
-  - Sub-epics do not appear as nodes. Do not try to add E-21a/b/c/d to `graph.yaml`.
-  - Milestone nodes get `epic: E-21-pack-contribution-contract` (the parent ID), **not** the sub-epic ID.
-  - The `parent: E-21<x>-...` field in milestone-spec frontmatter is documentation only — the graph won't index it.
-- **Reporting.** `wf-graph report --status` shows E-21 once with no sub-epic breakdown. For sub-epic visibility, query `wf-graph query E-21-pack-contribution-contract --descendants` and group by track letter (M-PACK-A-* = E-21a, M-PACK-B-* = E-21b, M-PACK-C-* = E-21c, M-PACK-D-* = E-21d).
-- **CLAUDE.md *Current Work*.** Use three-coordinate prose (`E-21 → E-21<x> → M-PACK-...`). Update at sub-epic boundaries (e.g. starting E-21b) even though the framework only prescribes updates at milestone start/wrap.
-- **Long-lived epic branch.** E-21 spans all four sub-epics — likely months. Periodically merge `main` into `epic/E-21-pack-contribution-contract` to bound divergence; don't let it drift more than a few weeks.
-- **Audit warnings.** `workflow-audit` may flag the `parent:` field in milestone frontmatter as "unknown parent." Treat as a known false positive scoped to E-21.
-- **The restructure question.** Promoting each sub-epic to a top-level epic was considered 2026-04-25 and deferred (cost > benefit at this stage; full thought-trail in conversation history). If the friction grows, revisit at sub-epic transitions (e.g. moving from E-21a wrap to E-21b plan).
-
-These rules are the working-pattern for E-21 only. Future epics should not adopt the sub-epic pattern unless the framework grows native support.
+**Active focus:** M-PACK-A-02a — Foundational contracts (5 ADRs: ADR-MANIFEST-01, ADR-PLAN-01, ADR-OPSPEC-01, ADR-REPLAY-01, ADR-WIRE-01). Lands first ADR content + CUE schemas + valid/invalid fixtures into the harness M-PACK-A-01 built. Owning epic is **E-24 (Pack Contract Design)**, child of umbrella **E-21**.
+**Why now:** M-PACK-A-01 wrapped 2026-04-25; the contract-TDD harness is live and the fixture library is empty by design. M-PACK-A-02a unblocks M-PACK-A-02b/c and the downstream peer epics (E-25 runtime, E-26 DX, E-27 Radar extraction).
+**Active branch:** `epic/E-21-pack-contribution-contract` carries the merged M-PACK-A-01 work; rename to `epic/E-24-contract-design` is recommended before cutting `milestone/M-PACK-A-02a` (per D-2026-04-26-034).
 
 For structural state see:
 - `wf-graph report --status` — open epics with phase, activity, blocked-by, blocks

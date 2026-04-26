@@ -160,11 +160,11 @@ frontmatter field per the upstream skill's step 5:
   acceptable. The named-file binding is the deadline.
 
 Acceptable scheduled references in E-21:
-- `examples/file_watch_demo` (E-21c M-PACK-C-03; ADR-FILEWATCH-01).
-- The admin-pack-shape proxy pack (E-21b M-PACK-B-01b loaded /
+- `examples/file_watch_demo` (E-26 M-PACK-C-03; ADR-FILEWATCH-01).
+- The admin-pack-shape proxy pack (E-25 M-PACK-B-01b loaded /
   M-PACK-B-03 executed; secondary validator for multi-trigger +
   multi-plan ADRs).
-- Radar generated `pack.yaml` shim (E-21b M-PACK-B-01b; validator of
+- Radar generated `pack.yaml` shim (E-25 M-PACK-B-01b; validator of
   ADR-MANIFEST-01's CUE schema against Radar's real shape).
 
 TBD or "something demo-ish later" is rejected at review.
@@ -189,7 +189,7 @@ First-time contract author:
 ## Cross-references
 
 - Parent sub-epic spec:
-  `work/epics/E-21-pack-contribution-contract/E-21a-contract-design.md`
+  `work/epics/E-21-pack-contribution-contract/E-24-contract-design.md`
 - Contract matrix index:
   `docs/architecture/indexes/contract-matrix.md`
 - Contract-matrix-discipline rule:

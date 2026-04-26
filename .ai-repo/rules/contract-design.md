@@ -117,11 +117,11 @@ in a future epic" is rejected.
 Acceptable scheduled references in E-21 (already vetted against the
 parent sub-epic's *Technical direction* §4):
 
-- `examples/file_watch_demo` — E-21c M-PACK-C-03 (ADR-FILEWATCH-01).
-- The admin-pack-shape proxy pack — E-21b M-PACK-B-01b loaded /
+- `examples/file_watch_demo` — E-26 M-PACK-C-03 (ADR-FILEWATCH-01).
+- The admin-pack-shape proxy pack — E-25 M-PACK-B-01b loaded /
   M-PACK-B-03 executed (secondary validator for multi-trigger +
   multi-plan ADRs).
-- Radar generated `pack.yaml` shim — E-21b M-PACK-B-01b (validator of
+- Radar generated `pack.yaml` shim — E-25 M-PACK-B-01b (validator of
   ADR-MANIFEST-01's CUE schema against Radar's real shape).
 
 The reviewer at wrap-milestone time of the *cited* milestone (not
@@ -159,5 +159,5 @@ authoring ADR is reopened.
 - Contract-matrix discipline (parent rule):
   `.ai-repo/rules/liminara.md` *Contract matrix discipline* section
 - Parent sub-epic spec:
-  `work/epics/E-21-pack-contribution-contract/E-21a-contract-design.md`
+  `work/epics/E-21-pack-contribution-contract/E-24-contract-design.md`
 - Layout-convergence decision: `work/decisions.md` D-2026-04-25-033

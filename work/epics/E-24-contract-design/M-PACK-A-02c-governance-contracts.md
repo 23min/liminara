@@ -10,13 +10,13 @@ depends_on: M-PACK-A-02a
 
 ## Goal
 
-Ship the eight ADRs that govern how packs are registered, composed, extended, and bounded — registry, multi-plan composition, executor taxonomy, schema evolution, repo layout, compile-time boundary enforcement, content-type namespace, and language-agnostic contribution — each paired with its CUE schema, fixtures, worked example, and named reference implementation. After this milestone the pack contract is complete: every downstream sub-epic (E-21b runtime, E-21c DX, E-21d extraction) has an ADR it is required to respect for every pack-level concern.
+Ship the eight ADRs that govern how packs are registered, composed, extended, and bounded — registry, multi-plan composition, executor taxonomy, schema evolution, repo layout, compile-time boundary enforcement, content-type namespace, and language-agnostic contribution — each paired with its CUE schema, fixtures, worked example, and named reference implementation. After this milestone the pack contract is complete: every downstream sub-epic (E-25 runtime, E-26 DX, E-27 extraction) has an ADR it is required to respect for every pack-level concern.
 
 ## Context
 
-This is the third and final ADR-clustering milestone of sub-epic E-21a. M-PACK-A-01 has shipped the contract-TDD harness (CUE in the devcontainer, the local + pre-commit `cue vet` entry point, the schema-evolution loop, the fixture-library directory layout, and the Liminara-local `design-contract` skill + `contract-design` reviewer rule). M-PACK-A-02a has shipped the foundational ADRs — ADR-MANIFEST-01, ADR-PLAN-01, ADR-OPSPEC-01, ADR-REPLAY-01, ADR-WIRE-01 — together with the schema-evolution check running against their first fixture sets; ADR-MANIFEST-01 in particular has frozen the `schema_version` field shape that ADR-EVOLUTION-01 in this milestone operates on. M-PACK-A-02b is in flight or merged with the running-systems ADRs — ADR-SURFACE-01, ADR-TRIGGER-01, ADR-FILEWATCH-01, ADR-FSSCOPE-01, ADR-SECRETS-01.
+This is the third and final ADR-clustering milestone of sub-epic E-24. M-PACK-A-01 has shipped the contract-TDD harness (CUE in the devcontainer, the local + pre-commit `cue vet` entry point, the schema-evolution loop, the fixture-library directory layout, and the Liminara-local `design-contract` skill + `contract-design` reviewer rule). M-PACK-A-02a has shipped the foundational ADRs — ADR-MANIFEST-01, ADR-PLAN-01, ADR-OPSPEC-01, ADR-REPLAY-01, ADR-WIRE-01 — together with the schema-evolution check running against their first fixture sets; ADR-MANIFEST-01 in particular has frozen the `schema_version` field shape that ADR-EVOLUTION-01 in this milestone operates on. M-PACK-A-02b is in flight or merged with the running-systems ADRs — ADR-SURFACE-01, ADR-TRIGGER-01, ADR-FILEWATCH-01, ADR-FSSCOPE-01, ADR-SECRETS-01.
 
-The runtime today provides two executors (`:inline` for Elixir ops, `:port` for Python ops via `runtime/apps/liminara_core/lib/liminara/executor/port.ex`); Radar lives in-tree as `runtime/apps/liminara_radar/`; there is no runtime concept of "language-agnostic pack," "registered pack," "multi-plan pack," or "content-type namespace" beyond what Radar happens to do. The eight ADRs in this milestone codify those concepts as data, without moving any code — every implementation question is owned by E-21b. Admin-pack itself runs in E-22, well after E-21 wraps; the anchored-citation discipline declared in the parent sub-epic's success criteria is the substantive defense against pack-level ADRs being designed against Radar alone.
+The runtime today provides two executors (`:inline` for Elixir ops, `:port` for Python ops via `runtime/apps/liminara_core/lib/liminara/executor/port.ex`); Radar lives in-tree as `runtime/apps/liminara_radar/`; there is no runtime concept of "language-agnostic pack," "registered pack," "multi-plan pack," or "content-type namespace" beyond what Radar happens to do. The eight ADRs in this milestone codify those concepts as data, without moving any code — every implementation question is owned by E-25. Admin-pack itself runs in E-22, well after E-21 wraps; the anchored-citation discipline declared in the parent sub-epic's success criteria is the substantive defense against pack-level ADRs being designed against Radar alone.
 
 **Partial parallelism with M-PACK-A-02b.** Five of this milestone's eight ADRs do not bind to any shape M-PACK-A-02b ships and may be authored as soon as M-PACK-A-02a freezes:
 
@@ -86,12 +86,12 @@ Authors picking up M-PACK-A-02c may begin work on the five unblocked ADRs in par
 ## Constraints
 
 - **No runtime code moves.** No file under `runtime/` is modified; no app under `runtime/apps/` gains, loses, or reshapes a module. The runtime executes exactly as it does at the start of this milestone. ADRs document shape, not behaviour.
-- **ADRs cannot prescribe PackLoader, PackRegistry, Boundary checker, or Executor dispatch internals.** Those are E-21b's concern. ADRs in this milestone may name a reference implementation in a specific E-21b/c/d milestone but cannot dictate the implementing milestone's internal design beyond the contract this milestone defines.
+- **ADRs cannot prescribe PackLoader, PackRegistry, Boundary checker, or Executor dispatch internals.** Those are E-25's concern. ADRs in this milestone may name a reference implementation in a specific E-25/c/d milestone but cannot dictate the implementing milestone's internal design beyond the contract this milestone defines.
 - **No compatibility shims.** Per repo policy in `.ai-repo/rules/liminara.md`, shims are banned. The partial-parallelism dependency between this milestone and M-PACK-A-02b is not a shim — it is a documented sequencing arrangement, not a surface preserving a lie.
 - **No framework template edits.** `.ai/templates/adr.md` is not modified; ADR template field extensions are upstream framework work ([ai-workflow#37](https://github.com/23min/ai-workflow/issues/37)) and ADR authors include the schema/fixture/worked-example/reference-implementation fields inline per ADR until the upstream issue lands.
 - **No CI changes.** `.github/workflows/` is not modified; repo-wide CI integration is a separate, deferred initiative.
 - **No CUE-tooling changes.** The local entry point and pre-commit hook from M-PACK-A-01 are reused as-is; this milestone authors no replacement.
-- **No per-payload CUE schemas authored.** ADR-CONTENT-01 covers the namespace only; per-payload CUE for specific content-types is demand-driven per pack and out of scope for the entire E-21a sub-epic.
+- **No per-payload CUE schemas authored.** ADR-CONTENT-01 covers the namespace only; per-payload CUE for specific content-types is demand-driven per pack and out of scope for the entire E-24 sub-epic.
 - **Per the parent sub-epic's branch policy: no main-branch work.** This milestone executes on `epic/E-21-pack-contribution-contract` with a milestone branch from it. Spec authoring (this document) is the exception and lands on `main` with `status: draft`.
 
 ## Design Notes
@@ -113,7 +113,7 @@ Each ADR ships at the next sequential `NNNN` number under `docs/decisions/`. Aut
 
 ### Partial-parallelism rationale
 
-The five ADRs in the "none — independent" rows above can be authored in parallel with M-PACK-A-02b authoring, beginning as soon as M-PACK-A-02a's foundational shapes are frozen. They do not bind to any data shape that M-PACK-A-02b owns; their inputs are M-PACK-A-02a artifacts (ADR-MANIFEST-01 for ADR-EVOLUTION-01) or repo state independent of E-21a (existing executor source files for ADR-EXECUTOR-01; in-tree umbrella structure for ADR-BOUNDARY-01).
+The five ADRs in the "none — independent" rows above can be authored in parallel with M-PACK-A-02b authoring, beginning as soon as M-PACK-A-02a's foundational shapes are frozen. They do not bind to any data shape that M-PACK-A-02b owns; their inputs are M-PACK-A-02a artifacts (ADR-MANIFEST-01 for ADR-EVOLUTION-01) or repo state independent of E-24 (existing executor source files for ADR-EXECUTOR-01; in-tree umbrella structure for ADR-BOUNDARY-01).
 
 The three ADRs in the "depends on …" rows must wait for M-PACK-A-02b to merge — not just to have its drafts circulating, but to have its CUE schemas and fixtures locked. ADR-REGISTRY-01's CUE schema for the per-pack config entry references `surface_path: SurfacePath` (ADR-SURFACE-01), `fs_scope_root: FSScopeRoot` (ADR-FSSCOPE-01), and `secrets: [SecretDeclaration]` (ADR-SECRETS-01); writing those references against unfrozen 02b shapes risks rework. Same logic for ADR-MULTIPLAN-01 (its plan-entry shape includes `trigger: TriggerDeclaration` from ADR-TRIGGER-01) and ADR-LAYOUT-01 (its conventional layout includes `surfaces/` whose file shape is from ADR-SURFACE-01).
 
@@ -142,16 +142,16 @@ The parent sub-epic spec describes contract-matrix rows for "meta-ADRs" (`schema
 **Resolved policy:** matrix rows are added when their live source ships, not when the ADR ships. A row whose live source is "scheduled" or "TBD" creates drift-by-construction — the matrix's purpose is to point at *what the contract is and where its live source lives*, and a promissory pointer doesn't satisfy that. Concretely:
 
 - Four ADRs in this milestone have live sources today: `registry` (Radar load path), `executor-taxonomy` (`Liminara.Executor` + `Port`), `layout` (in-tree `runtime/apps/liminara_radar/`), `boundary` (existing `boundary` lib usage). Their rows land in 02c.
-- Three meta-ADRs would have **future** live sources in E-21b: `schema-evolution` (PackLoader compat-check), `content-namespace` (Executor / Artifact.Store emission validation), `multi-plan` (PackRegistry plan-entrypoints map). Their rows land in the E-21b milestone that ships the enforcer; the ADR itself still ships in 02c.
+- Three meta-ADRs would have **future** live sources in E-25: `schema-evolution` (PackLoader compat-check), `content-namespace` (Executor / Artifact.Store emission validation), `multi-plan` (PackRegistry plan-entrypoints map). Their rows land in the E-25 milestone that ships the enforcer; the ADR itself still ships in 02c.
 - One meta-ADR is structural and already covered: `language-agnostic` is implicit in ADR-WIRE-01's row from M-PACK-A-02a; no separate row.
 
 This policy decision is recorded here so future readers don't try to retroactively backfill matrix rows during 02c's wrap or treat the deferred rows as drift.
 
 ## Out of Scope
 
-- Runtime code: PackLoader, PackRegistry, SurfaceRenderer, TriggerManager, SecretSource, FSScope enforcer, Boundary checker (E-21b).
-- SDKs, CLIs, widgets, and the test harness (E-21c).
-- Radar extraction to a submodule, boundary enforcement implementation, pack-authoring guide (E-21d).
+- Runtime code: PackLoader, PackRegistry, SurfaceRenderer, TriggerManager, SecretSource, FSScope enforcer, Boundary checker (E-25).
+- SDKs, CLIs, widgets, and the test harness (E-26).
+- Radar extraction to a submodule, boundary enforcement implementation, pack-authoring guide (E-27).
 - Admin-pack itself (E-22).
 - Per-payload CUE schemas for specific content-types — demand-driven per pack, not a runtime concern, not in any E-21 sub-epic.
 - ADRs from M-PACK-A-02a (foundational) or M-PACK-A-02b (running-systems) — those land in their owning milestones.
@@ -165,27 +165,27 @@ This policy decision is recorded here so future readers don't try to retroactive
 - **Soft sequencing constraint: three of eight ADRs wait for M-PACK-A-02b to freeze.** ADR-REGISTRY-01, ADR-MULTIPLAN-01, and ADR-LAYOUT-01 cannot be authored against unfrozen 02b shapes. The other five ADRs (ADR-EXECUTOR-01, ADR-EVOLUTION-01, ADR-BOUNDARY-01, ADR-CONTENT-01, ADR-LA-01) may begin in parallel with M-PACK-A-02b authoring. This is documented in *Context* and *Design Notes* above; not recorded as a frontmatter dependency because the milestone can land with the five unblocked ADRs first if 02b slips, then add the three blocked ADRs once 02b merges.
 - **M-PACK-A-01 has shipped** the CUE toolchain in the devcontainer, the local + pre-commit `cue vet` entry point, the schema-evolution loop, the fixture-library directory layout, and the Liminara-local `design-contract` skill. This milestone reuses all of those without modification.
 - **E-19 has merged.** Already a hard dependency of the parent sub-epic; no per-milestone constraint inherited beyond what M-PACK-A-02a already satisfied.
-- **No dependency on E-21b, E-21c, or E-21d code shipping.** Scheduled-reference citations to milestones in those sub-epics (M-PACK-B-01a, M-PACK-B-01b, M-PACK-B-03, M-PACK-D-01a) are forward references; the cited milestones do not need to exist as code at this milestone's wrap, only as approved specs with the matching acceptance criteria the citations bind to.
+- **No dependency on E-25, E-26, or E-27 code shipping.** Scheduled-reference citations to milestones in those sub-epics (M-PACK-B-01a, M-PACK-B-01b, M-PACK-B-03, M-PACK-D-01a) are forward references; the cited milestones do not need to exist as code at this milestone's wrap, only as approved specs with the matching acceptance criteria the citations bind to.
 
 ## Contract matrix changes
 
 Per `.ai-repo/rules/liminara.md` → "Contract matrix discipline." Rows land in `docs/architecture/indexes/contract-matrix.md` as part of this milestone's merge.
 
-**Rule applied: rows are added when their live source ships.** A matrix row points at *what the contract is and where its live source lives*. A row whose live source is "scheduled but not yet shipped" is a promissory note, not a pointer, and creates drift-by-construction. The four ADRs in this milestone's set whose live sources exist today get rows here; the four whose live sources ship in E-21b get their rows in the E-21b milestone that lands the enforcer. The ADRs themselves all ship in 02c regardless — only the matrix-row landing waits.
+**Rule applied: rows are added when their live source ships.** A matrix row points at *what the contract is and where its live source lives*. A row whose live source is "scheduled but not yet shipped" is a promissory note, not a pointer, and creates drift-by-construction. The four ADRs in this milestone's set whose live sources exist today get rows here; the four whose live sources ship in E-25 get their rows in the E-25 milestone that lands the enforcer. The ADRs themselves all ship in 02c regardless — only the matrix-row landing waits.
 
 **Rows added in this milestone (4 — all with live sources today):**
 
 - `Pack registration` — live source: Radar's existing load path (`runtime/config/runtime.exs` pack-load configuration + the surrounding application-startup code that consumes it); approved next: ADR-REGISTRY-01 + `docs/schemas/pack-registry/`. Author confirms exact live-source path and canonical row name against the existing matrix at landing time.
 - `Executor taxonomy` — live source: `runtime/apps/liminara_core/lib/liminara/executor.ex` + `runtime/apps/liminara_core/lib/liminara/executor/port.ex`; approved next: ADR-EXECUTOR-01 + `docs/schemas/executor-taxonomy/`. Author confirms canonical row name at landing time.
-- `Pack repo layout` — live source: in-tree `runtime/apps/liminara_radar/` (Radar's current pre-extraction layout demonstrates the convention); approved next: ADR-LAYOUT-01 + `docs/schemas/pack-layout/` (with row's live-source path updated when E-21d lands the extracted `radar-pack` submodule). Author confirms canonical row name at landing time.
-- `Compile-time pack boundary` — live source: existing `boundary` library declarations in the OTP-app structure under `runtime/apps/`; approved next: ADR-BOUNDARY-01 + `docs/schemas/boundary/`. Author confirms exact `boundary`-using files at landing time and updates the row's live-source list when E-21b's `pack/api*.ex` modules land.
+- `Pack repo layout` — live source: in-tree `runtime/apps/liminara_radar/` (Radar's current pre-extraction layout demonstrates the convention); approved next: ADR-LAYOUT-01 + `docs/schemas/pack-layout/` (with row's live-source path updated when E-27 lands the extracted `radar-pack` submodule). Author confirms canonical row name at landing time.
+- `Compile-time pack boundary` — live source: existing `boundary` library declarations in the OTP-app structure under `runtime/apps/`; approved next: ADR-BOUNDARY-01 + `docs/schemas/boundary/`. Author confirms exact `boundary`-using files at landing time and updates the row's live-source list when E-25's `pack/api*.ex` modules land.
 
-**Rows deferred to E-21b (3 — live source ships with the enforcer):**
+**Rows deferred to E-25 (3 — live source ships with the enforcer):**
 
-The following ADRs ship in this milestone, but their matrix rows land in the E-21b milestone that ships the enforcing code. Each E-21b milestone declaring one of these enforcers must include the corresponding row in its own `## Contract matrix changes` section.
+The following ADRs ship in this milestone, but their matrix rows land in the E-25 milestone that ships the enforcing code. Each E-25 milestone declaring one of these enforcers must include the corresponding row in its own `## Contract matrix changes` section.
 
 - `Schema evolution policy` (ADR-EVOLUTION-01) — row lands with **M-PACK-B-01b** (PackLoader's compat-check call site enforcing the chosen algorithm against ADR-MANIFEST-01's `schema_version` field).
-- `Content-type namespace` (ADR-CONTENT-01) — row lands with whichever E-21b milestone introduces artifact-emission-time content-type validation (`Liminara.Executor` or `Liminara.Artifact.Store`). **E-21b's draft spec does not yet have an explicit acceptance criterion binding this validation to a concrete module — that AC needs to be added when E-21b's milestone specs are drafted.** Flagged in this milestone's tracking doc as a downstream-spec obligation.
+- `Content-type namespace` (ADR-CONTENT-01) — row lands with whichever E-25 milestone introduces artifact-emission-time content-type validation (`Liminara.Executor` or `Liminara.Artifact.Store`). **E-25's draft spec does not yet have an explicit acceptance criterion binding this validation to a concrete module — that AC needs to be added when E-25's milestone specs are drafted.** Flagged in this milestone's tracking doc as a downstream-spec obligation.
 - `Multi-plan packs` (ADR-MULTIPLAN-01) — row lands with **M-PACK-B-01b** (admin-pack-shape proxy pack loads three plans; `PackRegistry.get/1` returns the declared shape).
 
 **Row deliberately not added (1):**
@@ -198,16 +198,16 @@ The following ADRs ship in this milestone, but their matrix rows land in the E-2
 
 ## References
 
-- Parent sub-epic: `work/epics/E-21-pack-contribution-contract/E-21a-contract-design.md`
+- Parent sub-epic: `work/epics/E-21-pack-contribution-contract/E-24-contract-design.md`
 - Parent epic: `work/epics/E-21-pack-contribution-contract/epic.md`
 - Sibling milestones:
   - `work/epics/E-21-pack-contribution-contract/M-PACK-A-01-contract-tdd-tooling.md`
   - `work/epics/E-21-pack-contribution-contract/M-PACK-A-02a-foundational-contracts.md` (when authored)
   - `work/epics/E-21-pack-contribution-contract/M-PACK-A-02b-packs-as-running-systems.md` (when authored)
 - Downstream sub-epics:
-  - `work/epics/E-21-pack-contribution-contract/E-21b-runtime-pack-infrastructure.md`
-  - `work/epics/E-21-pack-contribution-contract/E-21c-pack-dx.md`
-  - `work/epics/E-21-pack-contribution-contract/E-21d-radar-extraction-and-migration.md`
+  - `work/epics/E-21-pack-contribution-contract/E-25-runtime-pack-infrastructure.md`
+  - `work/epics/E-21-pack-contribution-contract/E-26-pack-dx.md`
+  - `work/epics/E-21-pack-contribution-contract/E-27-radar-extraction-and-migration.md`
 - Repo rules: `.ai-repo/rules/liminara.md` ("Contract matrix discipline" + "Decision records — two surfaces, one policy")
 - Contract matrix: `docs/architecture/indexes/contract-matrix.md`
 - Admin-pack architecture (anchored-citation source): `admin-pack/v2/docs/architecture/bookkeeping-pack-on-liminara.md`, `admin-pack/v2/docs/architecture/repo-layout.md`

@@ -6,11 +6,11 @@ status: planning
 depends_on: E-24
 ---
 
-# E-21c: Pack Developer Experience
+# E-26: Pack Developer Experience
 
 ## Goal
 
-Ship everything an external pack author installs and uses. When E-21c is done, a developer who knows Python and has never seen Liminara's source can run `pipx run liminara-new-pack my-pack`, edit the scaffolded files, run `liminara-test-harness run -- pytest`, and watch their pack execute against a local Liminara runtime — without cloning Liminara.
+Ship everything an external pack author installs and uses. When E-26 is done, a developer who knows Python and has never seen Liminara's source can run `pipx run liminara-new-pack my-pack`, edit the scaffolded files, run `liminara-test-harness run -- pytest`, and watch their pack execute against a local Liminara runtime — without cloning Liminara.
 
 Concretely this sub-epic produces:
 - **`liminara-pack-sdk`** on PyPI — the primary SDK.
@@ -25,11 +25,11 @@ Concretely this sub-epic produces:
   - a live regression test that the DX works for a minimal pack,
   - documentation-by-example for the pack authoring guide.
 
-What does NOT land in E-21c: runtime internals (E-21b), Radar extraction (E-21d), admin-pack itself (E-22).
+What does NOT land in E-26: runtime internals (E-25), Radar extraction (E-27), admin-pack itself (E-22).
 
 ## Context
 
-E-21a gives us the contract; E-21b gives us a runtime that can load it. E-21c is the half that determines whether *external* pack authors can actually build against the contract in reasonable time. It is the measure of whether the language-agnostic, data-first framing pays off in practice.
+E-24 gives us the contract; E-25 gives us a runtime that can load it. E-26 is the half that determines whether *external* pack authors can actually build against the contract in reasonable time. It is the measure of whether the language-agnostic, data-first framing pays off in practice.
 
 The sub-epic is organized around the audience: a pack author in their own GitHub repo on their own laptop. Every deliverable is "what they install" or "what the scaffolder produces" or "what the harness lets them do." Liminara's own committers do not need most of this for day-to-day work; the SDK and tooling exist to let non-committers build packs.
 
@@ -60,14 +60,14 @@ The sub-epic is organized around the audience: a pack author in their own GitHub
 
 ### Out of scope
 
-- Runtime pack-loader / registry / surface renderer / trigger manager / secret source — E-21b.
-- Moving Radar to a submodule — E-21d.
+- Runtime pack-loader / registry / surface renderer / trigger manager / secret source — E-25.
+- Moving Radar to a submodule — E-27.
 - Admin-pack — E-22.
 - Additional SDK languages (Rust, Go, Java, TypeScript) — demand-driven.
 - Additional widgets beyond the MVP five (including deferred `pdf_viewer` and `timeline`) — demand-driven.
 - A published pack marketplace or registry — out of scope indefinitely.
-- Pack-shipped custom JS bundle examples — the runtime supports them (E-21b honors the manifest reference); an example bundle can be deferred.
-- **Production deployment packaging.** E-21c decides only the *pack-development* (DX) distribution model for the harness. How Liminara is packaged for production deployment (Docker image, `mix release` under systemd, cloud-provider-specific images, etc.) is a separate concern owned by later platform-generalization work (Phase 7 / E-14 territory) and is explicitly not prejudiced by the DX choice. An external pack author never touches Docker; a production operator's packaging story is decided when production deployments actually matter.
+- Pack-shipped custom JS bundle examples — the runtime supports them (E-25 honors the manifest reference); an example bundle can be deferred.
+- **Production deployment packaging.** E-26 decides only the *pack-development* (DX) distribution model for the harness. How Liminara is packaged for production deployment (Docker image, `mix release` under systemd, cloud-provider-specific images, etc.) is a separate concern owned by later platform-generalization work (Phase 7 / E-14 territory) and is explicitly not prejudiced by the DX choice. An external pack author never touches Docker; a production operator's packaging story is decided when production deployments actually matter.
 
 ## Harness deployment model
 
@@ -79,7 +79,7 @@ The sub-epic is organized around the audience: a pack author in their own GitHub
 - Runtime Elixir deps (`bandit`, `websock`, `phoenix`, `phoenix_live_view`, `plug`, `jason`, `telemetry`, `ex_a2ui`, `boundary`, etc.)
 - Phoenix static assets pre-built (`priv/static/assets/`)
 - `vm.args`, `runtime.exs`, release config
-- (Post-E-21d: `liminara_radar` is **not** in the binary — Radar is an external pack loaded via manifest, not a compiled-in app.)
+- (Post-E-27: `liminara_radar` is **not** in the binary — Radar is an external pack loaded via manifest, not a compiled-in app.)
 
 **What the binary does NOT contain (and why that's fine):**
 - No Python interpreter or pack-level Python deps. The harness delegates Python-op execution to `uv` in the pack author's own environment — the harness invokes `uv run python -m liminara_op_runner ...` against the pack's `pyproject.toml` + `uv.lock`. This matches how pack authors already work, avoids shipping a Python interpreter that would conflict with pack-required versions, and keeps the Liminara binary small.
@@ -113,7 +113,7 @@ liminara-test-harness run -- pytest
 Shared E-21 constraints apply. Sub-epic-specific:
 
 - **`liminara_widgets` ships zero Liminara domain types.** Widgets accept A2UI-standard props + declared data bindings. No `%Run{}`, no `%Artifact{}`, no `%Decision{}` in widget signatures. This is the scope (i) discipline from the parent epic.
-- **Scaffolder output must run.** `liminara-new-pack my-pack && cd my-pack && liminara-test-harness run -- pytest` is green at the end of E-21c. If that command fails at any point, a milestone is blocked.
+- **Scaffolder output must run.** `liminara-new-pack my-pack && cd my-pack && liminara-test-harness run -- pytest` is green at the end of E-26. If that command fails at any point, a milestone is blocked.
 - **Python SDK does not import `anthropic`, `openai`, or LLM-provider SDKs.** The SDK is orchestration + contract plumbing; LLM calls happen inside pack ops. This keeps the SDK dependency-light and multi-purpose.
 - **The Elixir SDK is small.** If `liminara_pack_sdk` (Elixir) grows beyond a few hundred lines of meaningful code, something is wrong — packs don't need it; it's sugar. Resist scope creep.
 - **Harness startup is fast — measured, not aspirational.** Startup is split into three regimes, each with its own discipline. Budgets are *calibrated from the baseline measured at M-PACK-C-03*, not hard-coded at plan time, because the binary shape doesn't exist yet to measure.
@@ -127,15 +127,15 @@ Shared E-21 constraints apply. Sub-epic-specific:
 
 - [ ] `liminara-pack-sdk` (Python) published to a test index and importable; its test suite passes; a minimal op file written against it runs end-to-end via the harness.
 - [ ] `liminara_pack_sdk` (Elixir) published to a test Hex index; an Elixir pack authored with it runs end-to-end; the sugar is documented with hand-written-callback equivalents in the README.
-- [ ] `liminara_widgets` builds as an Elixir library + JS bundle; each of the five MVP widgets (`data_grid`, `json_viewer`, `dag_map` embedder, `content_card`, `banner`) has a working demo surface; none reference Liminara domain types (verified by Credo + JS lint). **Deployment shape: in-tree umbrella app for MVP** (`runtime/apps/liminara_widgets/` or equivalent). Not published to Hex. Extraction to a standalone submodule + Hex release is explicitly deferred — named extraction triggers in `work/gaps.md` → "`liminara_widgets` extraction — in-tree for E-21c; extract when a second consumer arrives". Name chosen (`liminara_widgets` not `liminara_ui`) is honest about being a widget library and doesn't mislead readers into expecting Liminara-domain-type-aware components.
+- [ ] `liminara_widgets` builds as an Elixir library + JS bundle; each of the five MVP widgets (`data_grid`, `json_viewer`, `dag_map` embedder, `content_card`, `banner`) has a working demo surface; none reference Liminara domain types (verified by Credo + JS lint). **Deployment shape: in-tree umbrella app for MVP** (`runtime/apps/liminara_widgets/` or equivalent). Not published to Hex. Extraction to a standalone submodule + Hex release is explicitly deferred — named extraction triggers in `work/gaps.md` → "`liminara_widgets` extraction — in-tree for E-26; extract when a second consumer arrives". Name chosen (`liminara_widgets` not `liminara_ui`) is honest about being a widget library and doesn't mislead readers into expecting Liminara-domain-type-aware components.
 - [ ] `liminara-new-pack` installs via `pipx` and scaffolds a pack that passes `liminara-test-harness run -- pytest` immediately.
 - [ ] `liminara-test-harness` installs via `pipx`; `run` mode drives a pack's integration test and returns a proper exit code; `dev` mode opens a browser on a pack's surfaces.
 - [ ] **Startup benchmark landed first in M-PACK-C-03** (before binary-size optimization or DX polish). Command: `liminara-test-harness run --benchmark -- true` boots the runtime, waits for the "ready" signal, and reports elapsed milliseconds for each regime (warm, cold) in machine-parseable form. The **measured warm baseline on CI hardware is recorded in the milestone tracking doc**, and the enforced CI threshold for warm startup is set at `warm_baseline_ms × 1.2`; the enforced threshold for cold startup is set at `warm_baseline_ms × 2`. CI fails the job if either regime regresses past its threshold. If the measured warm baseline exceeds 3s, M-PACK-C-03 either optimizes before locking the budget or escalates a documented renegotiation with rationale (tracked in `work/decisions.md`).
 - [ ] **First-run initialization UX.** When the runtime binary is not cached, the harness prints a visible `Downloading Liminara runtime vX.Y.Z (~NN MB)…` progress line before boot, and cleanly exits with a helpful error (not a stack trace) on checksum or network failure. No numeric budget applies to this regime; the test covers the UX contract only.
-- [ ] `examples/file_watch_demo` in-tree, passes CI, is referenced from the pack authoring guide as the canonical `:file_watch` reference. **Binding to ADR-FILEWATCH-01**: the demo exercises every semantic the ADR specifies (debounce, coalesce, scan-on-startup, dedup, in-memory queue, rescan-on-restart) with a named test per semantic. This satisfies E-21a's reference-implementation rule for scheduled references (per E-21a Technical direction 4): the ADR cites this demo as its primary reference; this milestone is the named owning milestone; the acceptance criterion here binds the reference's shape to the ADR's semantics. If the demo ships missing any ADR-specified semantic, M-PACK-C-03 is not complete.
+- [ ] `examples/file_watch_demo` in-tree, passes CI, is referenced from the pack authoring guide as the canonical `:file_watch` reference. **Binding to ADR-FILEWATCH-01**: the demo exercises every semantic the ADR specifies (debounce, coalesce, scan-on-startup, dedup, in-memory queue, rescan-on-restart) with a named test per semantic. This satisfies E-24's reference-implementation rule for scheduled references (per E-24 Technical direction 4): the ADR cites this demo as its primary reference; this milestone is the named owning milestone; the acceptance criterion here binds the reference's shape to the ADR's semantics. If the demo ships missing any ADR-specified semantic, M-PACK-C-03 is not complete.
 - [ ] `LiminaraTest.Harness` + `A2UICapture` land in `liminara_core/test/support/` (or a dedicated test-helpers app if scope warrants) and are used by at least one runtime test + one pack test.
 - [ ] `e2e-harness` skill documented at `.ai-repo/skills/e2e-harness.md` (synced); reference scenario in `examples/file_watch_demo/tests/e2e/` exercises the full loop.
-- [ ] Pack authoring guide draft at `docs/guides/pack-authoring.md` (finalized in E-21d) walks from zero to a running pack in under one page of commands, in Python.
+- [ ] Pack authoring guide draft at `docs/guides/pack-authoring.md` (finalized in E-27) walks from zero to a running pack in under one page of commands, in Python.
 
 ## Milestones
 
@@ -164,29 +164,29 @@ Shared E-21 constraints apply. Sub-epic-specific:
 | Cross-compilation of the runtime binary from CI fails on a dep that pulls in a platform-specific NIF | Med | Audit deps at M-PACK-C-03 scope-lock; the current dep set (bandit, websock, phoenix, phoenix_live_view, plug, jason, telemetry, ex_a2ui, boundary) is pure Elixir. If a future dep adds a NIF, either pin a burrito-compatible variant or surface the constraint in `work/gaps.md`. |
 | Scaffolder templates drift from the schema (schema moves; scaffolder emits old shape) | Med | Scaffolder output is part of CI: scaffold a pack, `cue vet` its `pack.yaml`, run the harness. Drift fails CI. |
 | `liminara-test-harness` needing admin (root) to mount things breaks on locked-down developer laptops | Low | No elevated-privilege requirements. File-watching uses OS notify APIs accessible without root. Tested on macOS, Linux, WSL. |
-| Python SDK and Elixir SDK fall out of sync on shared concepts (content-type strings, plan shape) | Med | Both SDKs consume the CUE schemas from E-21a for their fixtures and type derivations. A "drift test" in CI re-generates type stubs from CUE and checks for divergence. |
+| Python SDK and Elixir SDK fall out of sync on shared concepts (content-type strings, plan shape) | Med | Both SDKs consume the CUE schemas from E-24 for their fixtures and type derivations. A "drift test" in CI re-generates type stubs from CUE and checks for divergence. |
 | The Elixir SDK grows too large because Radar benefits from more sugar | Med | Explicit LoC ceiling in the sub-epic: if the SDK passes ~500 lines of hand-written code, reviewer escalates. Radar-specific helpers belong in the radar-pack repo, not in the generic SDK. |
 
 ## Dependencies
 
-- **E-21a must merge first.** Every SDK public surface is constrained by an E-21a ADR + CUE schema; the scaffolder emits layouts from ADR-LAYOUT-01; the widget catalog binds via ADR-SURFACE-01.
-- **E-21b does not have to be fully merged** before E-21c starts, as long as the wire protocol from E-21a is stable. In practice M-PACK-C-01 can run concurrent with M-PACK-B-01a / B-01b / B-02 / B-03 once the wire protocol ADRs are frozen. M-PACK-C-02 and M-PACK-C-03 need E-21b's runtime available to validate against (at least M-PACK-B-01b, so that PackLoader + PackRegistry + Radar-through-pipeline are green).
-- **No dependency on E-21d.** Radar extraction happens after; E-21c validates against the `file_watch_demo` pack, not Radar.
+- **E-24 must merge first.** Every SDK public surface is constrained by an E-24 ADR + CUE schema; the scaffolder emits layouts from ADR-LAYOUT-01; the widget catalog binds via ADR-SURFACE-01.
+- **E-25 does not have to be fully merged** before E-26 starts, as long as the wire protocol from E-24 is stable. In practice M-PACK-C-01 can run concurrent with M-PACK-B-01a / B-01b / B-02 / B-03 once the wire protocol ADRs are frozen. M-PACK-C-02 and M-PACK-C-03 need E-25's runtime available to validate against (at least M-PACK-B-01b, so that PackLoader + PackRegistry + Radar-through-pipeline are green).
+- **No dependency on E-27.** Radar extraction happens after; E-26 validates against the `file_watch_demo` pack, not Radar.
 
-## Hand-off to E-21d
+## Hand-off to E-27
 
-E-21d uses E-21c's outputs:
+E-27 uses E-26's outputs:
 - Radar's extracted form will use `liminara_pack_sdk` (Elixir) for plan ergonomics.
 - Radar's Python ops continue to use the same protocol; `liminara-pack-sdk` (Python) is available but Radar's existing op code doesn't require it.
 - Radar's surfaces become YAML declarations rendered by `liminara_widgets` widgets (the MVP five cover Radar's needs, per the widget-catalog gap analysis; `content_card` is the critical one for briefing content, `dag_map` for plan visualization, `banner` for degraded alerts).
 - Radar's tests use `LiminaraTest.Harness` + `A2UICapture`.
-- The pack authoring guide (drafted here, finalized in E-21d) cites Radar as a "mixed-language advanced pack" alongside `file_watch_demo` as the "pure-Python simple pack."
+- The pack authoring guide (drafted here, finalized in E-27) cites Radar as a "mixed-language advanced pack" alongside `file_watch_demo` as the "pure-Python simple pack."
 
 ## References
 
 - Parent epic: `work/epics/E-21-pack-contribution-contract/epic.md`
-- E-21a (prerequisite): `work/epics/E-21-pack-contribution-contract/E-21a-contract-design.md`
-- E-21b (parallel): `work/epics/E-21-pack-contribution-contract/E-21b-runtime-pack-infrastructure.md`
+- E-24 (prerequisite): `work/epics/E-21-pack-contribution-contract/E-24-contract-design.md`
+- E-25 (parallel): `work/epics/E-21-pack-contribution-contract/E-25-runtime-pack-infrastructure.md`
 - Port wire protocol (current): `runtime/apps/liminara_core/lib/liminara/executor/port.ex`
 - Current Python op runner: `runtime/python/src/liminara_op_runner.py`
 - Admin-pack architecture (consumers of this SDK in E-22): `admin-pack/v2/docs/architecture/bookkeeping-pack-on-liminara.md`

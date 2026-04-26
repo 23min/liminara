@@ -15,11 +15,11 @@ Discovered work items deferred for later.
 ## wf-graph diff-roadmap misses letter-suffixed epic IDs (filed upstream)
 **Discovered:** 2026-04-25 (M-PACK-A-01 wrap, post-wrap graph audit)
 **Relates to:** `wf-graph diff-roadmap` prose-side ID extraction; `work/roadmap.md` line 133 references E-11b but the tool's regex stops at `E-\d+` and doesn't match the letter suffix
-**Severity:** Low — false-positive `graph_only` reports for any epic ID with a letter suffix (E-11b today; legacy E-21a/b/c/d also affected). No real drift; the tool is just under-recognizing. Workaround is manual prose-vs-graph verification.
+**Severity:** Low — false-positive `graph_only` reports for any epic ID with a letter suffix (E-11b today; legacy E-24/b/c/d also affected). No real drift; the tool is just under-recognizing. Workaround is manual prose-vs-graph verification.
 **Filed upstream:** [ai-workflow#88](https://github.com/23min/ai-workflow/issues/88)
 **Items:**
 - Suggested upstream fix: extend regex from `E-\d+` to `E-\d+[a-z]?` (or `E-\d+\w*` for multi-character suffixes).
-- Liminara has D-2026-04-22-029 retiring sub-epics as a pattern after E-21, but legacy E-11b + grandfathered E-21a/b/c/d still need correct diff handling until the umbrella shape retires.
+- Liminara has D-2026-04-22-029 retiring sub-epics as a pattern after E-21, but legacy E-11b + grandfathered E-24/b/c/d still need correct diff handling until the umbrella shape retires.
 **Trigger:** consume the upstream fix when ai-workflow#88 lands and the framework `.ai/` is synced. No Liminara-side action needed in the meantime.
 
 ## Framework `.ai/` sync to upstream HEAD pending — pulls PR #72 deliverables on-disk
@@ -117,12 +117,12 @@ Discovered work items deferred for later.
 
 ## Radar briefing HTML — `radar_dedup` safe-default and fetch-error surfacing
 **Discovered:** 2026-04-20 (M-WARN-03 wrap)
-**Relates to:** E-19, E-21a ADR-CONTENT-01 (briefing contract)
+**Relates to:** E-19, E-24 ADR-CONTENT-01 (briefing contract)
 **Severity:** UI gap — runtime-level degraded signals from these paths continue to surface via the observation layer (M-WARN-02), but the rendered HTML briefing does not yet reflect them.
 **Items:**
-- `radar_dedup` safe-default surfacing: `radar_dedup` operates on items before clustering; its degraded signal would need an item-level degraded flag that propagates through `Cluster` / `Rank` into `ComposeBriefing`. That is a briefing-contract schema decision (surface degraded items as a section? tag clusters containing degraded items?) and crosses into E-21a ADR-CONTENT-01 territory.
+- `radar_dedup` safe-default surfacing: `radar_dedup` operates on items before clustering; its degraded signal would need an item-level degraded flag that propagates through `Cluster` / `Rank` into `ComposeBriefing`. That is a briefing-contract schema decision (surface degraded items as a section? tag clusters containing degraded items?) and crosses into E-24 ADR-CONTENT-01 territory.
 - Fetch-error partial-ingestion surfacing: source-level concern; the briefing already has a `source_health` section showing errors. Extending that to a top-level banner would require deciding how per-source errors compose with per-cluster placeholder summaries in the same banner — another UX + schema decision.
-- Both extensions were deferred from M-WARN-03 because they cost >1h and the spec explicitly said to defer in that case. Consider re-opening when E-21a ADR-CONTENT-01 codifies the briefing contract, or earlier if operator feedback calls for them.
+- Both extensions were deferred from M-WARN-03 because they cost >1h and the spec explicitly said to defer in that case. Consider re-opening when E-24 ADR-CONTENT-01 codifies the briefing contract, or earlier if operator feedback calls for them.
 
 ## ADR-0002 Phases 2 & 3 — cache-aware and replay-aware visual states
 **Discovered:** 2026-03-23 (ADR-0002 body); formally logged 2026-04-22 (F-M6 promotion)
@@ -136,9 +136,9 @@ Discovered work items deferred for later.
 
 ## Pack-contract comparables audit — standalone landing page; deferred until pressure emerges
 **Discovered:** 2026-04-23 (E-21 ultrareview — Finding 27)
-**Relates to:** E-21a (ADR authoring), `epic.md:202` comparables citation, future contract-facing contributors
+**Relates to:** E-24 (ADR authoring), `epic.md:202` comparables citation, future contract-facing contributors
 **Severity:** Low — most of the useful comparable context is already embedded inline in per-ADR content requirements (Findings 8, 13, 14, 15, 17). The standalone doc's main value is helping *multiple* reviewers / contributors converge on a shared mental model; for single-author + occasional-reviewer current state, the inline context is sufficient.
-**Context:** E-21's parent epic cites Argo / Flyte / Kubeflow / GitHub Actions / N8N / Zapier / Windmill as data-contract workflow comparables but no standalone comparison doc exists. Each E-21a ADR that picks a design (manifest format, schema evolution pattern, replay semantics, content-type identifier shape, trigger restart semantics, secret observability) now carries a design-space shortlist inline — ADR-EVOLUTION-01's {P1 strict major match / P2 multi-historical-schema / P3 unify-or-fail / P4 pack-declared range}; ADR-TRIGGER-01's fire-and-forget decision with E-14 escalation named; ADR-FSSCOPE-01's two-surface model vs Landlock; ADR-SECRETS-01's Vault / Key Vault / Doppler delivery adapters + runtime-mediated-proxy deferral; cross-version replay's Bazel / Flyte / Nix-Guix / Dagger / Argo industry-name landscape. Collectively these inline shortlists do most of what a standalone comparables doc would do; the remaining gap is a single-glance landing page for orientation.
+**Context:** E-21's parent epic cites Argo / Flyte / Kubeflow / GitHub Actions / N8N / Zapier / Windmill as data-contract workflow comparables but no standalone comparison doc exists. Each E-24 ADR that picks a design (manifest format, schema evolution pattern, replay semantics, content-type identifier shape, trigger restart semantics, secret observability) now carries a design-space shortlist inline — ADR-EVOLUTION-01's {P1 strict major match / P2 multi-historical-schema / P3 unify-or-fail / P4 pack-declared range}; ADR-TRIGGER-01's fire-and-forget decision with E-14 escalation named; ADR-FSSCOPE-01's two-surface model vs Landlock; ADR-SECRETS-01's Vault / Key Vault / Doppler delivery adapters + runtime-mediated-proxy deferral; cross-version replay's Bazel / Flyte / Nix-Guix / Dagger / Argo industry-name landscape. Collectively these inline shortlists do most of what a standalone comparables doc would do; the remaining gap is a single-glance landing page for orientation.
 **What a standalone comparables pass would produce (~1 day if done):**
 - `docs/analysis/pack-contract-comparables.md`: 3 comparables (Argo / Flyte / Temporal) × 6 axes (contract shape / task declaration style / versioning model / replay semantics / multi-language support / pack registration). ~500 lines.
 - Scope to decisions that could realistically be revisited (manifest format, schema evolution, replay, versioning); skip baked-in decisions (CUE, Elixir runtime, content-addressed artifacts).
@@ -150,15 +150,15 @@ Discovered work items deferred for later.
 4. An external adopter (someone building on Liminara's contract) asks about comparability for interop reasons.
 **Explicit non-goal:** Speculative comparables research before a trigger fires. The inline shortlists in Findings 8 / 13 / 14 / 15 / 17 retire most of the risk; build the standalone doc when pressure calls for it.
 
-## `liminara_widgets` extraction — in-tree for E-21c; extract when a second consumer arrives
+## `liminara_widgets` extraction — in-tree for E-26; extract when a second consumer arrives
 **Discovered:** 2026-04-23 (E-21 ultrareview — Finding 24)
-**Relates to:** E-21c M-PACK-C-02 (`liminara_widgets` lands in-tree), future submodule + Hex release
+**Relates to:** E-26 M-PACK-C-02 (`liminara_widgets` lands in-tree), future submodule + Hex release
 **Severity:** Low — in-tree indefinitely is fine for the current deployment; the discipline is forward-compatibility with extraction, not immediate extraction.
-**Context:** `liminara_widgets` ships in E-21c M-PACK-C-02 as five generic A2UI widgets (`data_grid`, `json_viewer`, `dag_map` embedder, `content_card`, `banner`) with zero Liminara domain types by design. The library is **structurally reusable** by any A2UI consumer, but no external consumer exists today. Name chosen (`liminara_widgets` not `liminara_ui`): honest about being a widget library; doesn't mislead readers into expecting `%Run{}`/`%Artifact{}`-aware components (which a `liminara_ui` name would imply); doesn't collide with `ex_a2ui` naming the way `liminara_a2ui` would.
+**Context:** `liminara_widgets` ships in E-26 M-PACK-C-02 as five generic A2UI widgets (`data_grid`, `json_viewer`, `dag_map` embedder, `content_card`, `banner`) with zero Liminara domain types by design. The library is **structurally reusable** by any A2UI consumer, but no external consumer exists today. Name chosen (`liminara_widgets` not `liminara_ui`): honest about being a widget library; doesn't mislead readers into expecting `%Run{}`/`%Artifact{}`-aware components (which a `liminara_ui` name would imply); doesn't collide with `ex_a2ui` naming the way `liminara_a2ui` would.
 **MVP decision:** keep in-tree inside the Liminara umbrella (`runtime/apps/liminara_widgets/` or equivalent). Reasons:
 - No external consumers today → extracting now is speculative investment.
 - `boundary` hex lib (ADR-BOUNDARY-01, lands in M-PACK-B-01a) enforces the zero-domain-types rule structurally via compile-time checks; the type-hygiene guarantee doesn't require submodule isolation.
-- In-tree keeps E-21c M-PACK-C-02's scope smaller — no separate Hex release cadence, no separate CI, no separate v0.1 → v1.0 maturity arc.
+- In-tree keeps E-26 M-PACK-C-02's scope smaller — no separate Hex release cadence, no separate CI, no separate v0.1 → v1.0 maturity arc.
 **Forward-compatibility discipline** (what makes the extraction cheap when it happens):
 - Module docs written Hex-style (each public module documented; examples tested).
 - Public API surface stable enough that extraction is a git-filter-branch, not a rewrite.
@@ -173,10 +173,10 @@ Discovered work items deferred for later.
 
 ## Cross-version pack replay semantics — design space, not decided
 **Discovered:** 2026-04-23 (E-21 ultrareview — Finding 17)
-**Relates to:** E-21a ADR-REPLAY-01 (scope trimmed — pack-version skew removed), E-21b M-PACK-B-01b (provenance recording lands), E-17 Container Executor (natural home for hermetic replay), future VSME / DPP compliance epics
+**Relates to:** E-24 ADR-REPLAY-01 (scope trimmed — pack-version skew removed), E-25 M-PACK-B-01b (provenance recording lands), E-17 Container Executor (natural home for hermetic replay), future VSME / DPP compliance epics
 **Severity:** Low today — Radar is one continuous version; single-operator deployments don't need cross-version replay. Rises to Medium when first pack ships a major-version bump mid-lifecycle, or when a regulator asks for byte-exact historical replay.
 **Context:** Today Liminara replays a run against whatever pack version is currently loaded. Works because the pack version at replay time matches the pack version at run-production time (one continuous Radar). When packs evolve mid-lifecycle (admin-pack ships v2.0; old runs from v1.5 exist in the event log), "what does replay mean?" becomes a real question. E-21 deliberately does not pick a policy — no pack has surfaced concrete pressure, and hermetic replay is expensive to bolt onto `:inline` + `:port` executors.
-**The provenance layer ships in E-21b** (M-PACK-B-01b): each run's initial event records `pack_version` + `git_commit_hash`. This is cheap and unlocks audit workflows — "which code produced this run" is a recorded fact — without requiring the runtime to execute old code. **Provenance is separate from replayability**: most compliance disputes are resolved by reading the old code's source (by git hash), not by re-executing it in production.
+**The provenance layer ships in E-25** (M-PACK-B-01b): each run's initial event records `pack_version` + `git_commit_hash`. This is cheap and unlocks audit workflows — "which code produced this run" is a recorded fact — without requiring the runtime to execute old code. **Provenance is separate from replayability**: most compliance disputes are resolved by reading the old code's source (by git hash), not by re-executing it in production.
 **Design space (not decided; revisit when pressure surfaces):**
 1. **Single-version-with-provenance (current plan, post-E-21).** Runtime loads one pack version; replay uses that version; `pack_version` + `git_commit_hash` in events support "read the source" audit. Simplest. Matches the ship-when-you-need-it E-21 scope.
 2. **Compatibility-range replay.** Pack declares `replay_compat_range: "^1.0"` in manifest. Runtime loads one version; replay refuses if loaded version is outside the run's recorded compat range. Cheap to implement. Trust-based — compat is a policy claim, not a mechanical guarantee (unlike CUE schema unification, which *is* mechanical). Reasonable if a pack ships a breaking v2.0 but wants intra-1.x replays to work.
@@ -187,7 +187,7 @@ Discovered work items deferred for later.
 
 ## Secret-management maturity — pluggable SecretSource adapters + secret-observability hardening
 **Discovered:** 2026-04-23 (E-21 ultrareview — Finding 15)
-**Relates to:** E-21b M-PACK-B-02 (`SecretSource` behaviour + `EnvVar` adapter + `Secrets.Registry` + scrub + `:suspected_secret_leak` warning); ADR-SECRETS-01; future E-14 / production-deployment territory
+**Relates to:** E-25 M-PACK-B-02 (`SecretSource` behaviour + `EnvVar` adapter + `Secrets.Registry` + scrub + `:suspected_secret_leak` warning); ADR-SECRETS-01; future E-14 / production-deployment territory
 **Severity:** Medium — MVP covers Boundary 1 reliably and Boundary 2 best-effort; richer hardening is demand-driven when deployment needs grow
 **Context:** Secret management has three distinct concerns and Liminara's E-21 MVP addresses the middle one:
 1. **Secret source / storage (where plaintext lives, who can read, audit).** *Industrial-strength solved problem.* HashiCorp Vault, AWS Secrets Manager, Azure Key Vault, GCP Secret Manager, Doppler, 1Password Connect. Liminara does **not** build a bespoke vault.
@@ -210,32 +210,32 @@ Discovered work items deferred for later.
 
 ## Radar generated `pack.yaml` shim — planned entry, activates on M-PACK-B-01b merge
 **Discovered:** 2026-04-23 (E-21 ultrareview — Finding 6)
-**Relates to:** E-21b M-PACK-B-01b (shim lands), E-21d M-PACK-D-01b (shim removed), `docs/governance/shim-policy.md`
+**Relates to:** E-25 M-PACK-B-01b (shim lands), E-27 M-PACK-D-01b (shim removed), `docs/governance/shim-policy.md`
 **Severity:** N/A — this is a declared shim under policy, not a silent drift. Recorded here so the shim's survival across multiple milestones (B-01 → B-02 → B-03 → C-01..03 → early D-01) is visible.
 **Status:** **Planned.** This entry is promoted to active when M-PACK-B-01b merges and the shim file actually lives in-tree. Before that, the shim exists only as a spec commitment.
-**Context:** E-21b M-PACK-B-01b lands a generated `pack.yaml` for Radar in-tree so `PackLoader` can load Radar through the generic code path without a big-bang extraction. The file adapts Radar's current shape to the ADR-MANIFEST-01 schema; it preserves semantics (Radar's execution is identical), so it qualifies under the shim policy's allowed-exception rule. Full shim record in `work/epics/E-21-pack-contribution-contract/E-21b-runtime-pack-infrastructure.md` → "Compatibility shims" section.
-**Items (survival-tracking only; the fix is E-21d M-PACK-D-01b):**
+**Context:** E-25 M-PACK-B-01b lands a generated `pack.yaml` for Radar in-tree so `PackLoader` can load Radar through the generic code path without a big-bang extraction. The file adapts Radar's current shape to the ADR-MANIFEST-01 schema; it preserves semantics (Radar's execution is identical), so it qualifies under the shim policy's allowed-exception rule. Full shim record in `work/epics/E-21-pack-contribution-contract/E-25-runtime-pack-infrastructure.md` → "Compatibility shims" section.
+**Items (survival-tracking only; the fix is E-27 M-PACK-D-01b):**
 - Shim file carries the required SHIM header comment (enforced at M-PACK-B-01b PR review)
 - Shim is not referenced as an authoritative manifest anywhere — it is `PackLoader` input only
-- Any change to Radar's shape during E-21b/c regenerates the shim (or updates the hand-authored version) but does not add new shim files
-**Removal trigger:** E-21d M-PACK-D-01b replaces the in-tree generated manifest with `radar-pack`'s own authored canonical `pack.yaml`; the shim file is deleted in that same milestone.
+- Any change to Radar's shape during E-25/c regenerates the shim (or updates the hand-authored version) but does not add new shim files
+**Removal trigger:** E-27 M-PACK-D-01b replaces the in-tree generated manifest with `radar-pack`'s own authored canonical `pack.yaml`; the shim file is deleted in that same milestone.
 
-## E-21a CI alignment — repo-wide CI pipeline + `cue vet` + schema-evolution as unbypassable gates
+## E-24 CI alignment — repo-wide CI pipeline + `cue vet` + schema-evolution as unbypassable gates
 **Discovered:** 2026-04-23 (E-21 ultrareview — Finding 5)
-**Relates to:** E-21a M-PACK-A-01 (local + pre-commit `cue vet`), `.devcontainer/Dockerfile`, future shared `tool-versions` file
-**Severity:** Medium — E-21a ships local + pre-commit enforcement in the interim; pre-commit is bypassable via `--no-verify`, so invalid CUE can land on a branch. Reviewer checklist covers the gap during PR review, but unbypassable CI enforcement is the real fix.
-**Context:** `.github/workflows/` is currently empty. E-21a deliberately does not take on "stand up repo-wide CI" as scope — that's a broader initiative (would also need to pick up Elixir tests, Python tests, dag-map tests, format/credo/dialyzer, etc.). The design decision at E-21a is that **the shared tool-versions file is the pinning mechanism CI will reuse verbatim**, so when CI eventually lands there is no drift between local and CI versions.
+**Relates to:** E-24 M-PACK-A-01 (local + pre-commit `cue vet`), `.devcontainer/Dockerfile`, future shared `tool-versions` file
+**Severity:** Medium — E-24 ships local + pre-commit enforcement in the interim; pre-commit is bypassable via `--no-verify`, so invalid CUE can land on a branch. Reviewer checklist covers the gap during PR review, but unbypassable CI enforcement is the real fix.
+**Context:** `.github/workflows/` is currently empty. E-24 deliberately does not take on "stand up repo-wide CI" as scope — that's a broader initiative (would also need to pick up Elixir tests, Python tests, dag-map tests, format/credo/dialyzer, etc.). The design decision at E-24 is that **the shared tool-versions file is the pinning mechanism CI will reuse verbatim**, so when CI eventually lands there is no drift between local and CI versions.
 **Items:**
 - Stand up a GitHub Actions pipeline that reads CUE version from the shared tool-versions file (same file the devcontainer reads) and runs `cue vet` + schema-evolution compat check on every PR. Cannot be bypassed.
 - Evaluate Option-A-style alignment (run CI jobs inside the devcontainer image, published to ghcr.io) as a future evolution — builds on the tool-versions file without changing its role.
-- Extend the CI pipeline to cover other validation pipelines mentioned in CLAUDE.md (Elixir `mix format` / `credo` / `dialyzer` / `test`, Python `ruff` / `ty` / `pytest`, dag-map `npm test`) — likely a separate CI epic rather than part of E-21a.
-- When CI lands, the interim reviewer-checklist duty in E-21a's risks table is removed (it exists only because pre-commit is bypassable).
+- Extend the CI pipeline to cover other validation pipelines mentioned in CLAUDE.md (Elixir `mix format` / `credo` / `dialyzer` / `test`, Python `ruff` / `ty` / `pytest`, dag-map `npm test`) — likely a separate CI epic rather than part of E-24.
+- When CI lands, the interim reviewer-checklist duty in E-24's risks table is removed (it exists only because pre-commit is bypassable).
 **Trigger:** when repo-wide CI becomes a priority — could be triggered by pre-commit bypass actually biting, by a second contributor joining, or by a production deployment milestone needing a build gate. Not urgent while the repo has a single committer.
 
 ## Workflow-audit: roadmap-scope and roadmap-presence drift not detected
 **Discovered:** 2026-04-23 (PackRegistry / E-22 admin-pack sequencing review)
 **Relates to:** `.ai/skills/workflow-audit.md` Section 7 (ROADMAP.md Currency), framework repo `23min/ai-workflow`
-**Severity:** Medium — workflow-audit is the skill that's supposed to catch exactly this, and it didn't. Two real drifts (E-15 PackRegistry row overlapping E-21b scope; E-22 missing from the roadmap entirely despite being cited across E-21 specs + D-027) lived silently because the audit's roadmap checks don't cover scope-overlap or cross-surface reference completeness.
+**Severity:** Medium — workflow-audit is the skill that's supposed to catch exactly this, and it didn't. Two real drifts (E-15 PackRegistry row overlapping E-25 scope; E-22 missing from the roadmap entirely despite being cited across E-21 specs + D-027) lived silently because the audit's roadmap checks don't cover scope-overlap or cross-surface reference completeness.
 **Context:** Section 7 of `workflow-audit` currently checks (a) in-progress items appear in roadmap, (b) completed epics have a shipped entry, (c) released epics are marked released, (d) roadmap entries don't reference deleted epic folders. It does not check whether an epic referenced across other surfaces (specs, decisions, tracking) actually has a roadmap row, nor whether two roadmap rows describe the same capability/primitive. Both were the load-bearing checks in this case.
 **Items:**
 - Add a Section 7 check: *referenced-epic-must-appear-on-roadmap* — for every epic ID referenced in `work/epics/*/`, `work/decisions.md`, and CLAUDE.md Current Work, verify a roadmap row exists for that ID. Mechanically checkable by grepping `E-\d{2}[a-z]?` across those surfaces and diffing against roadmap rows.

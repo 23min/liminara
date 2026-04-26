@@ -49,7 +49,7 @@ Two registers, each with multiple artifact classes:
 1. **Three files leave `docs/architecture/contracts/`.** Two are policies and move to `docs/governance/`; one is an inventory and moves to `docs/architecture/indexes/`.
    - `00_TRUTH_MODEL.md` → `docs/governance/truth-model.md`.
    - `02_SHIM_POLICY.md` → `docs/governance/shim-policy.md`.
-   - `01_CONTRACT_MATRIX.md` → `docs/architecture/indexes/contract-matrix.md` — the matrix is primarily an inventory of contract surfaces (live source, approved next, drift guard), not a policy. The *discipline* of keeping it current is policy and stays in `.ai-repo/rules/liminara.md`; the matrix file itself is architecture-level inventory. E-21a's planned `pack-contract-index` is the same artifact and is dropped from the plan; the renamed matrix is the index.
+   - `01_CONTRACT_MATRIX.md` → `docs/architecture/indexes/contract-matrix.md` — the matrix is primarily an inventory of contract surfaces (live source, approved next, drift guard), not a policy. The *discipline* of keeping it current is policy and stays in `.ai-repo/rules/liminara.md`; the matrix file itself is architecture-level inventory. E-24's planned `pack-contract-index` is the same artifact and is dropped from the plan; the renamed matrix is the index.
    - The empty `docs/architecture/contracts/` directory is removed.
 
 2. **`docs/governance/` is for project-artifact governance; `.ai-repo/rules/` remains for AI/workflow process discipline.** Both are bind-me, but they bind different things. Rules in `.ai-repo/rules/` govern *how AI operates the workflow* (TDD, commit conventions, branch discipline); governance in `docs/governance/` defines *how project artifacts behave* (truth-source adjudication, shim allowance, schema evolution). The new rule text in `.ai-repo/rules/liminara.md` makes this distinction explicit.
@@ -108,7 +108,7 @@ Two registers, each with multiple artifact classes:
 
 - A migration cost of two milestones (M-DOCS-01 framework prep + M-DOCS-02 doc-tree reorg) and ~40 reference substitutions across roughly 14 live files.
 - The redirect stub in `docs/governance/README.md` lives long-term and is removable in a future cleanup once 404 risk feels vestigial.
-- E-21 inherits maintenance of the renamed contract matrix (no separate pack-contract-index file); E-21a's plan is amended in M-DOCS-02 Commit 4.
+- E-21 inherits maintenance of the renamed contract matrix (no separate pack-contract-index file); E-24's plan is amended in M-DOCS-02 Commit 4.
 
 **Trigger to revisit:**
 

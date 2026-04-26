@@ -211,7 +211,7 @@ This is the case current framework can't model cleanly. The proposed architectur
 
 #### S6: sub-epic transition (consumer-specific)
 
-This consumer (Liminara) has split E-21 into four sub-epics (E-21a/b/c/d). Today the framework has no `sub_epic` kind, so sub-epics are filename conventions and ad-hoc CLAUDE.md vocabulary.
+This consumer (Liminara) has split E-21 into four sub-epics (E-24/b/c/d). Today the framework has no `sub_epic` kind, so sub-epics are filename conventions and ad-hoc CLAUDE.md vocabulary.
 
 Two ways to support this in the proposed architecture:
 
