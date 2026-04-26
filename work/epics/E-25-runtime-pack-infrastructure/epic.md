@@ -1,9 +1,9 @@
 ---
-id: E-21b-runtime-pack-infrastructure
-parent: E-21-pack-contribution-contract
+id: E-25
+parent: E-21
 phase: 5c
 status: planning
-depends_on: E-21a-contract-design
+depends_on: E-24
 ---
 
 # E-21b: Runtime Pack Infrastructure
