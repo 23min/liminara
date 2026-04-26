@@ -819,6 +819,42 @@ nodes:
         file: work/roadmap.md
         line: 87
         value: proposed
+  - id: E-24
+    kind: epic
+    path: work/epics/E-24-contract-design
+    status: active
+    confidence: high
+    status_evidence:
+      - source: spec-frontmatter
+        file: work/epics/E-24-contract-design/epic.md
+        value: active
+  - id: E-25
+    kind: epic
+    path: work/epics/E-25-runtime-pack-infrastructure
+    status: planning
+    confidence: high
+    status_evidence:
+      - source: spec-frontmatter
+        file: work/epics/E-25-runtime-pack-infrastructure/epic.md
+        value: planning
+  - id: E-26
+    kind: epic
+    path: work/epics/E-26-pack-dx
+    status: planning
+    confidence: high
+    status_evidence:
+      - source: spec-frontmatter
+        file: work/epics/E-26-pack-dx/epic.md
+        value: planning
+  - id: E-27
+    kind: epic
+    path: work/epics/E-27-radar-extraction-and-migration
+    status: planning
+    confidence: high
+    status_evidence:
+      - source: spec-frontmatter
+        file: work/epics/E-27-radar-extraction-and-migration/epic.md
+        value: planning
   - id: M-CS-01
     kind: milestone
     path: work/done/E-02-python-compliance-sdk/M-CS-01-project-setup.md
@@ -1082,25 +1118,25 @@ nodes:
         value: complete
   - id: M-PACK-A-01
     kind: milestone
-    path: work/epics/E-21-pack-contribution-contract/M-PACK-A-01-contract-tdd-tooling.md
+    path: work/epics/E-24-contract-design/M-PACK-A-01-contract-tdd-tooling.md
     title: Liminara-project Contract-TDD tooling
     status: complete
     confidence: high
   - id: M-PACK-A-02a
     kind: milestone
-    path: work/epics/E-21-pack-contribution-contract/M-PACK-A-02a-foundational-contracts.md
+    path: work/epics/E-24-contract-design/M-PACK-A-02a-foundational-contracts.md
     title: Foundational contracts (5 ADRs)
     status: draft
     confidence: high
   - id: M-PACK-A-02b
     kind: milestone
-    path: work/epics/E-21-pack-contribution-contract/M-PACK-A-02b-packs-as-running-systems.md
+    path: work/epics/E-24-contract-design/M-PACK-A-02b-packs-as-running-systems.md
     title: Packs-as-running-systems (5 ADRs)
     status: draft
     confidence: high
   - id: M-PACK-A-02c
     kind: milestone
-    path: work/epics/E-21-pack-contribution-contract/M-PACK-A-02c-governance-contracts.md
+    path: work/epics/E-24-contract-design/M-PACK-A-02c-governance-contracts.md
     title: Governance (8 ADRs)
     status: draft
     confidence: high
@@ -1746,19 +1782,19 @@ edges:
       - source: filesystem
         file: work/done/E-20-execution-truth/M-TRUTH-03-radar-semantic-cleanup.md
   - type: parent
-    from: E-21
+    from: E-24
     to: M-PACK-A-01
     confidence: high
   - type: parent
-    from: E-21
+    from: E-24
     to: M-PACK-A-02a
     confidence: high
   - type: parent
-    from: E-21
+    from: E-24
     to: M-PACK-A-02b
     confidence: high
   - type: parent
-    from: E-21
+    from: E-24
     to: M-PACK-A-02c
     confidence: high
   - type: parent
@@ -1775,3 +1811,66 @@ edges:
     evidence:
       - source: filesystem
         file: work/done/E-22-docs-foundation/M-DOCS-02-doc-tree-taxonomy.md
+  - type: child_of
+    from: E-24
+    to: E-21
+    confidence: high
+    evidence:
+      - source: spec-frontmatter
+        file: work/epics/E-24-contract-design/epic.md
+  - type: child_of
+    from: E-25
+    to: E-21
+    confidence: high
+    evidence:
+      - source: spec-frontmatter
+        file: work/epics/E-25-runtime-pack-infrastructure/epic.md
+  - type: child_of
+    from: E-26
+    to: E-21
+    confidence: high
+    evidence:
+      - source: spec-frontmatter
+        file: work/epics/E-26-pack-dx/epic.md
+  - type: child_of
+    from: E-27
+    to: E-21
+    confidence: high
+    evidence:
+      - source: spec-frontmatter
+        file: work/epics/E-27-radar-extraction-and-migration/epic.md
+  - type: depends_on
+    from: E-24
+    to: E-19
+    confidence: high
+    evidence:
+      - source: spec-frontmatter
+        file: work/epics/E-24-contract-design/epic.md
+  - type: depends_on
+    from: E-25
+    to: E-24
+    confidence: high
+    evidence:
+      - source: spec-frontmatter
+        file: work/epics/E-25-runtime-pack-infrastructure/epic.md
+  - type: depends_on
+    from: E-26
+    to: E-24
+    confidence: high
+    evidence:
+      - source: spec-frontmatter
+        file: work/epics/E-26-pack-dx/epic.md
+  - type: depends_on
+    from: E-27
+    to: E-25
+    confidence: high
+    evidence:
+      - source: spec-frontmatter
+        file: work/epics/E-27-radar-extraction-and-migration/epic.md
+  - type: depends_on
+    from: E-27
+    to: E-26
+    confidence: high
+    evidence:
+      - source: spec-frontmatter
+        file: work/epics/E-27-radar-extraction-and-migration/epic.md

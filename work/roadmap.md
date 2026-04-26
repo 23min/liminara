@@ -79,7 +79,7 @@ Tightly scoped to capabilities Radar has already proven it needs for production 
   - [x] M-DOCS-01 Framework Prep — framework PR [ai-workflow#40](https://github.com/23min/ai-workflow/pull/40) removes `specsPath`, softens contract-catalog examples; adapters regenerated
   - [x] M-DOCS-02 Doc-tree Taxonomy — `docs/governance/` + `docs/architecture/indexes/` created; `docs/architecture/contracts/` removed; rule text articulates bind-me vs. inform-me and the `NN_` convention; `researchPath` + `architecturePath` added to artifact-layout; E-21 planning prose adjusted; 18 `docs/research/*.md` files retroactively NN_-prefixed
 - [ ] E-21 Pack Contribution Contract
-  - Four sub-epics turn Liminara into a language-agnostic runtime + observation host. Packs are external repos contributing via a data contract (manifest + executable units), not library imports.
+  - Umbrella epic with four peer-epic children turning Liminara into a language-agnostic runtime + observation host. Packs are external repos contributing via a data contract (manifest + executable units), not library imports.
   - [ ] **E-24 Contract Design** — one ADR per contract surface (see E-24's *ADRs produced* table), CUE schemas, fixtures, `design-contract` skill, `cue vet` CI (4 milestones: tooling + foundational contracts + packs-as-running-systems + governance; docs only; critical-path gate)
   - [ ] **E-25 Runtime Pack Infrastructure** — `PackLoader`, `PackRegistry`, `SurfaceRenderer`, `SecretSource` (+ env-var adapter), `TriggerManager` (`:cron`, `:file_watch`, `:manual`), A2UI MultiProvider in `ex_a2ui`, advisory FS-scope enforcement (3 milestones; validated by loading Radar through the generic loader)
   - [ ] **E-26 Pack Developer Experience** — `liminara-pack-sdk` (Python, PyPI), `liminara_pack_sdk` (Elixir, Hex), `liminara_widgets` MVP widgets (`data_grid`, `json_viewer`, `dag_map` embedder; `pdf_viewer` + `timeline` deferred), `liminara-new-pack` + `liminara-test-harness` CLIs (pipx), `e2e-harness` skill, `examples/file_watch_demo` reference pack (3 milestones)
@@ -181,11 +181,15 @@ _Rendered from `work/graph.yaml` by `wf-graph render`. Do not hand-edit — edit
 ### active
 
 - **E-21** _(depends on: E-19)_
+- **E-24** _(depends on: E-19)_
 
 ### planning
 
 - **E-11b** _(depends on: E-16)_
 - **E-12** _(depends on: E-20)_
+- **E-25** _(depends on: E-24)_
+- **E-26** _(depends on: E-24)_
+- **E-27** _(depends on: E-25, E-26)_
 
 ### proposed
 
