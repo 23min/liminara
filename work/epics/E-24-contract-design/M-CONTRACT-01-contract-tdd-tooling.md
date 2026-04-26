@@ -7,19 +7,19 @@ completed: 2026-04-25
 depends_on: E-19
 ---
 
-# M-PACK-A-01: Liminara-project Contract-TDD tooling
+# M-CONTRACT-01: Liminara-project Contract-TDD tooling
 
 ## Goal
 
-Stand up the Liminara-project-local tooling that lets contributors author CUE schemas, fixtures, and ADRs as a TDD-shaped workflow — CUE in the devcontainer, local + pre-commit `cue vet` enforcement, the schema-evolution loop, the fixture-library directory layout, and Liminara-specific skill + rule files — so M-PACK-A-02a can land its first ADRs into a working harness.
+Stand up the Liminara-project-local tooling that lets contributors author CUE schemas, fixtures, and ADRs as a TDD-shaped workflow — CUE in the devcontainer, local + pre-commit `cue vet` enforcement, the schema-evolution loop, the fixture-library directory layout, and Liminara-specific skill + rule files — so M-CONTRACT-02 can land its first ADRs into a working harness.
 
 ## Context
 
-E-19 (Warnings & Degraded Outcomes) has merged; ADR-OPSPEC-01 in M-PACK-A-02a will codify its warning shape, but no schema work can begin until the tooling that validates `.cue` files and walks fixtures exists.
+E-19 (Warnings & Degraded Outcomes) has merged; ADR-OPSPEC-01 in M-CONTRACT-02 will codify its warning shape, but no schema work can begin until the tooling that validates `.cue` files and walks fixtures exists.
 
 Today the devcontainer (`.devcontainer/Dockerfile`) installs Elixir, Python via uv, and Node, but **not** CUE. There is no shared tool-versions file at the repo root, no pre-commit hook installed under `.git/hooks/`, no `docs/schemas/` tree, and no `.ai-repo/skills/design-contract.md` or `.ai-repo/rules/contract-design.md`. The design-contract authoring workflow is presently undocumented inside this repo; the parent sub-epic spec (`work/epics/E-21-pack-contribution-contract/E-24-contract-design.md`) defines what that workflow must enforce, but nothing yet runs it.
 
-The generic, project-agnostic version of this tooling — a framework `design-contract` skill skeleton plus ADR template field extensions for schema path / fixtures path / worked example path / reference implementation citation — is upstream framework work tracked at [ai-workflow#37](https://github.com/23min/ai-workflow/issues/37). M-PACK-A-01 explicitly does not block on that issue: it ships only the Liminara-local files and tooling, which stand alone if the upstream issue lands later and become overlays on it if the upstream issue lands first.
+The generic, project-agnostic version of this tooling — a framework `design-contract` skill skeleton plus ADR template field extensions for schema path / fixtures path / worked example path / reference implementation citation — is upstream framework work tracked at [ai-workflow#37](https://github.com/23min/ai-workflow/issues/37). M-CONTRACT-01 explicitly does not block on that issue: it ships only the Liminara-local files and tooling, which stand alone if the upstream issue lands later and become overlays on it if the upstream issue lands first.
 
 ## Acceptance Criteria
 
@@ -50,11 +50,11 @@ The generic, project-agnostic version of this tooling — a framework `design-co
    - The loop is invocable on demand from the same entry point as AC 3, and runs automatically inside the pre-commit hook per AC 4.
    - The loop's failure output matches the failure semantics specified in the parent sub-epic's "Schema-evolution check — specification" subsection: `<fixture path> fails against <topic>.cue at <schema path>: <CUE error>`.
    - The loop does not implement a separate validation engine — every validation is a `cue vet` invocation. Implementation is bounded to roughly the size envisioned by the parent sub-epic spec ("~20 lines"); the `valid/invalid/` split adds a second sub-walk with mirrored exit-code expectations, which doesn't materially expand the design — if implementation grows substantially beyond the budgeted size, it is a signal the design has drifted and review must reconcile.
-   - At M-PACK-A-01's wrap, the fixture library is empty: M-PACK-A-02a lands the first schemas and fixtures. The loop must run cleanly (zero fixtures = zero failures = exit 0) against an empty library.
+   - At M-CONTRACT-01's wrap, the fixture library is empty: M-CONTRACT-02 lands the first schemas and fixtures. The loop must run cleanly (zero fixtures = zero failures = exit 0) against an empty library.
 
 6. **Fixture library directory-layout convention established**
    - The convention `docs/schemas/<topic>/schema.cue` (paired schema) + `docs/schemas/<topic>/fixtures/v<N>/{valid,invalid}/<name>.yaml` (fixture under its authored schema-version subdirectory, segregated by expected `cue vet` outcome) is documented as the layout the local entry point and the schema-evolution loop expect. The `valid/invalid/` split converges with the upstream framework convention from ai-workflow#37 / PR #72; rationale and trigger are recorded in `work/decisions.md` D-2026-04-25-033.
-   - The `docs/schemas/` directory exists at wrap with at least one placeholder marker (e.g. a top-level `README.md` describing the layout) so M-PACK-A-02a can plug in without needing to negotiate the directory shape.
+   - The `docs/schemas/` directory exists at wrap with at least one placeholder marker (e.g. a top-level `README.md` describing the layout) so M-CONTRACT-02 can plug in without needing to negotiate the directory shape.
    - The local entry point and the schema-evolution loop both discover topic directories by walking `docs/schemas/*/`; adding a new topic requires no edits to the entry point or the loop.
    - The local entry point's no-arg loop runs two sub-walks with mirrored exit-code expectations: every fixture under `fixtures/v<N>/valid/` must pass `cue vet` (exit 0); every fixture under `fixtures/v<N>/invalid/` must fail `cue vet` (exit non-zero). An invalid fixture that *passes* is a regression — the schema accepted a shape the contract author declared invalid — and is reported with a distinct failure-format string. The schema-evolution loop walks `valid/` only (invalid fixtures aren't part of the forward-compat invariant; they remain rejected by construction).
 
@@ -72,7 +72,7 @@ The generic, project-agnostic version of this tooling — a framework `design-co
 ## Constraints
 
 - **No code moves.** No file under `runtime/` is modified. No app under `runtime/apps/` gains, loses, or reshapes a module. The runtime executes exactly as it does at the start of this milestone.
-- **No ADR content, schema, or fixture is authored in this milestone.** ADR-MANIFEST-01, ADR-PLAN-01, and the rest of the ADR set listed in the parent sub-epic's "ADRs produced" table are owned by M-PACK-A-02a/b/c. M-PACK-A-01 lands the harness; M-PACK-A-02a is the first to land artifacts into it.
+- **No ADR content, schema, or fixture is authored in this milestone.** ADR-MANIFEST-01, ADR-PLAN-01, and the rest of the ADR set listed in the parent sub-epic's "ADRs produced" table are owned by M-CONTRACT-02/b/c. M-CONTRACT-01 lands the harness; M-CONTRACT-02 is the first to land artifacts into it.
 - **No framework template edits.** `.ai/templates/adr.md` is not modified. ADR template field extensions are upstream framework work (ai-workflow#37); this milestone authors no overlay equivalents.
 - **No CI changes.** `.github/workflows/` is not modified. Repo-wide CI integration is a separate, deferred initiative; the shared tool-versions pin from AC 1 is the future-CI hand-off mechanism.
 - **No compatibility shims.** Per repo policy in `.ai-repo/rules/liminara.md`, shims are banned. The generic-vs-Liminara split for the `design-contract` skill is not a shim — it is two distinct, independently-shipped surfaces with documented overlay behaviour, not one surface preserving a lie about another.
@@ -89,15 +89,15 @@ The decisions below are locked before implementation. The builder agent does not
 - **Schema-evolution loop language.** Locked at POSIX shell colocated with `scripts/cue-vet` — no mix task. Rationale: contributors editing schemas may not have the runtime/ Elixir build green; a shell-only loop runs in any environment with `cue` on the path. This matches the parent sub-epic's framing ("~20 lines of shell or elixir"; shell is the lighter choice).
 - **Fixture-library directory-layout enforcement scope.** The convention is documented and the entry point + loop discover topics by walking `docs/schemas/*/`, but the convention is not separately validated by this milestone (no "is this a v<N> directory?" check). Validation comes from the fact that fixtures placed outside the convention will not be picked up by the loop — natural enforcement, not a second engine.
 - **Skill onboarding installs the hook.** The hook is not installed automatically on devcontainer build (that would silently mutate the contributor's `.git/hooks/` without consent). Instead, `.ai-repo/skills/design-contract.md` includes the hook-install command in its onboarding checklist; contributors run it once when starting design-contract work.
-- **Upstream framework dependency posture.** [ai-workflow#37](https://github.com/23min/ai-workflow/issues/37) tracks the generic skill skeleton + ADR template extensions. M-PACK-A-01 ships a Liminara-local skill that stands alone today and overlays the generic skill if/when ai-workflow#37 lands. No conditional logic in `.ai/sync.sh` and no Liminara-side handling is needed: if upstream lands, the next sync produces a folder-form output that combines the generic skeleton with the Liminara overlay; if not, the Liminara file remains the only source.
+- **Upstream framework dependency posture.** [ai-workflow#37](https://github.com/23min/ai-workflow/issues/37) tracks the generic skill skeleton + ADR template extensions. M-CONTRACT-01 ships a Liminara-local skill that stands alone today and overlays the generic skill if/when ai-workflow#37 lands. No conditional logic in `.ai/sync.sh` and no Liminara-side handling is needed: if upstream lands, the next sync produces a folder-form output that combines the generic skeleton with the Liminara overlay; if not, the Liminara file remains the only source.
 - **Skill source-of-truth posture.** Per the memory note ("`.ai/skills/` is flat `.md` files; `.claude/skills/` is folders with `SKILL.md`") and the existing convention in `.ai-repo/skills/` (see `app-legibility.md`, `devcontainer.md`), the skill is authored as a flat `.md` only. The `./.ai/sync.sh` step that produces `.claude/skills/design-contract/SKILL.md` runs as a normal post-merge sync, not as a milestone artifact.
 
 ## Out of Scope
 
-- **ADR template extensions.** Adding `schema_path`, `fixtures_path`, `worked_example_path`, or `reference_implementation` fields to `.ai/templates/adr.md` is upstream framework work tracked at [ai-workflow#37](https://github.com/23min/ai-workflow/issues/37). If upstream lands first, M-PACK-A-02a's ADRs benefit directly. If upstream lands later, M-PACK-A-02a's ADR authors add the fields inline per ADR and backfill the template when upstream catches up. Either timeline is acceptable; M-PACK-A-01 does not gate either path.
-- **Generic `design-contract` skill skeleton.** The reusable, language-/project-agnostic skill that any CUE-using contract project can adopt is the same upstream issue (ai-workflow#37). M-PACK-A-01 ships only the Liminara-specific overlay.
+- **ADR template extensions.** Adding `schema_path`, `fixtures_path`, `worked_example_path`, or `reference_implementation` fields to `.ai/templates/adr.md` is upstream framework work tracked at [ai-workflow#37](https://github.com/23min/ai-workflow/issues/37). If upstream lands first, M-CONTRACT-02's ADRs benefit directly. If upstream lands later, M-CONTRACT-02's ADR authors add the fields inline per ADR and backfill the template when upstream catches up. Either timeline is acceptable; M-CONTRACT-01 does not gate either path.
+- **Generic `design-contract` skill skeleton.** The reusable, language-/project-agnostic skill that any CUE-using contract project can adopt is the same upstream issue (ai-workflow#37). M-CONTRACT-01 ships only the Liminara-specific overlay.
 - **Repo-wide CI integration.** Adding a `cue vet` job to `.github/workflows/` is a separate, deferred initiative. The shared tool-versions file from AC 1 is the explicit hand-off mechanism: when CI lands, its `cue vet` job will read the same pin and drift between local and CI is eliminated by construction. Tracked in the parent sub-epic spec under "Future CI alignment (not gated by E-24)".
-- **Any ADR content, CUE schema, or fixture authoring.** All ADRs, schemas, and fixtures listed in the parent sub-epic's "ADRs produced" table are owned by M-PACK-A-02a (foundational), M-PACK-A-02b (running-systems), and M-PACK-A-02c (governance).
+- **Any ADR content, CUE schema, or fixture authoring.** All ADRs, schemas, and fixtures listed in the parent sub-epic's "ADRs produced" table are owned by M-CONTRACT-02 (foundational), M-CONTRACT-03 (running-systems), and M-CONTRACT-04 (governance).
 - **Contract-matrix row updates for the skill or rule files.** This milestone does not touch first-class contract surfaces (see *Contract matrix changes* below), so no rows are added, updated, or retired.
 - **`./.ai/sync.sh` execution as part of this milestone.** Sync is a normal post-merge / on-demand operation, not a milestone artifact. The folder-form output `.claude/skills/design-contract/SKILL.md` is produced by the next sync run, not committed by this milestone.
 
@@ -105,12 +105,12 @@ The decisions below are locked before implementation. The builder agent does not
 
 None — this milestone does not touch contract surfaces.
 
-Rationale: M-PACK-A-01 ships only Liminara-project-local **tooling** (devcontainer toolchain, scripts, hooks, skill, reviewer rule). It defines no schema, no wire shape, no behavioural contract over data, and no first-class contract surface as defined by `.ai-repo/rules/liminara.md`'s "Contract matrix discipline" section. The first contract-matrix row deltas in this sub-epic land in M-PACK-A-02a (foundational ADRs); M-PACK-A-02b and M-PACK-A-02c continue the deltas. Consistent with the parent sub-epic's success-criterion that "M-PACK-A-02a, M-PACK-A-02b, and M-PACK-A-02c each declare their contract-matrix row deltas as explicit acceptance criteria in the milestone spec".
+Rationale: M-CONTRACT-01 ships only Liminara-project-local **tooling** (devcontainer toolchain, scripts, hooks, skill, reviewer rule). It defines no schema, no wire shape, no behavioural contract over data, and no first-class contract surface as defined by `.ai-repo/rules/liminara.md`'s "Contract matrix discipline" section. The first contract-matrix row deltas in this sub-epic land in M-CONTRACT-02 (foundational ADRs); M-CONTRACT-03 and M-CONTRACT-04 continue the deltas. Consistent with the parent sub-epic's success-criterion that "M-CONTRACT-02, M-CONTRACT-03, and M-CONTRACT-04 each declare their contract-matrix row deltas as explicit acceptance criteria in the milestone spec".
 
 ## Dependencies
 
 - **E-19 must be merged.** Per the parent sub-epic's *Dependencies* section. E-19 is currently merged on `main` (see `work/done/E-19/`); this dependency is satisfied at the time of this spec.
-- **No other milestone is a hard prereq.** M-PACK-A-01 is the first milestone in E-24 and runs against `main` (rebased onto whatever branch the sub-epic lands on per the parent epic's git workflow).
+- **No other milestone is a hard prereq.** M-CONTRACT-01 is the first milestone in E-24 and runs against `main` (rebased onto whatever branch the sub-epic lands on per the parent epic's git workflow).
 - **External dependency:** the chosen pinned CUE version must exist as a downloadable release at `cuelang.org/cue` distribution channels. Builder confirms during implementation.
 
 ## References
