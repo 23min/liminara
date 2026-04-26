@@ -1,9 +1,9 @@
 ---
-id: E-21c-pack-dx
-parent: E-21-pack-contribution-contract
+id: E-26
+parent: E-21
 phase: 5c
 status: planning
-depends_on: E-21a-contract-design
+depends_on: E-24
 ---
 
 # E-21c: Pack Developer Experience
