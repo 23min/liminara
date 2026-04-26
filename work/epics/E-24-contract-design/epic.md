@@ -1,9 +1,9 @@
 ---
-id: E-21a-contract-design
-parent: E-21-pack-contribution-contract
+id: E-24
+parent: E-21
 phase: 5c
 status: active
-depends_on: E-19-warnings-degraded-outcomes
+depends_on: E-19
 ---
 
 # E-21a: Pack Contract Design

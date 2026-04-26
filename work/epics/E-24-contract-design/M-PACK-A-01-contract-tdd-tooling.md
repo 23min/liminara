@@ -1,10 +1,10 @@
 ---
 id: M-PACK-A-01
-epic: E-21-pack-contribution-contract
-parent: E-21a-contract-design
+epic: E-24
+parent: E-24
 status: complete
 completed: 2026-04-25
-depends_on: E-19-warnings-degraded-outcomes
+depends_on: E-19
 ---
 
 # M-PACK-A-01: Liminara-project Contract-TDD tooling

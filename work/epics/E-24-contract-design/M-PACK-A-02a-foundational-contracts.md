@@ -1,7 +1,7 @@
 ---
 id: M-PACK-A-02a
-epic: E-21-pack-contribution-contract
-parent: E-21a-contract-design
+epic: E-24
+parent: E-24
 status: draft
 depends_on: M-PACK-A-01
 ---
