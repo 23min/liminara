@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-04-26T14:39:15Z",
+  "source_sha": "13dd4512c60b7a8dc0e03efc89bc042ee39fb196",
+  "metrics": {
+    "doc_health": {
+      "score": 79,
+      "components": {
+        "freshness": 1.00,
+        "reference_integrity": 1.00,
+        "decision_currency": 0.75,
+        "orphan_rate": 0.83,
+        "coverage": 0.20,
+        "conflict_rate": 1.00
+      },
+      "components_source": {
+        "freshness": "full@13dd451",
+        "reference_integrity": "full@13dd451",
+        "decision_currency": "full@13dd451",
+        "orphan_rate": "full@13dd451",
+        "coverage": "full@13dd451",
+        "conflict_rate": "full@13dd451"
+      },
+      "sweep_mode": "full",
+      "findings_count": 23,
+      "index_path": "docs/index.md"
+    }
+  }
+}
