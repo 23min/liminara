@@ -1,0 +1,14 @@
+# Invalid: a node's `node_id` exceeds the 63-character cap.
+#
+# Schema rule: `node_id: string & =~"^.{1,63}$"`. The 63-character
+# limit is the DNS-label cap, chosen for forward-compatibility
+# with node IDs flowing into URLs, filesystem paths, or registry
+# keys without truncation. Tightening this in v1.0.0 prevents
+# authors from baking long IDs into pack source that would later
+# require a v2.0.0 break to shorten. The fixture's node_id is 64
+# characters — one over the limit.
+schema_version: 1
+nodes:
+  - node_id: "this_node_identifier_is_intentionally_sixty_four_characters_lon0"
+    op: "noop"
+    inputs: {}

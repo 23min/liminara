@@ -1,0 +1,16 @@
+# status-out-of-enum.yaml
+#
+# Violation class: response.status is not one of the locked values
+# ("ok", "error"). port.ex:50–55 only branches on those two; any
+# other value is unhandled. The schema's #SuccessResponse and
+# #ErrorResponse lock the enum.
+
+request:
+  id: "abc123"
+  op: "echo"
+  inputs: {}
+
+response:
+  id: "abc123"
+  status: "pending"
+  outputs: {}

@@ -1,0 +1,16 @@
+2026-04-26T17:49:29Z start: brief loaded
+2026-04-26T17:49:42Z precedent-read: 0004 + 0005 + their schemas absorbed
+2026-04-26T17:49:59Z live-source-read: replay_test.exs (159 lines)
+2026-04-26T17:50:37Z live-source-read: server.ex (1312 lines, key sections at 100-340 + 430-770 + 990-1190 read)
+2026-04-26T17:50:37Z live-source-read: run.ex Result struct
+2026-04-26T17:50:37Z live-source-read: execution_context.ex (16 lines)
+2026-04-26T17:50:37Z recipe-read: cue idioms loaded (via D-036 + D-037 precedent)
+2026-04-26T17:50:37Z adr-draft: 0006 claimed (next free), structure outlined
+2026-04-26T17:52:29Z schema-draft: schema.cue written
+2026-04-26T17:54:35Z fixture-valid: 4 valid fixtures written and vet clean (minimal-pure, radar-discovery-partial, replay-recordable-injects, partial-rebuild)
+2026-04-26T17:56:43Z fixture-invalid: 5 invalid fixtures written and rejected as expected
+2026-04-26T17:56:54Z cue-vet-loop: pass (all 3 topics — opspec/wire/replay — both valid + invalid sub-walks)
+2026-04-26T17:56:54Z reference-impl: replay_test.exs:46 ("discovery run produces output and decisions" test) + 58 (replay recordable) + 103 (replay side-effecting skip)
+2026-04-26T18:01:49Z worked-example: pasted into ADR, parity verified against valid/radar-discovery-with-decision-and-warning-partial.yaml
+2026-04-26T18:01:50Z cue-vet-loop: pass (full library walk, exit 0)
+2026-04-26T18:01:50Z bundle-complete: ADR-REPLAY-01 ready for parent review

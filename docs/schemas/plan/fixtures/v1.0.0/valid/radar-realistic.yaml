@@ -1,0 +1,179 @@
+# Realistic worked-example fixture: the Radar plan for a 2-source
+# input (one RSS source `news_se`, one web source `tech_eu`).
+#
+# This fixture is the YAML rendering of the value
+# `Liminara.Radar.plan(enabled_sources)` returns
+# (runtime/apps/liminara_radar/lib/liminara/radar.ex:52) when
+# `enabled_sources` is the two-element list:
+#
+#   [%{"id" => "news_se", "type" => "rss", ...},
+#    %{"id" => "tech_eu", "type" => "web", ...}]
+#
+# Op-references use the bare op-name from each op's
+# `execution_spec.identity.name` (per Q&A 2026-05-02 Q2 — NOT the
+# Elixir `Liminara.Radar.Ops.FetchRss` module string `to_map/1`
+# emits today). Literal values are JSON-compatible (per Q&A
+# 2026-05-02 Q4 — NOT Elixir-`inspect` strings). M-RUNTIME-02
+# (E-25)'s generated pack.yaml shim is bound to render this shape.
+schema_version: 1
+nodes:
+  # The two fetch nodes. Their node_ids are dynamic
+  # (`fetch_${source["id"]}`); op binding is determined by source
+  # type (rss → radar_fetch_rss, web → radar_fetch_web). The
+  # `source` literal carries the JSON-encoded source description.
+  - node_id: "fetch_news_se"
+    op: "radar_fetch_rss"
+    inputs:
+      source:
+        type: "literal"
+        value:
+          id: "news_se"
+          type: "rss"
+          url: "https://example.se/feed.xml"
+          enabled: true
+
+  - node_id: "fetch_tech_eu"
+    op: "radar_fetch_web"
+    inputs:
+      source:
+        type: "literal"
+        value:
+          id: "tech_eu"
+          type: "web"
+          url: "https://tech.example.eu"
+          enabled: true
+
+  # Collect node fans-in all fetch results — one ref-with-key per
+  # fetch node, each consuming its `result` output.
+  - node_id: "collect_items"
+    op: "collect_items"
+    inputs:
+      fetch_news_se:
+        type: "ref"
+        ref: "fetch_news_se"
+        key: "result"
+      fetch_tech_eu:
+        type: "ref"
+        ref: "fetch_tech_eu"
+        key: "result"
+
+  # Normalize → embed → dedup → llm_dedup_check linear chain.
+  - node_id: "normalize"
+    op: "radar_normalize"
+    inputs:
+      items:
+        type: "ref"
+        ref: "collect_items"
+        key: "items"
+
+  - node_id: "embed"
+    op: "radar_embed"
+    inputs:
+      items:
+        type: "ref"
+        ref: "normalize"
+        key: "items"
+      provider:
+        type: "literal"
+        value: "model2vec"
+      provider_config:
+        type: "literal"
+        value: {}
+
+  - node_id: "dedup"
+    op: "radar_dedup"
+    inputs:
+      items:
+        type: "ref"
+        ref: "embed"
+        key: "items"
+      lancedb_path:
+        type: "literal"
+        value: "/var/lib/liminara/radar/lancedb"
+      dims:
+        type: "literal"
+        value: "256"
+
+  - node_id: "llm_dedup_check"
+    op: "radar_llm_dedup"
+    inputs:
+      items:
+        type: "ref"
+        ref: "dedup"
+        key: "result"
+
+  # Merge results consumes both dedup branches by key.
+  - node_id: "merge_results"
+    op: "merge_results"
+    inputs:
+      dedup_result:
+        type: "ref"
+        ref: "dedup"
+        key: "result"
+      llm_kept_items:
+        type: "ref"
+        ref: "llm_dedup_check"
+        key: "items"
+
+  # Cluster fans-in items + embeddings; rank, summarize, compose,
+  # render are the tail linear chain.
+  - node_id: "cluster"
+    op: "radar_cluster"
+    inputs:
+      items:
+        type: "ref"
+        ref: "merge_results"
+        key: "items"
+      embedded_items:
+        type: "ref"
+        ref: "embed"
+        key: "items"
+
+  - node_id: "rank"
+    op: "radar_rank"
+    inputs:
+      clusters:
+        type: "ref"
+        ref: "cluster"
+        key: "clusters"
+      history_basis:
+        type: "literal"
+        value: "none"
+      reference_time:
+        type: "literal"
+        value: "2026-05-02T08:00:00Z"
+
+  - node_id: "summarize"
+    op: "radar_summarize"
+    inputs:
+      clusters:
+        type: "ref"
+        ref: "rank"
+        key: "ranked_clusters"
+
+  - node_id: "compose_briefing"
+    op: "compose_briefing"
+    inputs:
+      ranked_clusters:
+        type: "ref"
+        ref: "rank"
+        key: "ranked_clusters"
+      summaries:
+        type: "ref"
+        ref: "summarize"
+        key: "summaries"
+      source_health:
+        type: "ref"
+        ref: "collect_items"
+        key: "source_health"
+      date:
+        type: "literal"
+        value: "2026-05-02"
+
+  - node_id: "render_html"
+    op: "render_html"
+    inputs:
+      briefing:
+        type: "ref"
+        ref: "compose_briefing"
+        key: "briefing"

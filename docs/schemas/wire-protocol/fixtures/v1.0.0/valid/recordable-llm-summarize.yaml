@@ -1,0 +1,44 @@
+# recordable-llm-summarize.yaml
+#
+# Realistic fixture (the worked example): Radar's recordable
+# `radar_summarize` op produces a per-cluster Haiku summary, records
+# its LLM-decision provenance, and emits a degraded warning because
+# the SDK fell back to a placeholder when ANTHROPIC_API_KEY was
+# missing. Exercises the full wire-protocol surface in one exchange:
+# request with execution_context, success response with outputs +
+# decisions + warnings.
+
+request:
+  id: "9f86d081884c7d65"
+  op: "radar_summarize"
+  inputs:
+    clusters: "[{\"cluster_id\":\"c-1\",\"label\":\"AI safety\",\"items\":[{\"title\":\"Anthropic publishes update\",\"source_id\":\"techcrunch\",\"clean_text\":\"...\"}]}]"
+  context:
+    run_id: "radar-20260420T060000-d4e5f6a7"
+    started_at: "2026-04-20T06:00:00Z"
+    pack_id: "radar"
+    pack_version: "0.1.0"
+    replay_of_run_id: null
+    topic_id: null
+
+response:
+  id: "9f86d081884c7d65"
+  status: "ok"
+  outputs:
+    summaries: "[{\"cluster_id\":\"c-1\",\"summary\":\"Anthropic published an update on its safety frameworks...\",\"key_takeaways\":[\"...\"],\"degraded\":false}]"
+    decisions: "[{\"decision_type\":\"cluster_summary\",\"cluster_id\":\"c-1\"}]"
+  decisions:
+    - decision_type: "cluster_summary"
+      cluster_id: "c-1"
+      cluster_label: "AI safety"
+      item_count: 1
+      summary: "Anthropic published an update on its safety frameworks..."
+      rationale: "haiku summary"
+  warnings:
+    - code: "radar_summarize_placeholder"
+      severity: "degraded"
+      summary: "Using placeholder summaries because Anthropic access is unavailable"
+      cause: "ANTHROPIC_API_KEY is not configured"
+      remediation: "Configure ANTHROPIC_API_KEY to enable live summaries"
+      affected_outputs:
+        - "summaries"

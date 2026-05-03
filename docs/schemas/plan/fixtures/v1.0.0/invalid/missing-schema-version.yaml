@@ -1,0 +1,11 @@
+# Invalid: required top-level `schema_version` field is absent.
+#
+# Schema rule: `#Plan` requires `schema_version: int & >=1`. An
+# absent leaf-level field at the top level is rejected by `cue vet`
+# (D-2026-04-26-037: this is the leaf-field absence pattern that
+# DOES surface, distinct from absent struct bodies which CUE
+# accepts vacuously).
+nodes:
+  - node_id: "only_node"
+    op: "noop"
+    inputs: {}

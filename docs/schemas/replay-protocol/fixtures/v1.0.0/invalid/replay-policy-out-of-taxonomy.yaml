@@ -1,0 +1,81 @@
+# replay-policy-out-of-taxonomy.yaml
+#
+# Violation class: replay_inputs.per_node carries a policy value
+# outside #ReplayPolicy ("skip" | "replay_recorded" | "reexecute").
+#
+# The schema's #ReplayPolicy locks to the three values that
+# server.ex's dispatch_node_by_mode/7 (line 451) actually branches
+# on. A fixture that records a fourth value (e.g. "rerun_with_seed",
+# a value Radar does not implement) must be rejected. Adding a new
+# replay policy is a migration ADR per ADR-EVOLUTION-01 (M-CONTRACT-04).
+
+events:
+  - event_type: "run_started"
+    event_hash: "sha256:00000000000000000000000000000000000000000000000000000000ffff0301"
+    prev_hash: null
+    timestamp: "2026-04-26T15:00:00Z"
+    payload:
+      run_id: "test-bad-replay-policy"
+      pack_id: "test"
+      pack_version: "0.1.0"
+      plan_hash: "sha256:0000000000000000000000000000000000000000000000000000000000000303"
+      execution_context:
+        run_id: "test-bad-replay-policy"
+        started_at: "2026-04-26T15:00:00Z"
+        pack_id: "test"
+        pack_version: "0.1.0"
+        replay_of_run_id: "test-source-run"
+        topic_id: null
+
+  - event_type: "op_started"
+    event_hash: "sha256:00000000000000000000000000000000000000000000000000000000ffff0302"
+    prev_hash: "sha256:00000000000000000000000000000000000000000000000000000000ffff0301"
+    timestamp: "2026-04-26T15:00:00.001Z"
+    payload:
+      node_id: "thing"
+      op_id: "Liminara.TestOps.Recordable"
+      op_version: "0.1.0"
+      determinism: "recordable"
+      input_hashes: []
+
+  - event_type: "op_completed"
+    event_hash: "sha256:00000000000000000000000000000000000000000000000000000000ffff0303"
+    prev_hash: "sha256:00000000000000000000000000000000000000000000000000000000ffff0302"
+    timestamp: "2026-04-26T15:00:00.002Z"
+    payload:
+      node_id: "thing"
+      cache_hit: false
+      duration_ms: 0
+      warnings: []
+      output_hashes: []
+      output_hashes_by_key: {}
+
+  - event_type: "run_completed"
+    event_hash: "sha256:00000000000000000000000000000000000000000000000000000000ffff0304"
+    prev_hash: "sha256:00000000000000000000000000000000000000000000000000000000ffff0303"
+    timestamp: "2026-04-26T15:00:00.003Z"
+    payload:
+      run_id: "test-bad-replay-policy"
+      outcome: "success"
+      artifact_hashes: []
+      warning_summary:
+        warning_count: 0
+        degraded_node_ids: []
+
+run_result:
+  run_id: "test-bad-replay-policy"
+  status: "success"
+  outputs: {}
+  event_count: 4
+  node_states:
+    thing: "completed"
+  failed_nodes: []
+  warning_count: 0
+  degraded_nodes: []
+  degraded: false
+
+replay_inputs:
+  source_run_id: "test-source-run"
+  per_node:
+    # Bad: "rerun_with_seed" is not a #ReplayPolicy value.
+    thing: "rerun_with_seed"

@@ -1,0 +1,16 @@
+# Invalid: an extra top-level field beyond the closed `#Plan`
+# definition.
+#
+# Schema rule: `#Plan` is wrapped in `close()` — only
+# `schema_version` and `nodes` are admitted at the top level. The
+# fixture adds `plan_id: "experimental"`, which authors might
+# wishfully add for plan-level identity. Per Q&A 2026-05-02 Q6,
+# v1.0.0 admits no plan-level identity (plan identity = pack
+# identity). A v1.1.0 additive bump might admit this field if a
+# concrete consumer demands it; until then, it is rejected.
+schema_version: 1
+plan_id: "experimental"
+nodes:
+  - node_id: "only_node"
+    op: "noop"
+    inputs: {}

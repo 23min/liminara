@@ -1,0 +1,42 @@
+# Boundary-edge fixture: diamond shape a → {b, c} → d.
+#
+# Exercises fan-out (a → b, a → c) and fan-in (b, c → d). Two
+# downstream nodes consume the same upstream node's output via
+# distinct named outputs (using the optional `key` field on the
+# ref binding). The fan-in node consumes both branches with
+# whole-output refs (no key). This is the smallest non-linear DAG
+# shape that exercises the optional-key distinction.
+schema_version: 1
+nodes:
+  - node_id: "a"
+    op: "split_pair"
+    inputs:
+      seed:
+        type: "literal"
+        value: "input"
+
+  - node_id: "b"
+    op: "transform_left"
+    inputs:
+      left_half:
+        type: "ref"
+        ref: "a"
+        key: "left"
+
+  - node_id: "c"
+    op: "transform_right"
+    inputs:
+      right_half:
+        type: "ref"
+        ref: "a"
+        key: "right"
+
+  - node_id: "d"
+    op: "join_results"
+    inputs:
+      from_b:
+        type: "ref"
+        ref: "b"
+      from_c:
+        type: "ref"
+        ref: "c"

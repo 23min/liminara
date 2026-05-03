@@ -1,0 +1,37 @@
+# pack-version-not-semver.yaml
+#
+# Invalid: pack_version "v1" is not semver-shaped
+# (`^[0-9]+\.[0-9]+\.[0-9]+(-[a-z0-9.]+)?$`). The schema rejects
+# the leading `v` and the missing minor + patch components.
+
+schema_version: 1
+pack_id: "tiny"
+pack_version: "v1"
+
+ops:
+  - execution_spec:
+      identity:
+        name: "echo"
+        version: "1.0"
+      determinism:
+        class: "pure"
+        cache_policy: "content_addressed"
+        replay_policy: "reexecute"
+      execution:
+        executor: "inline"
+        entrypoint: "echo"
+        requires_execution_context: false
+      isolation:
+        env_vars: []
+        network: "none"
+        bootstrap_read_paths: []
+        runtime_read_paths: []
+        runtime_write_paths: []
+      contracts:
+        inputs: {}
+        outputs:
+          out: "artifact"
+        decisions:
+          may_emit: false
+        warnings:
+          may_emit: false

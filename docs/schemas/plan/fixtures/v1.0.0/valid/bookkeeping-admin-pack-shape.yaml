@@ -1,0 +1,162 @@
+# Admin-pack-shaped fixture: the bookkeeping pack's per-period plan
+# rendered as YAML, drawn from
+# admin-pack/v2/docs/architecture/bookkeeping-pack-on-liminara.md §9.
+#
+# This fixture exists to demonstrate that the schema this ADR
+# freezes accommodates a second, independently-conceived pack
+# without one-pack-abstraction risk (per Assertion 3 in
+# `.ai-repo/rules/contract-design.md`). The §9 source uses two
+# shapes this v1.0.0 schema does NOT yet admit:
+#
+#   - `{:init, key}` input bindings — references to reference data
+#     populated via `Liminara.Pack.init/0`. Per Q&A 2026-05-02 Q3,
+#     these are deferred to a v1.1.0 additive bump when admin-pack
+#     materialises and the runtime callback ships (M-RUNTIME-02).
+#   - `enabled: input.use_llm` per-node gating flag. Per Q&A
+#     2026-05-02 Q8, conditional/skip flags are deferred to a
+#     v1.x.0 additive bump or v2.0.0 break, driven by real consumer
+#     pressure.
+#
+# This fixture renders the §9 plan with those two forward-looking
+# shapes elided — the `apply_no_doc` node's `patterns: {:init, ...}`
+# binding is replaced with an explicit literal pattern list, and
+# the `llm_escalation` node's `enabled: input.use_llm` gate is
+# omitted (the node is unconditionally present, mirroring v1.0.0's
+# static-DAG-only discipline).
+schema_version: 1
+nodes:
+  - node_id: "intake_scan"
+    op: "intake_scan"
+    inputs:
+      sources:
+        type: "literal"
+        value:
+          - {kind: "gmail", query: "from:bank"}
+          - {kind: "fs", path: "/path/to/intake"}
+
+  - node_id: "classify_statement"
+    op: "intake_classify"
+    inputs:
+      documents:
+        type: "ref"
+        ref: "intake_scan"
+        key: "statements"
+
+  - node_id: "extract_statement"
+    op: "extract_betalkonto_statement"
+    inputs:
+      document:
+        type: "ref"
+        ref: "classify_statement"
+
+  - node_id: "classify_receipts"
+    op: "intake_classify"
+    inputs:
+      documents:
+        type: "ref"
+        ref: "intake_scan"
+        key: "receipts"
+
+  - node_id: "extract_receipts"
+    op: "extract_receipt_metadata"
+    inputs:
+      documents:
+        type: "ref"
+        ref: "classify_receipts"
+
+  - node_id: "match_pool"
+    op: "build_match_pool"
+    inputs:
+      lines:
+        type: "ref"
+        ref: "extract_statement"
+      receipts:
+        type: "ref"
+        ref: "extract_receipts"
+
+  - node_id: "score_matches"
+    op: "score_all_matches"
+    inputs:
+      pool:
+        type: "ref"
+        ref: "match_pool"
+
+  - node_id: "apply_thresholds"
+    op: "apply_auto_threshold"
+    inputs:
+      scored:
+        type: "ref"
+        ref: "score_matches"
+
+  - node_id: "llm_escalation"
+    op: "llm_match_escalate"
+    inputs:
+      ambiguous:
+        type: "ref"
+        ref: "apply_thresholds"
+        key: "ambiguous"
+
+  - node_id: "review_gate"
+    op: "human_gate"
+    inputs:
+      gate_type:
+        type: "literal"
+        value: "match_review"
+      pending:
+        type: "ref"
+        ref: "llm_escalation"
+        key: "still_ambiguous"
+
+  - node_id: "apply_no_doc"
+    op: "apply_no_doc_patterns"
+    inputs:
+      lines:
+        type: "ref"
+        ref: "extract_statement"
+        key: "unmatched"
+      patterns:
+        type: "literal"
+        value:
+          - {prefix: "STO INTERNT", reason: "internal_transfer"}
+          - {prefix: "BG-LON", reason: "salary"}
+
+  - node_id: "reconcile"
+    op: "reconcile_period"
+    inputs:
+      confirmed_matches:
+        type: "ref"
+        ref: "apply_thresholds"
+        key: "auto"
+      llm_matches:
+        type: "ref"
+        ref: "llm_escalation"
+      human_matches:
+        type: "ref"
+        ref: "review_gate"
+      no_doc:
+        type: "ref"
+        ref: "apply_no_doc"
+
+  - node_id: "export_folder"
+    op: "export_period_folder"
+    inputs:
+      period:
+        type: "ref"
+        ref: "reconcile"
+
+  - node_id: "compose_bundle"
+    op: "compose_bundle_manifest"
+    inputs:
+      period:
+        type: "ref"
+        ref: "reconcile"
+      folder:
+        type: "ref"
+        ref: "export_folder"
+
+  - node_id: "write_bundle"
+    op: "write_bundle_zip"
+    inputs:
+      manifest:
+        type: "ref"
+        ref: "compose_bundle"

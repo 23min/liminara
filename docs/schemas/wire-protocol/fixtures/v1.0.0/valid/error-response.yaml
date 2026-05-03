@@ -1,0 +1,25 @@
+# error-response.yaml
+#
+# Error-response fixture: the op raises a Python exception. The
+# Python runner catches it (op_runner.py:67–68) and returns
+# {status: "error", error: <traceback>}. Notably absent from this
+# shape: outputs, decisions, warnings — error responses are
+# mutually-exclusive with success bodies (port.ex:53 pattern-matches
+# "status" => "error" with no other body keys).
+
+request:
+  id: "deadbeefcafef00d"
+  op: "radar_summarize"
+  inputs:
+    clusters: "not-a-json-string"
+
+response:
+  id: "deadbeefcafef00d"
+  status: "error"
+  error: |
+    Traceback (most recent call last):
+      File "/app/src/liminara_op_runner.py", line 64, in handle_request
+        result = dispatch(op_name, inputs, context)
+      File "/app/src/ops/radar_summarize.py", line 43, in execute
+        clusters = json.loads(inputs.get("clusters", "[]"))
+    json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)

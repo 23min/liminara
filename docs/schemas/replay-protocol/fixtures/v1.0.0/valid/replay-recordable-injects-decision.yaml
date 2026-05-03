@@ -1,0 +1,118 @@
+# replay-recordable-injects-decision.yaml
+#
+# Decision-replay fixture: a replay run that re-executes the same
+# Plan as a previous discovery run. The recordable op
+# "cluster_summary" has replay_policy "replay_recorded"; on replay
+# the dispatcher takes server.ex's `handle_replay_inject/2` branch
+# (line 526) — re-emits the decision_recorded event from
+# Decision.Store, then emits op_completed with cache_hit: false +
+# duration_ms: 0 + the recorded warnings + the recorded
+# output_hashes (no actual op invocation).
+#
+# Exercises: replay_inputs block (with source_run_id +
+# per_node policy map), the decision-injection ordering invariant
+# (decision_recorded MUST precede op_completed in the event log per
+# server.ex 532–541's reduce-and-emit), warnings populated from the
+# replay source via Decision.Store.get_warnings (server.ex
+# replay_warnings/2 line 912), and the run-completed terminal that
+# pins run_result.status to "success".
+#
+# The source run_id appears in:
+#   - run_started.payload.execution_context.replay_of_run_id, set by
+#     replay_execution_context/2 (server.ex line 1161) which clones
+#     the source ExecutionContext and stamps its replay_of_run_id.
+#   - replay_inputs.source_run_id at the fixture top level.
+
+events:
+  - event_type: "run_started"
+    event_hash: "sha256:b1c2d3e400000000000000000000000000000000000000000000000000000001"
+    prev_hash: null
+    timestamp: "2026-04-21T08:00:00Z"
+    payload:
+      run_id: "radar-20260421T080000-b1c2d3e4"
+      pack_id: "radar"
+      pack_version: "0.1.0"
+      plan_hash: "sha256:0000000000000000000000000000000000000000000000000000000000000100"
+      execution_context:
+        run_id: "radar-20260421T080000-b1c2d3e4"
+        started_at: "2026-04-21T08:00:00Z"
+        pack_id: "radar"
+        pack_version: "0.1.0"
+        replay_of_run_id: "radar-20260420T060000-d4e5f6a7"
+        topic_id: "ai-safety"
+
+  - event_type: "op_started"
+    event_hash: "sha256:b1c2d3e400000000000000000000000000000000000000000000000000000002"
+    prev_hash: "sha256:b1c2d3e400000000000000000000000000000000000000000000000000000001"
+    timestamp: "2026-04-21T08:00:00.005Z"
+    payload:
+      node_id: "cluster_summary"
+      op_id: "claude_complete"
+      op_version: "0.3.0"
+      determinism: "recordable"
+      input_hashes:
+        - "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+
+  - event_type: "decision_recorded"
+    event_hash: "sha256:b1c2d3e400000000000000000000000000000000000000000000000000000003"
+    prev_hash: "sha256:b1c2d3e400000000000000000000000000000000000000000000000000000002"
+    timestamp: "2026-04-21T08:00:00.006Z"
+    payload:
+      node_id: "cluster_summary"
+      decision_hash: "sha256:8d23cf6c86e834a7aa6eded54c26ce2bb2e74903bb6bbb2f8c7d17db7c7e3a3a"
+      decision_type: "llm_match"
+
+  - event_type: "op_completed"
+    event_hash: "sha256:b1c2d3e400000000000000000000000000000000000000000000000000000004"
+    prev_hash: "sha256:b1c2d3e400000000000000000000000000000000000000000000000000000003"
+    timestamp: "2026-04-21T08:00:00.007Z"
+    payload:
+      node_id: "cluster_summary"
+      cache_hit: false
+      duration_ms: 0
+      warnings:
+        - code: "llm_partial_response"
+          severity: "degraded"
+          summary: "LLM returned a truncated cluster summary; max_tokens hit before completion"
+          cause: "max_tokens=512 exceeded by claude-3-5-sonnet-20241022"
+          remediation: "raise max_tokens to 1024 in pack config or shorten prompt"
+          affected_outputs:
+            - "summary"
+      output_hashes:
+        - "sha256:9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"
+      output_hashes_by_key:
+        summary: "sha256:9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"
+
+  - event_type: "run_completed"
+    event_hash: "sha256:b1c2d3e400000000000000000000000000000000000000000000000000000005"
+    prev_hash: "sha256:b1c2d3e400000000000000000000000000000000000000000000000000000004"
+    timestamp: "2026-04-21T08:00:00.008Z"
+    payload:
+      run_id: "radar-20260421T080000-b1c2d3e4"
+      outcome: "success"
+      artifact_hashes:
+        - "sha256:9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"
+      warning_summary:
+        warning_count: 1
+        degraded_node_ids:
+          - "cluster_summary"
+
+run_result:
+  run_id: "radar-20260421T080000-b1c2d3e4"
+  status: "success"
+  outputs:
+    cluster_summary:
+      summary: "sha256:9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"
+  event_count: 5
+  node_states:
+    cluster_summary: "completed"
+  failed_nodes: []
+  warning_count: 1
+  degraded_nodes:
+    - "cluster_summary"
+  degraded: true
+
+replay_inputs:
+  source_run_id: "radar-20260420T060000-d4e5f6a7"
+  per_node:
+    cluster_summary: "replay_recorded"

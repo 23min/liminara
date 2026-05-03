@@ -1,0 +1,25 @@
+# warning-severity-out-of-taxonomy.yaml
+#
+# Violation class: warning payload with a severity outside the locked
+# taxonomy (`info | low | medium | high | degraded`). The taxonomy is
+# the same one Liminara.Warning.@severities locks (warning.ex:15);
+# warning_payload/1 (run.ex:710) stringifies the atom but does not
+# admit values outside that list. A Python op that emits
+# `severity: "critical"` is malformed against the post-M-WARN-04
+# shape; the schema rejects it.
+
+request:
+  id: "abc123"
+  op: "radar_summarize"
+  inputs:
+    clusters: "[]"
+
+response:
+  id: "abc123"
+  status: "ok"
+  outputs:
+    summaries: "[]"
+  warnings:
+    - code: "radar_summarize_unknown"
+      severity: "critical"
+      summary: "Unknown failure mode"

@@ -1,0 +1,95 @@
+# recordable-with-warnings-partial.yaml
+#
+# Realistic fixture: a recordable LLM op (Radar-style cluster summary)
+# that emits a decision, emits a "degraded" warning because the LLM
+# returned a partial response, and runs alongside a sibling op that
+# failed — yielding a `run_partial` terminal event with non-zero
+# warning_count.
+#
+# Exercises: determinism.class "recordable", replay_policy
+# "replay_recorded", contracts.decisions.may_emit true,
+# contracts.warnings.may_emit true, full Warning shape (all required +
+# all optional fields populated), Run.Result aggregation with multiple
+# nodes, run_partial event with failed_nodes + warning_summary.
+
+execution_spec:
+  identity:
+    name: "claude_complete"
+    version: "0.3.0"
+  determinism:
+    class: "recordable"
+    cache_policy: "none"
+    replay_policy: "replay_recorded"
+  execution:
+    executor: "port"
+    entrypoint: "claude_complete"
+    timeout_ms: 30000
+    requires_execution_context: true
+  isolation:
+    env_vars:
+      - "ANTHROPIC_API_KEY"
+    network: "tcp_outbound"
+    bootstrap_read_paths:
+      - "packs/radar/python"
+    runtime_read_paths: []
+    runtime_write_paths: []
+  contracts:
+    inputs:
+      cluster_articles: "radar.cluster_articles@1"
+      prompt_template: "text:1"
+    outputs:
+      summary: "radar.cluster_summary@1"
+    decisions:
+      may_emit: true
+    warnings:
+      may_emit: true
+
+op_result:
+  outputs:
+    summary: "sha256:9f86d081884c7d659a2feaa0c55ad015a3bf4f1b"
+  decisions:
+    - decision_type: "llm_match"
+      decision_hash: "sha256:8d23cf6c86e834a7aa6eded54c26ce2bb2e74903"
+      model_id: "claude-3-5-sonnet-20241022"
+      prompt_hash: "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4"
+      response_hash: "sha256:a665a45920422f9d417e4867efdc4fb8a04a1f3f"
+      token_usage:
+        input_tokens: 1240
+        output_tokens: 380
+  warnings:
+    - code: "llm_partial_response"
+      severity: "degraded"
+      summary: "LLM returned a truncated cluster summary; max_tokens hit before completion"
+      cause: "max_tokens=512 exceeded by claude-3-5-sonnet-20241022"
+      remediation: "raise max_tokens to 1024 in pack config or shorten prompt"
+      affected_outputs:
+        - "summary"
+
+run_result:
+  run_id: "radar-20260420T060000-d4e5f6a7"
+  status: "partial"
+  outputs:
+    cluster_summary:
+      summary: "sha256:9f86d081884c7d659a2feaa0c55ad015a3bf4f1b"
+  event_count: 11
+  node_states:
+    cluster_summary: "completed"
+    publish_briefing: "failed"
+  failed_nodes:
+    - "publish_briefing"
+  warning_count: 1
+  degraded_nodes:
+    - "cluster_summary"
+  degraded: true
+
+terminal_event:
+  event_type: "run_partial"
+  run_id: "radar-20260420T060000-d4e5f6a7"
+  error_type: "run_failure"
+  error_message: "one or more nodes failed"
+  failed_nodes:
+    - "publish_briefing"
+  warning_summary:
+    warning_count: 1
+    degraded_node_ids:
+      - "cluster_summary"

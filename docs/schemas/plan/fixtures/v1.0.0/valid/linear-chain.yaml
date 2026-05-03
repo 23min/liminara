@@ -1,0 +1,27 @@
+# Boundary-edge fixture: a → b → c, three ops in sequence.
+#
+# Exercises the basic ref-binding shape (no output key) on a linear
+# DAG. Each node consumes the prior node's whole output. Mirrors the
+# simplest non-trivial Plan shape any pack can author.
+schema_version: 1
+nodes:
+  - node_id: "a"
+    op: "produce_seed"
+    inputs:
+      seed:
+        type: "literal"
+        value: 42
+
+  - node_id: "b"
+    op: "transform_one"
+    inputs:
+      from_a:
+        type: "ref"
+        ref: "a"
+
+  - node_id: "c"
+    op: "transform_two"
+    inputs:
+      from_b:
+        type: "ref"
+        ref: "b"

@@ -1,0 +1,101 @@
+# partial-rebuild-mid-run.yaml
+#
+# Crash-recovery fixture: a Run.Server starts up against an existing
+# event log whose trailing event is *not* terminal. The
+# `{:continue, {:rebuild, existing_events}}` path (server.ex line 230)
+# fires; rebuild_from_events/2 reduces the existing events into a
+# state, then resets any `:running` nodes back to `:pending` (server.ex
+# 270–276) before re-dispatching.
+#
+# Scenario: a two-node plan (load → save). The first node "load"
+# completed with output_hashes recorded; the second node "save" got an
+# op_started event written but no op_completed before the runtime
+# crashed. On resumption, "save" gets reset from :running to :pending,
+# and then re-dispatched. This fixture captures the *moment of
+# re-entry*: the events.jsonl file as the rebuilder sees it (no
+# terminal event), and the replay_state block recording what
+# rebuild_from_events/2 reconstructs at that moment.
+#
+# Exercises: partial-run shape (run_result null, replay_state
+# present), node-state reconstruction from op_started + op_completed,
+# the :running → :pending reset visible in replay_state.node_states,
+# the prev_hash + event_count carry-forward into the resumed
+# state.
+#
+# Out of scope here (per ADR-REPLAY-01 § Out of Scope): the run that
+# resumes from this state. That's a separate run instance with its
+# own event log; the resume re-entry is the boundary this schema
+# documents.
+
+events:
+  - event_type: "run_started"
+    event_hash: "sha256:c001beef00000000000000000000000000000000000000000000000000000001"
+    prev_hash: null
+    timestamp: "2026-04-22T10:00:00Z"
+    payload:
+      run_id: "test-resume-20260422T100000-c001beef"
+      pack_id: "test"
+      pack_version: "0.1.0"
+      plan_hash: "sha256:0000000000000000000000000000000000000000000000000000000000000200"
+      execution_context:
+        run_id: "test-resume-20260422T100000-c001beef"
+        started_at: "2026-04-22T10:00:00Z"
+        pack_id: "test"
+        pack_version: "0.1.0"
+        replay_of_run_id: null
+        topic_id: null
+
+  - event_type: "op_started"
+    event_hash: "sha256:c001beef00000000000000000000000000000000000000000000000000000002"
+    prev_hash: "sha256:c001beef00000000000000000000000000000000000000000000000000000001"
+    timestamp: "2026-04-22T10:00:00.001Z"
+    payload:
+      node_id: "load"
+      op_id: "Liminara.TestOps.Upcase"
+      op_version: "0.1.0"
+      determinism: "pure"
+      input_hashes:
+        - "sha256:0000000000000000000000000000000000000000000000000000000000000010"
+
+  - event_type: "op_completed"
+    event_hash: "sha256:c001beef00000000000000000000000000000000000000000000000000000003"
+    prev_hash: "sha256:c001beef00000000000000000000000000000000000000000000000000000002"
+    timestamp: "2026-04-22T10:00:00.002Z"
+    payload:
+      node_id: "load"
+      cache_hit: false
+      duration_ms: 1
+      warnings: []
+      output_hashes:
+        - "sha256:0000000000000000000000000000000000000000000000000000000000000020"
+      output_hashes_by_key:
+        result: "sha256:0000000000000000000000000000000000000000000000000000000000000020"
+
+  - event_type: "op_started"
+    event_hash: "sha256:c001beef00000000000000000000000000000000000000000000000000000004"
+    prev_hash: "sha256:c001beef00000000000000000000000000000000000000000000000000000003"
+    timestamp: "2026-04-22T10:00:00.003Z"
+    payload:
+      node_id: "save"
+      op_id: "Liminara.TestOps.SideEffect"
+      op_version: "0.1.0"
+      determinism: "side_effecting"
+      input_hashes:
+        - "sha256:0000000000000000000000000000000000000000000000000000000000000020"
+
+run_result: null
+
+replay_state:
+  prev_hash: "sha256:c001beef00000000000000000000000000000000000000000000000000000004"
+  event_count: 4
+  # "save" was :running at crash; after rebuild_from_events/2 it
+  # appears as :running, then handle_continue's reset (server.ex
+  # 271–275) flips it back to :pending before dispatch_ready/1.
+  # This fixture records the post-reset shape (the state the next
+  # dispatch_ready sees).
+  node_states:
+    load: "completed"
+    save: "pending"
+  node_outputs:
+    load:
+      result: "sha256:0000000000000000000000000000000000000000000000000000000000000020"

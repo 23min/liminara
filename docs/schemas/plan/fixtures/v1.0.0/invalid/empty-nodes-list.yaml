@@ -1,0 +1,8 @@
+# Invalid: `nodes` is an empty list.
+#
+# Schema rule: `nodes: [...#Node] & [_, ...]` — at least one node
+# required. A plan with zero nodes is meaningless (nothing to
+# execute) and is rejected at schema time rather than waiting for
+# the runtime to surface "no work" as a no-op or error.
+schema_version: 1
+nodes: []

@@ -1,0 +1,16 @@
+# missing-id.yaml
+#
+# Violation class: missing required `id` field on the request.
+# port.ex:65 unconditionally generates an id; a request that arrived
+# without one is malformed. The schema rejects requests with no id.
+
+request:
+  op: "echo"
+  inputs:
+    message: "hello"
+
+response:
+  id: "abc123"
+  status: "ok"
+  outputs:
+    message: "hello"

@@ -1,0 +1,38 @@
+# schema-version-missing.yaml
+#
+# Invalid: top-level required `schema_version` field absent.
+# Per AC5 the field is required; per the schema preamble's
+# behaviour-when-absent rule, the loader errors rather than
+# defaulting. Leaf-level required-field violation; cue vet rejects
+# without -c (per D-2026-04-26-037).
+
+pack_id: "tiny"
+pack_version: "0.0.1"
+
+ops:
+  - execution_spec:
+      identity:
+        name: "echo"
+        version: "1.0"
+      determinism:
+        class: "pure"
+        cache_policy: "content_addressed"
+        replay_policy: "reexecute"
+      execution:
+        executor: "inline"
+        entrypoint: "echo"
+        requires_execution_context: false
+      isolation:
+        env_vars: []
+        network: "none"
+        bootstrap_read_paths: []
+        runtime_read_paths: []
+        runtime_write_paths: []
+      contracts:
+        inputs: {}
+        outputs:
+          out: "artifact"
+        decisions:
+          may_emit: false
+        warnings:
+          may_emit: false

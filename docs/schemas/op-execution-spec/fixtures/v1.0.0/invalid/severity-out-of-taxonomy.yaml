@@ -1,0 +1,65 @@
+# severity-out-of-taxonomy.yaml
+#
+# Invalid: warning.severity is "critical", outside the locked taxonomy
+# ("info" | "low" | "medium" | "high" | "degraded"). Liminara.Warning
+# rejects this at runtime via Warning.new/1; the schema must reject it
+# at vet time so off-the-wire warnings are caught before reaching the
+# Elixir struct.
+
+execution_spec:
+  identity:
+    name: "claude_complete"
+    version: "0.3.0"
+  determinism:
+    class: "recordable"
+    cache_policy: "none"
+    replay_policy: "replay_recorded"
+  execution:
+    executor: "port"
+    entrypoint: "claude_complete"
+    requires_execution_context: true
+  isolation:
+    env_vars:
+      - "ANTHROPIC_API_KEY"
+    network: "tcp_outbound"
+    bootstrap_read_paths: []
+    runtime_read_paths: []
+    runtime_write_paths: []
+  contracts:
+    inputs: {}
+    outputs: {}
+    decisions:
+      may_emit: true
+    warnings:
+      may_emit: true
+
+op_result:
+  outputs: {}
+  decisions: []
+  warnings:
+    - code: "llm_partial_response"
+      severity: "critical"
+      summary: "LLM returned a truncated response"
+
+run_result:
+  run_id: "radar-20260420T060000-d4e5f6a7"
+  status: "success"
+  outputs: {}
+  event_count: 4
+  node_states:
+    cluster_summary: "completed"
+  failed_nodes: []
+  warning_count: 1
+  degraded_nodes:
+    - "cluster_summary"
+  degraded: true
+
+terminal_event:
+  event_type: "run_completed"
+  run_id: "radar-20260420T060000-d4e5f6a7"
+  outcome: "success"
+  artifact_hashes: []
+  warning_summary:
+    warning_count: 1
+    degraded_node_ids:
+      - "cluster_summary"

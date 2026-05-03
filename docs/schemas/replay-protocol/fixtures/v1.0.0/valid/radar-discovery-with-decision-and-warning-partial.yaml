@@ -1,0 +1,134 @@
+# radar-discovery-with-decision-and-warning-partial.yaml
+#
+# Realistic worked-example fixture: a Radar discovery run with two
+# nodes, where:
+#   - "cluster_summary" is a recordable LLM op that completes
+#     successfully, records a decision, and emits a degraded warning
+#     because the LLM truncated the response.
+#   - "publish_briefing" is a side-effecting op that fails.
+#
+# The run terminates `:partial` (per finish_run/2's `stuck and
+# any_failed and any_completed` branch, server.ex line 759), emitting
+# a run_partial terminal event. The walker reduces the eleven events
+# in append order into a Run.Result with status "partial", one
+# completed node, one failed node, warning_count 1, and degraded set
+# true (per Run.Result.derive_degraded/2 — partial + warning_count > 0
+# yields degraded).
+#
+# This is the worked example pasted byte-for-byte into the ADR body
+# (per the M-CONTRACT-02 fixture-parity rule, AC2). Edits here must
+# be mirrored in the ADR's "Worked example" section.
+
+events:
+  - event_type: "run_started"
+    event_hash: "sha256:d4e5f6a700000000000000000000000000000000000000000000000000000001"
+    prev_hash: null
+    timestamp: "2026-04-20T06:00:00Z"
+    payload:
+      run_id: "radar-20260420T060000-d4e5f6a7"
+      pack_id: "radar"
+      pack_version: "0.1.0"
+      plan_hash: "sha256:0000000000000000000000000000000000000000000000000000000000000100"
+      execution_context:
+        run_id: "radar-20260420T060000-d4e5f6a7"
+        started_at: "2026-04-20T06:00:00Z"
+        pack_id: "radar"
+        pack_version: "0.1.0"
+        replay_of_run_id: null
+        topic_id: "ai-safety"
+
+  - event_type: "op_started"
+    event_hash: "sha256:d4e5f6a700000000000000000000000000000000000000000000000000000002"
+    prev_hash: "sha256:d4e5f6a700000000000000000000000000000000000000000000000000000001"
+    timestamp: "2026-04-20T06:00:00.010Z"
+    payload:
+      node_id: "cluster_summary"
+      op_id: "claude_complete"
+      op_version: "0.3.0"
+      determinism: "recordable"
+      input_hashes:
+        - "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+
+  - event_type: "decision_recorded"
+    event_hash: "sha256:d4e5f6a700000000000000000000000000000000000000000000000000000003"
+    prev_hash: "sha256:d4e5f6a700000000000000000000000000000000000000000000000000000002"
+    timestamp: "2026-04-20T06:00:01.234Z"
+    payload:
+      node_id: "cluster_summary"
+      decision_hash: "sha256:8d23cf6c86e834a7aa6eded54c26ce2bb2e74903bb6bbb2f8c7d17db7c7e3a3a"
+      decision_type: "llm_match"
+
+  - event_type: "op_completed"
+    event_hash: "sha256:d4e5f6a700000000000000000000000000000000000000000000000000000004"
+    prev_hash: "sha256:d4e5f6a700000000000000000000000000000000000000000000000000000003"
+    timestamp: "2026-04-20T06:00:01.567Z"
+    payload:
+      node_id: "cluster_summary"
+      cache_hit: false
+      duration_ms: 1567
+      warnings:
+        - code: "llm_partial_response"
+          severity: "degraded"
+          summary: "LLM returned a truncated cluster summary; max_tokens hit before completion"
+          cause: "max_tokens=512 exceeded by claude-3-5-sonnet-20241022"
+          remediation: "raise max_tokens to 1024 in pack config or shorten prompt"
+          affected_outputs:
+            - "summary"
+      output_hashes:
+        - "sha256:9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"
+      output_hashes_by_key:
+        summary: "sha256:9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"
+
+  - event_type: "op_started"
+    event_hash: "sha256:d4e5f6a700000000000000000000000000000000000000000000000000000005"
+    prev_hash: "sha256:d4e5f6a700000000000000000000000000000000000000000000000000000004"
+    timestamp: "2026-04-20T06:00:01.700Z"
+    payload:
+      node_id: "publish_briefing"
+      op_id: "publish_to_static_site"
+      op_version: "0.2.1"
+      determinism: "side_effecting"
+      input_hashes:
+        - "sha256:9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"
+
+  - event_type: "op_failed"
+    event_hash: "sha256:d4e5f6a700000000000000000000000000000000000000000000000000000006"
+    prev_hash: "sha256:d4e5f6a700000000000000000000000000000000000000000000000000000005"
+    timestamp: "2026-04-20T06:00:02.100Z"
+    payload:
+      node_id: "publish_briefing"
+      error_type: "execution_error"
+      error_message: "%File.Error{reason: :enoent, action: \"open\", path: \"/var/www/briefing/index.html\"}"
+      duration_ms: 400
+
+  - event_type: "run_partial"
+    event_hash: "sha256:d4e5f6a700000000000000000000000000000000000000000000000000000007"
+    prev_hash: "sha256:d4e5f6a700000000000000000000000000000000000000000000000000000006"
+    timestamp: "2026-04-20T06:00:02.150Z"
+    payload:
+      run_id: "radar-20260420T060000-d4e5f6a7"
+      error_type: "run_failure"
+      error_message: "one or more nodes failed"
+      failed_nodes:
+        - "publish_briefing"
+      warning_summary:
+        warning_count: 1
+        degraded_node_ids:
+          - "cluster_summary"
+
+run_result:
+  run_id: "radar-20260420T060000-d4e5f6a7"
+  status: "partial"
+  outputs:
+    cluster_summary:
+      summary: "sha256:9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"
+  event_count: 7
+  node_states:
+    cluster_summary: "completed"
+    publish_briefing: "failed"
+  failed_nodes:
+    - "publish_briefing"
+  warning_count: 1
+  degraded_nodes:
+    - "cluster_summary"
+  degraded: true

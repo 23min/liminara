@@ -1,0 +1,40 @@
+# pack-id-too-long.yaml
+#
+# Invalid: pack_id exceeds the 63-character DNS-label cap. The id
+# below is 64 characters of lowercase letters — passes the regex
+# shape but fails the length constraint. The 63-cap was chosen per
+# Q&A 2026-05-02 (Q5) so pack IDs are forward-compatible with DNS
+# labels, URL path segments, and filesystem paths without
+# truncation logic.
+
+schema_version: 1
+pack_id: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+pack_version: "0.1.0"
+
+ops:
+  - execution_spec:
+      identity:
+        name: "echo"
+        version: "1.0"
+      determinism:
+        class: "pure"
+        cache_policy: "content_addressed"
+        replay_policy: "reexecute"
+      execution:
+        executor: "inline"
+        entrypoint: "echo"
+        requires_execution_context: false
+      isolation:
+        env_vars: []
+        network: "none"
+        bootstrap_read_paths: []
+        runtime_read_paths: []
+        runtime_write_paths: []
+      contracts:
+        inputs: {}
+        outputs:
+          out: "artifact"
+        decisions:
+          may_emit: false
+        warnings:
+          may_emit: false

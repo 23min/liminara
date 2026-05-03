@@ -165,31 +165,41 @@ An artifact is a value. It doesn't change. If you have its hash, you have its id
 
 A typed function: artifacts in, artifacts out.
 
-Historically, the runtime exposed ops through separate callbacks. The canonical contract now being locked in Phase 5c is `execution_spec/0`, which folds identity, determinism, execution, isolation, and contracts into one truthful shape.
+Historically, the runtime exposed ops through separate callbacks. The canonical contract is `execution_spec/0`, locked in M-TRUTH-01 (E-20, merged) and codified as a CUE schema in M-CONTRACT-02 (E-24, ADR-OPSPEC-01). It folds identity, determinism, execution, isolation, and contracts into one truthful shape.
 
 ```elixir
 %Liminara.ExecutionSpec{
   identity: %{name: :rank_and_summarize, version: "1.0.0"},
-  determinism: %{class: :recordable},
-  execution: %{kind: :port, op: "radar_summarize", timeout_ms: 30_000},
+  determinism: %{
+    class: :recordable,
+    cache_policy: :none,
+    replay_policy: :replay_recorded
+  },
+  execution: %{
+    executor: :port,
+    entrypoint: "radar_summarize",
+    timeout_ms: 30_000,
+    requires_execution_context: false
+  },
   isolation: %{
     env_vars: ["ANTHROPIC_API_KEY"],
     network: :tcp_outbound,
-    bootstrap_read_paths: [:op_code, :runtime_deps],
+    bootstrap_read_paths: [],
     runtime_read_paths: [],
     runtime_write_paths: []
   },
   contracts: %{
     inputs: %{unique_docs: %{required: true}},
     outputs: %{briefing: %{required: true}},
-    may_warn: true
+    decisions: %{may_emit: true},
+    warnings: %{may_emit: true}
   }
 }
 ```
 
 An op doesn't know about scheduling, retry, supervision, or storage. It's just a function with a determinism class. The runtime handles everything else.
 
-The older four-callback surface is legacy implementation detail during the M-TRUTH-02 migration, not the contract new features should extend:
+The older four-callback surface was retired during M-TRUTH-02 (E-20, merged) — it is documented here only as historical context, not as the contract new features should extend:
 
 | Callback | Returns |
 |----------|---------|
@@ -503,8 +513,8 @@ Upgrade an LLM from GPT-4 to GPT-4.5. Replay the last 10 runs with the new model
 - **Jason** for JSON encoding/decoding (the single non-OTP dependency)
 
 Future additions when needed:
-- **Phoenix LiveView** for the observation UI (Phase 4)
-- **Oban + Postgres** for scheduled runs (Phase 6)
+- **Phoenix LiveView** for the observation UI (when the observation epic activates; see `work/roadmap.md`)
+- **Oban + Postgres** for scheduled runs (queued post-Radar)
 - **Rust NIFs** (via Rustler) for geometry kernels (House Compiler)
 - **LanceDB** for vector index (Radar, file-based, embeddable)
 
@@ -599,7 +609,7 @@ end
 
 Subscribers can be: a Phoenix LiveView rendering a real-time DAG, an ex_a2ui WebSocket provider, a CLI progress printer, a log writer, a metrics collector. The observation layer is a **consumer** of the event stream, not part of the core. You can run Liminara headless or with a full dashboard.
 
-### 8.7 Observation layer architecture (Phase 4)
+### 8.7 Observation layer architecture
 
 ```
 :pg event stream (from Run.Server)
@@ -643,7 +653,7 @@ That's it. No database, no message broker, no web framework. Artifacts on disk, 
 
 ## 9. Data Model
 
-Defined in Phase 0 as a canonical specification that both the Python SDK and Elixir runtime implement. This prevents cross-language drift.
+Defined as a canonical specification that both the Python SDK and Elixir runtime implement. Cross-language drift is prevented at the schema layer (CUE schemas under `docs/schemas/` codify the on-disk shapes).
 
 ### 9.1 Hash algorithm
 
@@ -697,7 +707,7 @@ The `prev_hash` links each event to the previous event's hash. Any modification 
 
 ### 9.5 Run seal
 
-The `event_hash` of the `run_completed` event is the **run seal**. It cryptographically commits to the entire run history.
+The `event_hash` of the run's terminal event — `run_completed`, `run_partial`, or `run_failed` (per ADR-OPSPEC-01's closed-enum terminal-event taxonomy) — is the **run seal**. It cryptographically commits to the entire run history regardless of outcome.
 
 ```
 {runs_root}/{run_id}/seal.json
@@ -716,13 +726,16 @@ Canonical JSON (RFC 8785). One file per nondeterministic op execution. Fields: `
 | Event type | Payload keys |
 |------------|-------------|
 | `run_started` | `run_id`, `pack_id`, `pack_version`, `plan_hash` |
-| `op_started` | `node_id`, `op_id`, `op_version`, `determinism`, `input_hashes` |
-| `op_completed` | `node_id`, `output_hashes`, `cache_hit`, `duration_ms` |
-| `op_failed` | `node_id`, `error_type`, `error_message` |
+| `node_started` | `node_id`, `op_id`, `op_version`, `determinism`, `input_hashes` |
+| `node_completed` | `node_id`, `output_hashes`, `cache_hit`, `duration_ms` |
+| `node_failed` | `node_id`, `error_type`, `error_message` |
 | `decision_recorded` | `node_id`, `decision_hash`, `decision_type` |
 | `artifact_produced` | `artifact_hash`, `node_id`, `content_type`, `size_bytes` |
 | `run_completed` | `run_id`, `outcome`, `artifact_hashes` |
+| `run_partial` | `run_id`, `outcome`, `failed_nodes`, `warning_summary`, `artifact_hashes` |
 | `run_failed` | `run_id`, `error_type`, `error_message` |
+
+The terminal-event triad (`run_completed` | `run_partial` | `run_failed`) is a closed enumeration locked by E-19 and codified by ADR-OPSPEC-01. `run_partial` carries `warning_summary` for the warning-bearing degraded-success path (per D-2026-04-20-025 and the M-WARN-04 fix at D-2026-04-20-026).
 
 ### 9.8 Directory layout
 
@@ -1086,56 +1099,21 @@ Three integration models for existing systems:
 
 **Platform emergence model:** Rails from Basecamp. React from Facebook's newsfeed. Terraform from HashiCorp's own infra needs. The platform emerges from the friction of building real things.
 
-### 14.2 Phase sequence
+### 14.2 Sequencing
 
-#### Phase 0: Data model definition ✅
+The phase-numbered build plan (Phase 0..7) that previously appeared here was the sequencing model used through E-19. It has been retired in favour of an epic-and-milestone model rooted in `work/roadmap.md` (per `docs/architecture/02_PLAN.md`); the historical phase narrative is archived at `docs/history/architecture/02_PLAN.md`.
 
-Define the on-disk format once: hash algorithm, canonical serialization, event log format, artifact storage layout, decision records. Both the Python SDK and the Elixir runtime implement this model.
+Current sequencing lives in **`work/roadmap.md`** as the only active source. At a high level:
 
-#### Phase 1: Python SDK / data model validation
+- **E-19 Warnings + degraded outcomes** (merged) — terminal-event taxonomy `run_completed | run_partial | run_failed`; the warning + degraded-success contract.
+- **E-20 Execution Truth** (merged, M-TRUTH-01 + M-TRUTH-02) — locked the canonical `execution_spec/0` shape and migrated the runtime onto it.
+- **E-24 Pack Contract Design** (active) — five foundational ADRs (MANIFEST, PLAN, OPSPEC, REPLAY, WIRE) shipped as schema-backed contracts in M-CONTRACT-02; multi-plan + dynamic-pipelining + executor + evolution + content + layout + boundary + LA contracts at M-CONTRACT-03/04.
+- **E-25 PackLoader runtime, E-26 SDK + DX, E-27 Radar extraction** — downstream of contract design.
+- **E-22 admin-pack** (queued) — second binding pack consumer.
 
-Validate the data model spec by implementing it in Python. The compliance reporting it produces (Article 12 reports, tamper-evidence) is a consequence of the architecture. Primary deliverable: validated data model, runnable demo for pitches.
+For status and phase of any particular epic / milestone, run `wf-graph report --status` or read `work/roadmap.md` directly. CLAUDE.md's *Current Work* section names the active milestone.
 
-**Status:** Not started.
-
-#### Phase 2: Elixir walking skeleton ✅
-
-The minimal Elixir runtime exercising every core concept. Zero external dependencies — pure BEAM. Artifact.Store, Event.Store, Plan, Run.Server, Op behaviour.
-
-#### Phase 3: OTP runtime layer ✅
-
-Promote the synchronous walking skeleton into a proper OTP application. Run.Server GenServer, DynamicSupervisor, concurrent fan-out, `:pg` event broadcasting, crash recovery, property-based stress testing.
-
-**Test suite:** 8 properties + 229 tests, 0 failures.
-
-#### Phase 4: Observation layer (current)
-
-See what's happening inside a run. Observation.Server GenServer subscribing to `:pg`, maintaining a view model, publishing updates. Phoenix LiveView for rich UI. SVG-based DAG visualization.
-
-**Status:** Active.
-
-#### Phase 5: Radar pack (first real product)
-
-Daily-use research intelligence system. Real HTTP fetching, real LLM summarization. Oban for scheduled recurring runs. Cache layer. Two-layer architecture: continuous collection + triggered analysis.
-
-#### Phase 6: Oban + Postgres (scheduling)
-
-Scheduled runs, persistent job queues, cross-run queries.
-
-#### Phase 7: House Compiler (proof of generality)
-
-Second real pack in a completely different domain. `:port`/`:nif` executors for heavy compute. Binary artifacts (PDF, NC files). Pack-managed reference data. Fan-out DAG.
-
-#### Beyond Phase 7
-
-| Pack | Trigger |
-|------|---------|
-| FlowTime ConsultingPack | When FlowTime is consulting-usable AND observation layer is built |
-| Software Factory | Hobby pace, after House Compiler |
-| Process Mining | When FlowTime is ready for integration |
-| Far-horizon packs | When external contributors or customers need them |
-
-### 14.3 What exists today (post-Phase 3)
+### 14.3 What exists today
 
 The runtime can:
 
@@ -1148,6 +1126,8 @@ The runtime can:
 - Recover from crashes by rebuilding state from the event log
 - Produce tamper-evident, hash-chained event logs in JSONL format
 - Store artifacts in a content-addressed filesystem
+- Emit warnings and produce `run_partial` outcomes (per E-19)
+- Emit canonical `execution_spec/0` shape across all live ops (per E-20)
 
 All on pure BEAM — zero external dependencies beyond Jason.
 
@@ -1158,8 +1138,9 @@ liminara_core/lib/
 ├── liminara.ex                    Public API: run/3, replay/4
 └── liminara/
     ├── application.ex             OTP Application, supervision tree
-    ├── op.ex                      Op behaviour (4 callbacks)
-    ├── pack.ex                    Pack behaviour (4 callbacks)
+    ├── op.ex                      Op behaviour (canonical surface: execution_spec/0)
+    ├── pack.ex                    Pack behaviour (id/0, version/0, ops/0, plan/1; init/0 approved-next)
+    ├── execution_spec.ex          ExecutionSpec struct (the canonical contract)
     ├── plan.ex                    DAG data structure + validation
     ├── run.ex                     Synchronous executor + subscribe/unsubscribe
     ├── run/

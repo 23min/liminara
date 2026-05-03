@@ -1,0 +1,38 @@
+# op-network-out-of-enum.yaml
+#
+# Invalid: op declares `isolation.network: "any"`, which is not in
+# the actually-used taxonomy ("none" | "tcp_outbound") locked by
+# D-2026-04-26-036 convention 4. Future capability classes (e.g.
+# "udp_outbound", "fs_only") evolve additively per
+# ADR-EVOLUTION-01 (M-CONTRACT-04).
+
+schema_version: 1
+pack_id: "tiny"
+pack_version: "0.0.1"
+
+ops:
+  - execution_spec:
+      identity:
+        name: "fetch"
+        version: "1.0"
+      determinism:
+        class: "side_effecting"
+        cache_policy: "none"
+        replay_policy: "skip"
+      execution:
+        executor: "port"
+        entrypoint: "fetch"
+        requires_execution_context: false
+      isolation:
+        env_vars: []
+        network: "any"
+        bootstrap_read_paths: []
+        runtime_read_paths: []
+        runtime_write_paths: []
+      contracts:
+        inputs: {}
+        outputs: {}
+        decisions:
+          may_emit: false
+        warnings:
+          may_emit: true

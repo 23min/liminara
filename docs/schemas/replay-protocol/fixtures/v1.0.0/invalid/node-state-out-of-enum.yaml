@@ -1,0 +1,58 @@
+# node-state-out-of-enum.yaml
+#
+# Violation class: run_result.node_states value outside the locked
+# node-state enumeration ("pending" | "waiting" | "running" |
+# "completed" | "failed").
+#
+# These five values are the ones rebuild_node_states/2 (server.ex
+# line 1053) writes via Map.put/3 from op_started / op_completed /
+# op_failed event reductions, plus the initial "pending" set in
+# init/1 and "waiting" set by handle_gate_requested/3 (line 569).
+# A fixture that records a sixth value such as "skipped" must be
+# rejected — the side-effecting-skip path on replay maps to
+# "completed" with cache_hit: true (server.ex line 519), not to a
+# distinct "skipped" state. Adding a sixth value would require a
+# migration ADR per ADR-EVOLUTION-01.
+
+events:
+  - event_type: "run_started"
+    event_hash: "sha256:00000000000000000000000000000000000000000000000000000000ffff0401"
+    prev_hash: null
+    timestamp: "2026-04-26T16:00:00Z"
+    payload:
+      run_id: "test-bad-node-state"
+      pack_id: "test"
+      pack_version: "0.1.0"
+      plan_hash: "sha256:0000000000000000000000000000000000000000000000000000000000000304"
+      execution_context:
+        run_id: "test-bad-node-state"
+        started_at: "2026-04-26T16:00:00Z"
+        pack_id: "test"
+        pack_version: "0.1.0"
+        replay_of_run_id: null
+        topic_id: null
+
+  - event_type: "run_completed"
+    event_hash: "sha256:00000000000000000000000000000000000000000000000000000000ffff0402"
+    prev_hash: "sha256:00000000000000000000000000000000000000000000000000000000ffff0401"
+    timestamp: "2026-04-26T16:00:00.001Z"
+    payload:
+      run_id: "test-bad-node-state"
+      outcome: "success"
+      artifact_hashes: []
+      warning_summary:
+        warning_count: 0
+        degraded_node_ids: []
+
+run_result:
+  run_id: "test-bad-node-state"
+  status: "success"
+  outputs: {}
+  event_count: 2
+  node_states:
+    # Bad: "skipped" is not in the locked node-state enumeration.
+    save: "skipped"
+  failed_nodes: []
+  warning_count: 0
+  degraded_nodes: []
+  degraded: false

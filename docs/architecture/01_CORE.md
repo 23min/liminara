@@ -126,24 +126,34 @@ Small artifacts (JSON, structs, configs) live in ETS (in-memory, fast). Large ar
 
 A typed function: artifacts in, artifacts out.
 
-The pre-Phase 5c runtime represented ops through separate callbacks and helper structs. The canonical contract now being locked in E-20 is `execution_spec/0`, which makes identity, determinism, execution, isolation, and output contracts explicit in one place.
+The pre-E-20 runtime represented ops through separate callbacks and helper structs. The canonical contract is now `execution_spec/0` — locked in M-TRUTH-01 (E-20, merged) and codified as a CUE schema in M-CONTRACT-02 (E-24, ADR-OPSPEC-01). It makes identity, determinism, execution, isolation, and contracts explicit in one place. Field-for-field source-of-truth: `runtime/apps/liminara_core/lib/liminara/execution_spec.ex` plus the schema at `docs/schemas/op-execution-spec/schema.cue`.
 
 ```elixir
 %Liminara.ExecutionSpec{
   identity: %{name: :rank_and_summarize, version: "1.0.0"},
-  determinism: %{class: :recordable},
-  execution: %{kind: :port, op: "radar_summarize", timeout_ms: 30_000},
+  determinism: %{
+    class: :recordable,
+    cache_policy: :none,
+    replay_policy: :replay_recorded
+  },
+  execution: %{
+    executor: :port,
+    entrypoint: "radar_summarize",
+    timeout_ms: 30_000,
+    requires_execution_context: false
+  },
   isolation: %{
     env_vars: ["ANTHROPIC_API_KEY"],
     network: :tcp_outbound,
-    bootstrap_read_paths: [:op_code, :runtime_deps],
+    bootstrap_read_paths: [],
     runtime_read_paths: [],
     runtime_write_paths: []
   },
   contracts: %{
     inputs: %{unique_docs: %{required: true}},
     outputs: %{briefing: %{required: true}},
-    may_warn: true
+    decisions: %{may_emit: true},
+    warnings: %{may_emit: true}
   }
 }
 ```
@@ -161,7 +171,7 @@ Four classes. Clean, exhaustive, actionable.
 
 An op doesn't know about scheduling, retry, supervision, or storage. It's just a function with a truthful execution contract. The runtime handles everything else.
 
-During the M-TRUTH-02 migration, the older `name/0`, `version/0`, `determinism/0`, and tuple-return callback surface still exists in some code paths. That legacy surface is not the contract new work should build on.
+The older `name/0`, `version/0`, `determinism/0`, and tuple-return callback surface was retired by M-TRUTH-02 (E-20, merged). It is documented here only as historical context, not as the contract new work should build on.
 
 ### 3. Decision
 
@@ -217,9 +227,12 @@ decision_recorded  {node_id, decision}
 node_added         {node_id, op, inputs}        # for discovery mode
 gate_requested     {node_id, prompt}
 gate_resolved      {node_id, response}
-run_completed      {}
-run_failed         {reason}
+run_completed      {run_id, outcome, artifact_hashes}
+run_partial        {run_id, outcome, failed_nodes, warning_summary, artifact_hashes}
+run_failed         {run_id, error_type, error_message}
 ```
+
+The terminal-event triad (`run_completed` | `run_partial` | `run_failed`) is a closed enumeration locked by E-19 (warnings + degraded outcomes) and codified by ADR-OPSPEC-01 (M-CONTRACT-02). `run_partial` carries `warning_summary` for the warning-bearing degraded-success path (per D-2026-04-20-025).
 
 Why event sourcing? Because it gives you replay, debugging, and time-travel for free. You can reconstruct the state of a run at any point in its history. You can ask "what happened between minute 3 and minute 7?" The events ARE the run.
 
@@ -248,7 +261,7 @@ Four callbacks. A pack tells the runtime:
 
 That's the entire pack contract today. No middleware chains, no registration protocols. Just: "here are my ops, here's how I plan."
 
-Execution note: the live runtime still executes many ops through legacy callbacks and tuple-shaped results. E-20 makes `execution_spec/0` the canonical runtime surface; until M-TRUTH-02 lands, this section should be read as the stable pack boundary plus the approved-next execution direction.
+Execution note: M-TRUTH-02 (E-20, merged) migrated the live runtime onto `execution_spec/0` as the canonical surface; the pre-E-20 callbacks have been retired. M-CONTRACT-02 (E-24) further codified the shape as a CUE schema at `docs/schemas/op-execution-spec/schema.cue` to lock cross-language drift.
 
 #### Approved-next callback: `init/0` *(decided_next)*
 
@@ -821,5 +834,5 @@ Is this system simple enough?
 - *[02_PLAN.md](02_PLAN.md) — architecture source map and truth rules*
 - *[indexes/contract-matrix.md](indexes/contract-matrix.md) — current contract ownership matrix*
 - *[../analysis/10_Synthesis.md](../analysis/10_Synthesis.md) — settled strategic decisions*
-- *[../analysis/11_Data_Model_Spec.md](../analysis/11_Data_Model_Spec.md) — canonical on-disk format (Phase 0)*
+- *[../analysis/11_Data_Model_Spec.md](../analysis/11_Data_Model_Spec.md) — canonical on-disk format (cross-language hash + serialization spec)*
 - *[../analysis/07_Compliance_Layer.md](../analysis/07_Compliance_Layer.md) — compliance integration architecture*

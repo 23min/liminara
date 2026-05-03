@@ -25,6 +25,19 @@ Liminara is **a runtime for reproducible nondeterministic computation**. It reco
 
 - **Never make assumptions on ambiguous decisions.** If something is unclear, could go multiple ways, or has downstream consequences — stop and ask.
 
+## Q&A mode
+
+When the user says **"Q&A"** or **"let's do Q&A"**, switch to Q&A mode for the next pending question (or for whichever question they specify). In Q&A mode, for each question, respond in this shape:
+
+1. **A short content paragraph** — what the question is actually about, the constraint or trade-off it sits on, what's already been decided around it. Enough context that the user can answer without re-loading state from earlier in the conversation.
+2. **Pros and cons** — bulleted, per option. Honest about cost, risk, and reversibility. Not a sales pitch for the recommended option.
+3. **My lean** — one sentence stating which numbered option I'd pick and the load-bearing reason. If the lean is weak ("only marginally"), say so.
+4. **Numbered options list** — the choices, with my lean marked (e.g. `**[lean]**` after the option label). Three options is the usual shape; two or four is fine when the design space genuinely has that many.
+
+After the user picks, do exactly the picked option — no follow-up flourish, no "great choice" framing, no auto-continuing into the next question. One question at a time. The next question only opens when the user says "Q&A" again or asks for the next one.
+
+This mode is for design / sequencing / scope decisions where I have a view but the user is the one to pick. It's not for execution-blocking technical questions ("what command do you want me to run") — those are still direct asks. The distinguisher: if I could sensibly write a short ADR or decision-log entry about it, it's a Q&A question.
+
 ## Truth discipline
 
 - `work/roadmap.md` is the only current sequencing and build-plan source.

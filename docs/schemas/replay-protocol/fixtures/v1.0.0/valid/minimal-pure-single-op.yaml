@@ -1,0 +1,84 @@
+# minimal-pure-single-op.yaml
+#
+# Boundary-edge fixture: the smallest valid event-log walk. One pure
+# op (deterministic CSV-parse style) runs to completion in a single-
+# node plan; no decisions, no warnings, no replay. The terminal event
+# is run_completed; the walker reduces the four events into a
+# Run.Result with status "success" and zero degraded nodes.
+#
+# Exercises: minimum event sequence (run_started → op_started →
+# op_completed → run_completed), pure determinism class, empty
+# warning_summary, single-node Run.Result, the cross-field invariant
+# that pins terminal_event "run_completed" → run_result.status
+# "success".
+
+events:
+  - event_type: "run_started"
+    event_hash: "sha256:11111111111111111111111111111111111111111111111111111111111111aa"
+    prev_hash: null
+    timestamp: "2026-04-26T12:00:00Z"
+    payload:
+      run_id: "test-pure-20260426T120000-aaaaaaaa"
+      pack_id: "test"
+      pack_version: "0.1.0"
+      plan_hash: "sha256:0000000000000000000000000000000000000000000000000000000000000001"
+      execution_context:
+        run_id: "test-pure-20260426T120000-aaaaaaaa"
+        started_at: "2026-04-26T12:00:00Z"
+        pack_id: "test"
+        pack_version: "0.1.0"
+        replay_of_run_id: null
+        topic_id: null
+
+  - event_type: "op_started"
+    event_hash: "sha256:11111111111111111111111111111111111111111111111111111111111111bb"
+    prev_hash: "sha256:11111111111111111111111111111111111111111111111111111111111111aa"
+    timestamp: "2026-04-26T12:00:00.001Z"
+    payload:
+      node_id: "load"
+      op_id: "Liminara.TestOps.Upcase"
+      op_version: "0.1.0"
+      determinism: "pure"
+      input_hashes:
+        - "sha256:0000000000000000000000000000000000000000000000000000000000000010"
+
+  - event_type: "op_completed"
+    event_hash: "sha256:11111111111111111111111111111111111111111111111111111111111111cc"
+    prev_hash: "sha256:11111111111111111111111111111111111111111111111111111111111111bb"
+    timestamp: "2026-04-26T12:00:00.002Z"
+    payload:
+      node_id: "load"
+      cache_hit: false
+      duration_ms: 1
+      warnings: []
+      output_hashes:
+        - "sha256:0000000000000000000000000000000000000000000000000000000000000020"
+      output_hashes_by_key:
+        result: "sha256:0000000000000000000000000000000000000000000000000000000000000020"
+
+  - event_type: "run_completed"
+    event_hash: "sha256:11111111111111111111111111111111111111111111111111111111111111dd"
+    prev_hash: "sha256:11111111111111111111111111111111111111111111111111111111111111cc"
+    timestamp: "2026-04-26T12:00:00.003Z"
+    payload:
+      run_id: "test-pure-20260426T120000-aaaaaaaa"
+      outcome: "success"
+      artifact_hashes:
+        - "sha256:0000000000000000000000000000000000000000000000000000000000000020"
+      warning_summary:
+        warning_count: 0
+        degraded_node_ids: []
+
+run_result:
+  run_id: "test-pure-20260426T120000-aaaaaaaa"
+  status: "success"
+  outputs:
+    load:
+      result: "sha256:0000000000000000000000000000000000000000000000000000000000000020"
+  event_count: 4
+  node_states:
+    load: "completed"
+  failed_nodes: []
+  warning_count: 0
+  degraded_nodes: []
+  degraded: false

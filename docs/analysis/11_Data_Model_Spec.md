@@ -88,7 +88,7 @@ Where `hex` is the 64-character lowercase hex string (the `sha256:` prefix is st
 ```json
 {
   "event_hash": "sha256:...",
-  "event_type": "op_started",
+  "event_type": "node_started",
   "payload": { ... },
   "prev_hash": "sha256:..." ,
   "timestamp": "2026-03-14T12:00:00.000Z"
@@ -124,7 +124,7 @@ Note: `event_hash` itself is NOT included in the hash input (it's the output).
 
 ## Run Seal
 
-The `event_hash` of the `run_completed` event is the **run seal**. It cryptographically commits to the entire run history: changing any event, inserting an event, or appending unauthorized events breaks the seal.
+The `event_hash` of the run's terminal event — `run_completed`, `run_partial`, or `run_failed` (per ADR-OPSPEC-01's closed-enum terminal-event taxonomy, locked by E-19) — is the **run seal**. It cryptographically commits to the entire run history regardless of outcome: changing any event, inserting an event, or appending unauthorized events breaks the seal.
 
 Store the run seal separately for fast lookup:
 
@@ -187,13 +187,16 @@ Minimum set for v1:
 | Event type | Payload keys |
 |------------|-------------|
 | `run_started` | `run_id`, `pack_id`, `pack_version`, `plan_hash` |
-| `op_started` | `node_id`, `op_id`, `op_version`, `determinism`, `input_hashes` |
-| `op_completed` | `node_id`, `output_hashes`, `cache_hit`, `duration_ms` |
-| `op_failed` | `node_id`, `error_type`, `error_message` |
+| `node_started` | `node_id`, `op_id`, `op_version`, `determinism`, `input_hashes` |
+| `node_completed` | `node_id`, `output_hashes`, `cache_hit`, `duration_ms` |
+| `node_failed` | `node_id`, `error_type`, `error_message` |
 | `decision_recorded` | `node_id`, `decision_hash`, `decision_type` |
 | `artifact_produced` | `artifact_hash`, `node_id`, `content_type`, `size_bytes` |
 | `run_completed` | `run_id`, `outcome`, `artifact_hashes` |
+| `run_partial` | `run_id`, `outcome`, `failed_nodes`, `warning_summary`, `artifact_hashes` |
 | `run_failed` | `run_id`, `error_type`, `error_message` |
+
+The terminal-event triad (`run_completed` | `run_partial` | `run_failed`) is a closed enumeration locked by E-19 and codified by ADR-OPSPEC-01 (M-CONTRACT-02). `run_partial` carries `warning_summary` for the warning-bearing degraded-success path (per D-2026-04-20-025).
 
 ---
 
@@ -207,7 +210,7 @@ Minimum set for v1:
   runs/
     {run_id}/
       events.jsonl                ← append-only event log
-      seal.json                   ← run seal (written on run_completed)
+      seal.json                   ← run seal (written on terminal event: run_completed | run_partial | run_failed)
       decisions/
         {node_id}.json            ← one decision record per recordable op
 ```
@@ -236,7 +239,7 @@ For any implementation to be spec-compliant:
 - [ ] First event in run has `prev_hash: null`
 - [ ] Each event's `prev_hash` equals previous event's `event_hash`
 - [ ] `events.jsonl` is append-only; lines never modified or deleted
-- [ ] Run seal = `event_hash` of `run_completed` event
+- [ ] Run seal = `event_hash` of the run's terminal event (`run_completed` | `run_partial` | `run_failed`)
 - [ ] Decision `decision_hash` computed over all fields except itself
 - [ ] Directory layout matches spec above
 

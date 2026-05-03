@@ -1,0 +1,12 @@
+# Invalid: a node's `op` is the empty string.
+#
+# Schema rule: `op: string & !=""`. The op-name string at
+# PackLoader (E-25) time must resolve to one of the pack manifest's
+# `ops[].execution_spec.identity.name` declarations; the empty
+# string can never match. Caught at schema time rather than waiting
+# for the loader's cross-document check.
+schema_version: 1
+nodes:
+  - node_id: "valid_node_id"
+    op: ""
+    inputs: {}

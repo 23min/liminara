@@ -1,0 +1,20 @@
+# error-with-outputs.yaml
+#
+# Violation class: error response carrying success-shaped fields
+# (`outputs`). The two response shapes are mutually exclusive —
+# port.ex:53 pattern-matches `%{"status" => "error", "error" => _}`
+# alone; an error response with `outputs` would be silently dropped
+# by the success branch's pattern at line 50. The schema's
+# #ErrorResponse uses close({}) so any extra key is rejected.
+
+request:
+  id: "abc123"
+  op: "echo"
+  inputs: {}
+
+response:
+  id: "abc123"
+  status: "error"
+  error: "boom"
+  outputs:
+    message: "should-not-be-here"

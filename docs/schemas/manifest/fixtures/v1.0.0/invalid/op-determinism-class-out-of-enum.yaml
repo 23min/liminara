@@ -1,0 +1,39 @@
+# op-determinism-class-out-of-enum.yaml
+#
+# Invalid: op declares `determinism.class: "deterministic"`, which
+# is not in the locked four-class taxonomy
+# ("pure" | "pinned_env" | "recordable" | "side_effecting").
+# Same violation class OPSPEC catches; the manifest's
+# inline-duplicated #ExecutionSpec inherits the constraint.
+
+schema_version: 1
+pack_id: "tiny"
+pack_version: "0.0.1"
+
+ops:
+  - execution_spec:
+      identity:
+        name: "echo"
+        version: "1.0"
+      determinism:
+        class: "deterministic"
+        cache_policy: "content_addressed"
+        replay_policy: "reexecute"
+      execution:
+        executor: "inline"
+        entrypoint: "echo"
+        requires_execution_context: false
+      isolation:
+        env_vars: []
+        network: "none"
+        bootstrap_read_paths: []
+        runtime_read_paths: []
+        runtime_write_paths: []
+      contracts:
+        inputs: {}
+        outputs:
+          out: "artifact"
+        decisions:
+          may_emit: false
+        warnings:
+          may_emit: false

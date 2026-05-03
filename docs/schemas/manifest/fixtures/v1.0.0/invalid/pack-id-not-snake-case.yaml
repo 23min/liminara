@@ -1,0 +1,41 @@
+# pack-id-not-snake-case.yaml
+#
+# Invalid: pack_id violates the snake_case constraint
+# (`^[a-z]([a-z0-9]+(_[a-z0-9]+)*)?$`). "MyPack" starts with an
+# uppercase letter. Pack identifiers on the wire are the YAML
+# rendering of an Elixir atom (`:radar`, `:bookkeeping`); the
+# convention enforces lowercase alphanumeric, single-underscore
+# segment separators, no leading digit, no trailing underscore,
+# and no double-underscore (Python-dunder collision).
+
+schema_version: 1
+pack_id: "MyPack"
+pack_version: "0.1.0"
+
+ops:
+  - execution_spec:
+      identity:
+        name: "echo"
+        version: "1.0"
+      determinism:
+        class: "pure"
+        cache_policy: "content_addressed"
+        replay_policy: "reexecute"
+      execution:
+        executor: "inline"
+        entrypoint: "echo"
+        requires_execution_context: false
+      isolation:
+        env_vars: []
+        network: "none"
+        bootstrap_read_paths: []
+        runtime_read_paths: []
+        runtime_write_paths: []
+      contracts:
+        inputs: {}
+        outputs:
+          out: "artifact"
+        decisions:
+          may_emit: false
+        warnings:
+          may_emit: false

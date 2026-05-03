@@ -1,0 +1,10 @@
+# Boundary-edge fixture: minimal valid plan.
+#
+# A single op, no inputs, no refs, no literals. Smallest plan a
+# pack can ship that still passes schema validation (#Plan requires
+# nodes to be a non-empty list; #Node permits an empty inputs map).
+schema_version: 1
+nodes:
+  - node_id: "only_node"
+    op: "noop"
+    inputs: {}

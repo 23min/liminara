@@ -1,0 +1,12 @@
+# Invalid: a node's `node_id` is the empty string.
+#
+# Schema rule: `node_id: string & =~"^.{1,63}$" & !=""`. The empty
+# string fails both the regex (zero-length string doesn't match
+# `^.{1,63}$`) and the inequality. Author-assigned IDs must be
+# meaningful identifiers; empty strings are typo-aesthetic and
+# would collide with each other if multiple nodes used them.
+schema_version: 1
+nodes:
+  - node_id: ""
+    op: "noop"
+    inputs: {}

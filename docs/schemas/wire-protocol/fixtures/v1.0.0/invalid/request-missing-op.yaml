@@ -1,0 +1,21 @@
+# request-missing-op.yaml
+#
+# Violation class: request without the `op` discriminator. The Python
+# runner explicitly checks for it (op_runner.py:60–61):
+#   if not op_name:
+#       return {..., "status": "error", "error": "missing 'op' field"}
+# A request without `op` is malformed; the schema enforces this with
+# a non-empty-string constraint (`op: string & !=""`), which makes
+# CUE flag the absence as an incomplete value and reject the
+# fixture.
+
+request:
+  id: "abc123"
+  inputs:
+    message: "hello"
+
+response:
+  id: "abc123"
+  status: "ok"
+  outputs:
+    message: "hello"

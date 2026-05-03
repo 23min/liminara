@@ -1,0 +1,7 @@
+2026-05-02T15:16:31Z start: dynamic-pipeline proposal authoring begun
+2026-05-02T15:16:40Z sibling-proposal-noted: pipeline-scoped-run-context.md (434 lines) is the structural template — Status/Summary/Background/proposed shape/forces/amendments/sequencing/triggers/open-questions/references
+2026-05-02T15:17:32Z read-context: D-039 + gap entry + opspec/plan schemas + admin-pack §9 + 01_CORE + research 14/17 read; sibling proposal structure validated
+2026-05-02T15:17:44Z authoring-start: beginning to write proposal RFC; targeting 25-40K with full BoM elaboration + 4 worked examples
+2026-05-02T15:26:03Z bom-elaborated: 12 BoM items elaborated in §6.1-§6.12; worked-examples-drafted: 4 hard cases (single-routing, multi-input, collection, cascade-starvation) covered §4.1-§4.4; design-forces-drafted: §5 covers replay-discipline, Petri-net, sum-type-PM, BPMN, decidability; sequencing-drafted: §7 covers M-CONTRACT-02/03/04 + E-25/E-22; decision-points-drafted: §8 numbered 12 decision points
+2026-05-02T15:37:49Z proposal-complete: file written at docs/architecture/proposals/dynamic-pipelining-via-contract-routing.md, 56K bytes, 1254 lines, 12 sections, 12 BoM items elaborated, 4 worked examples, 5 design forces, 12 numbered decision points, 8 open questions
+2026-05-02T15:37:52Z final-marker: ready for parent-session review; cross-references verified (14/14 cited paths exist on disk); D-039 cited as binding-direction; sibling proposal cited; admin-pack §9 cited; Petri-net + Flyte research cited; no commit performed per AI-framework rules

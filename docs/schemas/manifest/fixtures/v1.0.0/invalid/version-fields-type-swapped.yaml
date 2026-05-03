@@ -1,0 +1,44 @@
+# version-fields-type-swapped.yaml
+#
+# Invalid: type discipline check. `pack_version` (which must be a
+# semver-shaped string) is given as the integer `1`, and
+# `schema_version` (which must be an integer) is given as the string
+# "0.1.0". Both leaf-field type violations; cue vet rejects each
+# without -c.
+#
+# This is the kind of authoring mistake the schema is meant to catch
+# at design time — a pack author conflating the two version fields,
+# applying the per-pack semver string to `schema_version` (the
+# manifest-cohort integer) and applying an integer to `pack_version`.
+
+schema_version: "0.1.0"
+pack_id: "tiny"
+pack_version: 1
+
+ops:
+  - execution_spec:
+      identity:
+        name: "echo"
+        version: "1.0"
+      determinism:
+        class: "pure"
+        cache_policy: "content_addressed"
+        replay_policy: "reexecute"
+      execution:
+        executor: "inline"
+        entrypoint: "echo"
+        requires_execution_context: false
+      isolation:
+        env_vars: []
+        network: "none"
+        bootstrap_read_paths: []
+        runtime_read_paths: []
+        runtime_write_paths: []
+      contracts:
+        inputs: {}
+        outputs:
+          out: "artifact"
+        decisions:
+          may_emit: false
+        warnings:
+          may_emit: false

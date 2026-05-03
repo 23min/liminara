@@ -1,0 +1,43 @@
+# minimal-pure-pack.yaml
+#
+# Boundary-edge minimal manifest: a pack with one pure inline op and
+# nothing else. No decisions, no warnings, no isolation declarations
+# beyond the empty defaults, no init block, no env vars, no network
+# capability. The smallest valid manifest the schema accepts.
+#
+# Exercises: optional `init` block omitted; single-element `ops` list
+# (the schema requires at least one); pure / inline / reexecute /
+# content_addressed defaults; both `decisions.may_emit` and
+# `warnings.may_emit` false; all isolation lists empty.
+
+schema_version: 1
+pack_id: "tiny"
+pack_version: "0.0.1"
+
+ops:
+  - execution_spec:
+      identity:
+        name: "echo"
+        version: "1.0"
+      determinism:
+        class: "pure"
+        cache_policy: "content_addressed"
+        replay_policy: "reexecute"
+      execution:
+        executor: "inline"
+        entrypoint: "echo"
+        requires_execution_context: false
+      isolation:
+        env_vars: []
+        network: "none"
+        bootstrap_read_paths: []
+        runtime_read_paths: []
+        runtime_write_paths: []
+      contracts:
+        inputs: {}
+        outputs:
+          out: "artifact"
+        decisions:
+          may_emit: false
+        warnings:
+          may_emit: false

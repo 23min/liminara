@@ -1,0 +1,19 @@
+2026-04-26T17:17:05Z start: brief loaded
+2026-04-26T17:17:11Z live-source-read: starting reads of 5 source files
+2026-04-26T17:17:17Z live-source-read: execution_spec.ex
+2026-04-26T17:17:29Z live-source-read: warning.ex + op_result.ex
+2026-04-26T17:17:47Z live-source-read: run.ex + run/server.ex (terminal events confirmed)
+2026-04-26T17:18:05Z recipe-read: cue idioms loaded
+2026-04-26T17:19:30Z adr-draft: 0004 claimed, structure outlined
+2026-04-26T17:20:45Z schema-draft: schema.cue written
+2026-04-26T17:21:09Z fixture-valid: pure-success-no-warnings.yaml written
+2026-04-26T17:21:35Z fixture-valid: recordable-with-warnings-partial.yaml written
+2026-04-26T17:21:58Z fixture-valid: side-effecting-failed.yaml written
+2026-04-26T17:23:02Z fixture-invalid: 5 invalids written, vetting all
+2026-04-26T17:23:07Z cue-vet-loop: starting full library walk
+2026-04-26T17:23:10Z cue-vet-loop: pass
+2026-04-26T17:25:51Z worked-example: pasted into ADR, parity verified
+2026-04-26T17:25:51Z admin-pack-citation: bookkeeping-pack-on-liminara.md §8 + §5
+2026-04-26T17:25:51Z reference-impl: execution_spec.ex:45 (primary) + 4 secondary live citations
+2026-04-26T17:26:09Z cue-vet-loop: final full library walk
+2026-04-26T17:26:29Z bundle-complete: ADR-OPSPEC-01 ready for parent review

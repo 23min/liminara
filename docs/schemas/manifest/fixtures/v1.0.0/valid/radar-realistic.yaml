@@ -1,0 +1,372 @@
+# radar-realistic.yaml
+#
+# Realistic fixture: the YAML rendering of the Radar pack as it would
+# appear at runtime/apps/liminara_radar/pack.yaml once the Radar
+# generated pack.yaml shim lands at M-RUNTIME-02 (E-25).
+#
+# This is the worked example for ADR-MANIFEST-01. The execution_spec
+# values for each op are byte-faithful to the Radar op modules under
+# runtime/apps/liminara_radar/lib/liminara/radar/ops/. The op set
+# matches `Liminara.Radar.ops/0` (13 ops). Determinism classes match
+# each op module's declared class.
+#
+# Exercises: top-level schema_version + pack_id snake_case +
+# pack_version semver, all four determinism classes (pure,
+# pinned_env, recordable, side_effecting), all three executors
+# (inline, port — task is exercised in the boundary fixture),
+# both network capabilities (none, tcp_outbound), env_var
+# declarations on recordable ops, contracts.decisions.may_emit and
+# contracts.warnings.may_emit on recordable ops, the optional
+# init block omitted (Radar does not declare reference data today).
+
+schema_version: 1
+pack_id: "radar"
+pack_version: "0.1.0"
+description: "Daily intelligence briefing pipeline: fetches sources, dedupes and clusters items, ranks and summarizes the cluster set, and renders the briefing as HTML."
+
+ops:
+  - execution_spec:
+      identity:
+        name: "radar_fetch_rss"
+        version: "1.0"
+      determinism:
+        class: "side_effecting"
+        cache_policy: "none"
+        replay_policy: "skip"
+      execution:
+        executor: "port"
+        entrypoint: "radar_fetch_rss"
+        requires_execution_context: false
+      isolation:
+        env_vars: []
+        network: "tcp_outbound"
+        bootstrap_read_paths: []
+        runtime_read_paths: []
+        runtime_write_paths: []
+      contracts:
+        inputs: {}
+        outputs: {}
+        decisions:
+          may_emit: false
+        warnings:
+          may_emit: true
+
+  - execution_spec:
+      identity:
+        name: "radar_fetch_web"
+        version: "1.0"
+      determinism:
+        class: "side_effecting"
+        cache_policy: "none"
+        replay_policy: "skip"
+      execution:
+        executor: "port"
+        entrypoint: "radar_fetch_web"
+        requires_execution_context: false
+      isolation:
+        env_vars: []
+        network: "tcp_outbound"
+        bootstrap_read_paths: []
+        runtime_read_paths: []
+        runtime_write_paths: []
+      contracts:
+        inputs: {}
+        outputs: {}
+        decisions:
+          may_emit: false
+        warnings:
+          may_emit: true
+
+  - execution_spec:
+      identity:
+        name: "radar_collect_items"
+        version: "1.0"
+      determinism:
+        class: "pure"
+        cache_policy: "content_addressed"
+        replay_policy: "reexecute"
+      execution:
+        executor: "port"
+        entrypoint: "radar_collect_items"
+        requires_execution_context: false
+      isolation:
+        env_vars: []
+        network: "none"
+        bootstrap_read_paths: []
+        runtime_read_paths: []
+        runtime_write_paths: []
+      contracts:
+        inputs: {}
+        outputs:
+          items: "artifact"
+          source_health: "artifact"
+        decisions:
+          may_emit: false
+        warnings:
+          may_emit: false
+
+  - execution_spec:
+      identity:
+        name: "radar_normalize"
+        version: "1.0"
+      determinism:
+        class: "pure"
+        cache_policy: "content_addressed"
+        replay_policy: "reexecute"
+      execution:
+        executor: "port"
+        entrypoint: "radar_normalize"
+        requires_execution_context: false
+      isolation:
+        env_vars: []
+        network: "none"
+        bootstrap_read_paths: []
+        runtime_read_paths: []
+        runtime_write_paths: []
+      contracts:
+        inputs: {}
+        outputs:
+          items: "artifact"
+        decisions:
+          may_emit: false
+        warnings:
+          may_emit: false
+
+  - execution_spec:
+      identity:
+        name: "radar_embed"
+        version: "1.0"
+      determinism:
+        class: "pinned_env"
+        cache_policy: "content_addressed_with_environment"
+        replay_policy: "reexecute"
+      execution:
+        executor: "port"
+        entrypoint: "radar_embed"
+        requires_execution_context: false
+      isolation:
+        env_vars: []
+        network: "none"
+        bootstrap_read_paths: []
+        runtime_read_paths: []
+        runtime_write_paths: []
+      contracts:
+        inputs: {}
+        outputs:
+          items: "artifact"
+        decisions:
+          may_emit: false
+        warnings:
+          may_emit: false
+
+  - execution_spec:
+      identity:
+        name: "radar_dedup"
+        version: "1.0"
+      determinism:
+        class: "pure"
+        cache_policy: "content_addressed"
+        replay_policy: "reexecute"
+      execution:
+        executor: "port"
+        entrypoint: "radar_dedup"
+        requires_execution_context: false
+      isolation:
+        env_vars: []
+        network: "none"
+        bootstrap_read_paths: []
+        runtime_read_paths: []
+        runtime_write_paths: []
+      contracts:
+        inputs: {}
+        outputs: {}
+        decisions:
+          may_emit: false
+        warnings:
+          may_emit: false
+
+  - execution_spec:
+      identity:
+        name: "radar_llm_dedup"
+        version: "1.0"
+      determinism:
+        class: "recordable"
+        cache_policy: "none"
+        replay_policy: "replay_recorded"
+      execution:
+        executor: "port"
+        entrypoint: "radar_llm_dedup"
+        requires_execution_context: false
+      isolation:
+        env_vars:
+          - "ANTHROPIC_API_KEY"
+        network: "tcp_outbound"
+        bootstrap_read_paths: []
+        runtime_read_paths: []
+        runtime_write_paths: []
+      contracts:
+        inputs: {}
+        outputs: {}
+        decisions:
+          may_emit: true
+        warnings:
+          may_emit: true
+
+  - execution_spec:
+      identity:
+        name: "radar_merge_results"
+        version: "1.0"
+      determinism:
+        class: "pure"
+        cache_policy: "content_addressed"
+        replay_policy: "reexecute"
+      execution:
+        executor: "port"
+        entrypoint: "radar_merge_results"
+        requires_execution_context: false
+      isolation:
+        env_vars: []
+        network: "none"
+        bootstrap_read_paths: []
+        runtime_read_paths: []
+        runtime_write_paths: []
+      contracts:
+        inputs: {}
+        outputs: {}
+        decisions:
+          may_emit: false
+        warnings:
+          may_emit: false
+
+  - execution_spec:
+      identity:
+        name: "radar_cluster"
+        version: "1.0"
+      determinism:
+        class: "pure"
+        cache_policy: "content_addressed"
+        replay_policy: "reexecute"
+      execution:
+        executor: "port"
+        entrypoint: "radar_cluster"
+        requires_execution_context: false
+      isolation:
+        env_vars: []
+        network: "none"
+        bootstrap_read_paths: []
+        runtime_read_paths: []
+        runtime_write_paths: []
+      contracts:
+        inputs: {}
+        outputs:
+          clusters: "artifact"
+        decisions:
+          may_emit: false
+        warnings:
+          may_emit: false
+
+  - execution_spec:
+      identity:
+        name: "radar_rank"
+        version: "1.0"
+      determinism:
+        class: "pure"
+        cache_policy: "content_addressed"
+        replay_policy: "reexecute"
+      execution:
+        executor: "port"
+        entrypoint: "radar_rank"
+        requires_execution_context: false
+      isolation:
+        env_vars: []
+        network: "none"
+        bootstrap_read_paths: []
+        runtime_read_paths: []
+        runtime_write_paths: []
+      contracts:
+        inputs: {}
+        outputs: {}
+        decisions:
+          may_emit: false
+        warnings:
+          may_emit: false
+
+  - execution_spec:
+      identity:
+        name: "radar_summarize"
+        version: "1.0"
+      determinism:
+        class: "recordable"
+        cache_policy: "none"
+        replay_policy: "replay_recorded"
+      execution:
+        executor: "port"
+        entrypoint: "radar_summarize"
+        requires_execution_context: false
+      isolation:
+        env_vars:
+          - "ANTHROPIC_API_KEY"
+        network: "tcp_outbound"
+        bootstrap_read_paths: []
+        runtime_read_paths: []
+        runtime_write_paths: []
+      contracts:
+        inputs: {}
+        outputs: {}
+        decisions:
+          may_emit: true
+        warnings:
+          may_emit: true
+
+  - execution_spec:
+      identity:
+        name: "radar_compose_briefing"
+        version: "1.0"
+      determinism:
+        class: "pure"
+        cache_policy: "content_addressed"
+        replay_policy: "reexecute"
+      execution:
+        executor: "port"
+        entrypoint: "radar_compose_briefing"
+        requires_execution_context: false
+      isolation:
+        env_vars: []
+        network: "none"
+        bootstrap_read_paths: []
+        runtime_read_paths: []
+        runtime_write_paths: []
+      contracts:
+        inputs: {}
+        outputs: {}
+        decisions:
+          may_emit: false
+        warnings:
+          may_emit: false
+
+  - execution_spec:
+      identity:
+        name: "render_html"
+        version: "1.0"
+      determinism:
+        class: "pure"
+        cache_policy: "content_addressed"
+        replay_policy: "reexecute"
+      execution:
+        executor: "inline"
+        entrypoint: "render_html"
+        requires_execution_context: false
+      isolation:
+        env_vars: []
+        network: "none"
+        bootstrap_read_paths: []
+        runtime_read_paths: []
+        runtime_write_paths: []
+      contracts:
+        inputs: {}
+        outputs:
+          html: "artifact"
+        decisions:
+          may_emit: false
+        warnings:
+          may_emit: false

@@ -1,0 +1,12 @@
+# ops-empty.yaml
+#
+# Invalid: `ops` is an empty list. Schema requires at least one op
+# (`ops: [...#OpDeclaration] & [_, ...]`). A pack with no ops is
+# meaningless — Liminara packs exist to declare ops; a packless
+# manifest is editor incompleteness, not a valid corner case.
+
+schema_version: 1
+pack_id: "tiny"
+pack_version: "0.0.1"
+
+ops: []

@@ -1,0 +1,82 @@
+# run-completed-outcome-wrong.yaml
+#
+# Violation class: run_completed payload's `outcome` field carries a
+# value other than "success".
+#
+# The schema's #RunCompletedPayload pins outcome to the literal
+# string "success" — that's what finish_run/2 emits on the
+# :success branch (server.ex line 801). A fixture whose
+# run_completed event carries `outcome: "partial"` (a value that
+# would have come from a misunderstanding of the M-WARN-04 fix —
+# bug_001 collapsed :partial into "run_completed" with a non-
+# success outcome before D-2026-04-20-025 split them) must be
+# rejected. The locked literal is the schema's protection against
+# that regression class.
+
+events:
+  - event_type: "run_started"
+    event_hash: "sha256:00000000000000000000000000000000000000000000000000000000ffff0501"
+    prev_hash: null
+    timestamp: "2026-04-26T17:00:00Z"
+    payload:
+      run_id: "test-bad-outcome"
+      pack_id: "test"
+      pack_version: "0.1.0"
+      plan_hash: "sha256:0000000000000000000000000000000000000000000000000000000000000305"
+      execution_context:
+        run_id: "test-bad-outcome"
+        started_at: "2026-04-26T17:00:00Z"
+        pack_id: "test"
+        pack_version: "0.1.0"
+        replay_of_run_id: null
+        topic_id: null
+
+  - event_type: "op_started"
+    event_hash: "sha256:00000000000000000000000000000000000000000000000000000000ffff0502"
+    prev_hash: "sha256:00000000000000000000000000000000000000000000000000000000ffff0501"
+    timestamp: "2026-04-26T17:00:00.001Z"
+    payload:
+      node_id: "load"
+      op_id: "Liminara.TestOps.Upcase"
+      op_version: "0.1.0"
+      determinism: "pure"
+      input_hashes: []
+
+  - event_type: "op_completed"
+    event_hash: "sha256:00000000000000000000000000000000000000000000000000000000ffff0503"
+    prev_hash: "sha256:00000000000000000000000000000000000000000000000000000000ffff0502"
+    timestamp: "2026-04-26T17:00:00.002Z"
+    payload:
+      node_id: "load"
+      cache_hit: false
+      duration_ms: 1
+      warnings: []
+      output_hashes: []
+      output_hashes_by_key: {}
+
+  - event_type: "run_completed"
+    event_hash: "sha256:00000000000000000000000000000000000000000000000000000000ffff0504"
+    prev_hash: "sha256:00000000000000000000000000000000000000000000000000000000ffff0503"
+    timestamp: "2026-04-26T17:00:00.003Z"
+    payload:
+      run_id: "test-bad-outcome"
+      # Bad: "partial" is not the locked outcome literal for
+      # run_completed; finish_run/2 emits run_partial as the event
+      # type, not run_completed with a partial outcome.
+      outcome: "partial"
+      artifact_hashes: []
+      warning_summary:
+        warning_count: 0
+        degraded_node_ids: []
+
+run_result:
+  run_id: "test-bad-outcome"
+  status: "success"
+  outputs: {}
+  event_count: 4
+  node_states:
+    load: "completed"
+  failed_nodes: []
+  warning_count: 0
+  degraded_nodes: []
+  degraded: false

@@ -17,3 +17,20 @@ Chronological record of doc-lint runs and doc-garden sessions. Append-only. Entr
   - Uncovered contract surface: N/A (`contractSurfaces` not configured)
 - Trigger: user-invoked after E-21 sub-epic → umbrella + peer-children migration commits 8dcff98..13dd451
 - Bootstrap commit follows: `chore(docs): initialize doc-lint index + log + metrics`
+
+## [2026-05-02 16:00] doc-lint full | queued (post-M-CONTRACT-02 merge)
+
+Status: **queued, not yet executed.** Recorded here because M-CONTRACT-02 added substantial new content that the index does not yet reflect; running `doc-lint full` is a separate dedicated commit (per the skill's own "wrap-epic queues a post-archival doc-lint full" pattern, applied here at milestone-wrap scope).
+
+- New documents added (post-2026-04-26 index):
+  - 5 ADRs: `docs/decisions/0004-op-execution-spec.md`, `0005-port-wire-protocol.md`, `0006-replay-protocol.md`, `0007-pack-manifest.md`, `0008-pack-plan.md`
+  - 5 CUE schemas + 52 fixtures: `docs/schemas/{op-execution-spec,wire-protocol,replay-protocol,manifest,plan}/schema.cue` + `fixtures/v1.0.0/{valid,invalid}/*.yaml`
+  - 1 architecture proposal: `docs/architecture/proposals/dynamic-pipelining-via-contract-routing.md`
+  - 1 contract-matrix update (5 new rows + 1 row updated): `docs/architecture/indexes/contract-matrix.md`
+- Edits to existing documents (drift fixes flagged during M-CONTRACT-02 wrap-time audit):
+  - `docs/liminara.md` — ExecutionSpec field-name drift (`kind:`/`op:` → `executor:`/`entrypoint:`); `may_warn` → `decisions.may_emit` + `warnings.may_emit`; `run_partial` added to terminal events; phase-numbered build plan retired in favour of pointer to `work/roadmap.md`; M-TRUTH-02 reframed post-merge
+  - `docs/architecture/01_CORE.md` — same set of drift fixes
+  - `docs/architecture/proposals/pipeline-scoped-run-context.md` — `kind:` field-name fix
+  - `docs/analysis/11_Data_Model_Spec.md` — `node_*` event names + `run_partial` added
+- Expected impact when full regen runs: index grows by ~58 entries (5 ADRs + 52 fixtures + 1 proposal); reverse indexes pick up new symbols (`Liminara.Pack`, `Liminara.ExecutionSpec`, `radar_summarize`, `bookkeeping`, etc.); `freshness` component will refresh; `coverage` will improve as the M-CONTRACT-02 schemas register `authoritative_for` claims.
+- Trigger for actual execution: post-merge of `milestone/M-CONTRACT-02` to `epic/E-24-contract-design`, as a dedicated follow-up commit.

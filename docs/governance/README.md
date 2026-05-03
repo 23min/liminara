@@ -1,8 +1,6 @@
 # Governance
 
-Binding authoring rules for Liminara's project artifacts. See
-[ADR-0003](../decisions/0003-doc-tree-taxonomy.md) for the full
-bind-me / inform-me taxonomy.
+Binding authoring rules for Liminara's project artifacts. See [ADR-0003](../decisions/0003-doc-tree-taxonomy.md) for the full bind-me / inform-me taxonomy.
 
 ## Instruments
 
@@ -16,10 +14,7 @@ Related architecture-level inventory:
 
 ## Moved from `docs/architecture/contracts/`
 
-The following files were relocated under ADR-0003. Frozen records
-(`work/done/`, `work/agent-history/`, `work/decisions.md` entries
-D-001–D-030) that link to the old paths are not rewritten; use this
-table to resolve them.
+The following files were relocated under ADR-0003. Frozen records (`work/done/`, `work/agent-history/`, `work/decisions.md` entries D-001–D-030) that link to the old paths are not rewritten; use this table to resolve them.
 
 | Old path | New path |
 |----------|----------|

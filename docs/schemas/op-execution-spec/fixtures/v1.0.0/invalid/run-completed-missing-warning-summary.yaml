@@ -1,0 +1,58 @@
+# run-completed-missing-warning-summary.yaml
+#
+# Invalid: a run_completed terminal event is missing the required
+# `warning_summary` field. After M-WARN-04 (D-2026-04-20-026),
+# warning_summary is a non-optional payload key on every terminal
+# event; downstream observation consumers (LiveView, A2UI) depend on
+# it and crash without it (bug_005 history). The schema enforces the
+# field's presence so producers can't drop it.
+
+execution_spec:
+  identity:
+    name: "csv_to_transactions"
+    version: "1.0.0"
+  determinism:
+    class: "pure"
+    cache_policy: "content_addressed"
+    replay_policy: "reexecute"
+  execution:
+    executor: "inline"
+    entrypoint: "csv_to_transactions"
+    requires_execution_context: false
+  isolation:
+    env_vars: []
+    network: "none"
+    bootstrap_read_paths: []
+    runtime_read_paths: []
+    runtime_write_paths: []
+  contracts:
+    inputs: {}
+    outputs: {}
+    decisions:
+      may_emit: false
+    warnings:
+      may_emit: false
+
+op_result:
+  outputs: {}
+  decisions: []
+  warnings: []
+
+run_result:
+  run_id: "bookkeeping-20260420T103015-a1b2c3d4"
+  status: "success"
+  outputs: {}
+  event_count: 2
+  node_states:
+    parse_csv: "completed"
+  failed_nodes: []
+  warning_count: 0
+  degraded_nodes: []
+  degraded: false
+
+terminal_event:
+  event_type: "run_completed"
+  run_id: "bookkeeping-20260420T103015-a1b2c3d4"
+  outcome: "success"
+  artifact_hashes: []
+  # warning_summary deliberately omitted

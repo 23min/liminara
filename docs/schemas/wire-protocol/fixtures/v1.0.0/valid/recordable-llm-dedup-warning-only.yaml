@@ -1,0 +1,36 @@
+# recordable-llm-dedup-warning-only.yaml
+#
+# Warning-bearing-success fixture: a recordable op (Radar's
+# `radar_llm_dedup`) succeeds but emits a degraded warning because
+# the LLM call timed out. No decisions are recorded for the affected
+# cluster (the placeholder dedup keeps everything). Exercises the
+# warnings-without-decisions branch — `decisions` is omitted from the
+# JSON because op_runner.py:73 only sets it when the op returned a
+# non-empty list.
+
+request:
+  id: "5d2cf6c86e834a7a"
+  op: "radar_llm_dedup"
+  inputs:
+    items: "[{\"item_id\":\"i-1\",\"title\":\"first\"},{\"item_id\":\"i-2\",\"title\":\"first (dup)\"}]"
+  context:
+    run_id: "radar-20260420T060000-d4e5f6a7"
+    started_at: "2026-04-20T06:00:00Z"
+    pack_id: "radar"
+    pack_version: "0.1.0"
+    replay_of_run_id: null
+    topic_id: null
+
+response:
+  id: "5d2cf6c86e834a7a"
+  status: "ok"
+  outputs:
+    deduped: "[{\"item_id\":\"i-1\",\"title\":\"first\"},{\"item_id\":\"i-2\",\"title\":\"first (dup)\"}]"
+  warnings:
+    - code: "radar_llm_dedup_llm_error"
+      severity: "degraded"
+      summary: "Fell back to a placeholder keep decision after an LLM error"
+      cause: "anthropic SDK timeout"
+      remediation: "Check Anthropic availability and credentials; replay will preserve this degraded keep decision"
+      affected_outputs:
+        - "deduped"

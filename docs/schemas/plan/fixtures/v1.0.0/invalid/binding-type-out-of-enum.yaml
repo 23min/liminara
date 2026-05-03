@@ -1,0 +1,17 @@
+# Invalid: an input binding's `type` is outside the closed
+# enumeration {"literal", "ref"}.
+#
+# Schema rule: `#InputBinding: #LiteralBinding | #RefBinding`,
+# where each variant pins `type` to its discriminator string. The
+# fixture uses `type: "init"` — admin-pack §9's forward-looking
+# `{:init, key}` shape — which is deferred to a v1.1.0 additive
+# bump per Q&A 2026-05-02 Q3. A v1.0.0 plan that uses it is
+# rejected.
+schema_version: 1
+nodes:
+  - node_id: "uses_init"
+    op: "apply_no_doc_patterns"
+    inputs:
+      patterns:
+        type: "init"
+        key: "no_doc_patterns"

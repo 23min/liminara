@@ -1,0 +1,21 @@
+# pure-no-decisions-no-warnings.yaml
+#
+# Boundary-edge fixture: a minimal pure deterministic op (the `echo`
+# op shipped in runtime/python/src/ops/echo.py) — the simplest valid
+# wire exchange. Request without execution_context; response with
+# `outputs` only. No decisions, no warnings: those keys are omitted
+# from the JSON object entirely (op_runner.py:73–75 only sets them
+# when present in the op's return value). The post-M-WARN-04 wire
+# convention treats absence as the canonical "none" form.
+
+request:
+  id: "a1b2c3d4e5f6a7b8"
+  op: "echo"
+  inputs:
+    message: "hello"
+
+response:
+  id: "a1b2c3d4e5f6a7b8"
+  status: "ok"
+  outputs:
+    message: "hello"

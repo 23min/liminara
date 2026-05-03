@@ -865,7 +865,7 @@ nodes:
     kind: milestone
     path: work/epics/E-24-contract-design/M-CONTRACT-02-foundational-contracts.md
     title: Foundational contracts (5 ADRs)
-    status: draft
+    status: in-progress
     confidence: high
   - id: M-CONTRACT-03
     kind: milestone

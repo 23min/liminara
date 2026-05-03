@@ -1,0 +1,58 @@
+# wrong-determinism-class.yaml
+#
+# Invalid: determinism.class is "deterministic", outside the locked
+# taxonomy ("pure" | "pinned_env" | "recordable" | "side_effecting").
+# Adding new determinism classes requires a migration ADR per
+# ADR-EVOLUTION-01.
+
+execution_spec:
+  identity:
+    name: "csv_to_transactions"
+    version: "1.0.0"
+  determinism:
+    class: "deterministic"
+    cache_policy: "content_addressed"
+    replay_policy: "reexecute"
+  execution:
+    executor: "inline"
+    entrypoint: "csv_to_transactions"
+    requires_execution_context: false
+  isolation:
+    env_vars: []
+    network: "none"
+    bootstrap_read_paths: []
+    runtime_read_paths: []
+    runtime_write_paths: []
+  contracts:
+    inputs: {}
+    outputs: {}
+    decisions:
+      may_emit: false
+    warnings:
+      may_emit: false
+
+op_result:
+  outputs: {}
+  decisions: []
+  warnings: []
+
+run_result:
+  run_id: "bookkeeping-20260420T103015-a1b2c3d4"
+  status: "success"
+  outputs: {}
+  event_count: 2
+  node_states:
+    parse_csv: "completed"
+  failed_nodes: []
+  warning_count: 0
+  degraded_nodes: []
+  degraded: false
+
+terminal_event:
+  event_type: "run_completed"
+  run_id: "bookkeeping-20260420T103015-a1b2c3d4"
+  outcome: "success"
+  artifact_hashes: []
+  warning_summary:
+    warning_count: 0
+    degraded_node_ids: []

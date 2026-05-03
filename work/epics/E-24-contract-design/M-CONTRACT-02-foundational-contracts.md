@@ -2,7 +2,7 @@
 id: M-CONTRACT-02
 epic: E-24
 parent: E-24
-status: draft
+status: in-progress
 depends_on: M-CONTRACT-01
 ---
 
@@ -94,7 +94,7 @@ Provenance recording — pack_version + git_commit_hash captured in a run's init
 - **ADR-REPLAY-01's source-of-truth bindings.** The protocol description mirrors `runtime/apps/liminara_core/lib/liminara/run/server.ex` (`rebuild_from_events/2`, `result_from_event_log/1`, the `{:continue, {:rebuild, events}}` re-entry path). The reference implementation is the existing test suite at `runtime/apps/liminara_core/test/liminara/run/replay_test.exs`.
 - **ADR-WIRE-01's source-of-truth bindings.** The protocol description mirrors `runtime/apps/liminara_core/lib/liminara/executor/port.ex`. Wire-level warning payload shape is the string-keyed shape locked by M-WARN-04 + D-2026-04-20-026.
 - **Cross-references.** Every ADR's frontmatter or body cites: M-TRUTH-01 spec path (where the upstream contract was locked), the parent sub-epic spec (`work/epics/E-21-pack-contribution-contract/E-24-contract-design.md`), and the relevant decisions log entries (D-2026-04-20-025, D-2026-04-05-023, D-2026-04-22-028, D-2026-04-23-030). ADR-OPSPEC-01 also cites the merged E-19 epic.
-- **Worked-example fixture parity.** Each ADR's worked example must match a committed valid fixture verbatim — when the ADR is rendered alongside the fixture, the YAML body is identical. This enforces that the ADR's authored example is one the schema validates, catching drift between worked-example prose and the actual data shape.
+- **Worked-example fixture parity.** Each ADR's worked example must reproduce the cited valid fixture's data shape **either verbatim or as an explicitly-documented structural excerpt** that links to the full fixture by relative markdown link. Verbatim is the strong-form discipline and the default; explicit-abbreviation-with-link is admitted when fixture size makes inline reproduction impractical (the ADR becomes unreadable above ~100 lines of YAML). When abbreviating, the ADR body must (a) state the abbreviation in prose, (b) describe what the excerpt covers (e.g. "header + one representative op of each determinism class"), and (c) link the full fixture by relative markdown link. Both forms enforce that the ADR's authored example is one the schema validates, catching drift between worked-example prose and the actual data shape — verbatim catches all drift; explicit-abbreviation catches drift in the included subset and acknowledges that subset-vs-full-fixture drift is on the author until tooling closes the gap (gap entry: *Worked-example abbreviated-subset drift detection*). Per Q&A 2026-05-02 audit, MANIFEST-01 (152-line excerpt of 372-line fixture) and PLAN-01 (65-line excerpt of 179-line fixture) use the explicit-abbreviation form; OPSPEC-01, WIRE-01, and REPLAY-01 use verbatim.
 
 ## Out of Scope
 

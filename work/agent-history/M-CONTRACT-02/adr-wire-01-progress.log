@@ -1,0 +1,22 @@
+2026-04-26T17:33:41Z start: brief loaded
+2026-04-26T17:33:47Z live-source-read: spec absorbed
+2026-04-26T17:34:12Z precedent-read: D-036 conventions absorbed
+2026-04-26T17:34:19Z live-source-read: port.ex
+2026-04-26T17:34:49Z radar-op-survey: radar_summarize.py picked as reference impl
+2026-04-26T17:35:12Z recipe-read: cue idioms loaded
+2026-04-26T17:35:20Z adr-draft: 0005 claimed, structure outlined
+2026-04-26T17:36:20Z schema-draft: schema.cue written
+2026-04-26T17:36:48Z fixture-valid: recordable-llm-summarize.yaml written
+2026-04-26T17:37:25Z cue-vet-local: pass (4 valid fixtures)
+2026-04-26T17:40:02Z fixture-invalid: missing-id.yaml written
+2026-04-26T17:40:02Z fixture-invalid: status-out-of-enum.yaml written
+2026-04-26T17:40:02Z fixture-invalid: error-with-outputs.yaml written
+2026-04-26T17:40:02Z fixture-invalid: request-response-id-mismatch.yaml written
+2026-04-26T17:40:02Z fixture-invalid: warning-severity-out-of-taxonomy.yaml written
+2026-04-26T17:40:02Z fixture-invalid: request-missing-op.yaml written (replaced success-missing-outputs after CUE struct-presence quirk)
+2026-04-26T17:40:02Z cue-vet-loop: pass
+2026-04-26T17:43:04Z worked-example: pasted into ADR
+2026-04-26T17:43:08Z worked-example: parity verified
+2026-04-26T17:43:19Z cue-vet-loop: pass (final)
+2026-04-26T17:43:19Z reference-impl: runtime/python/src/ops/radar_summarize.py:42
+2026-04-26T17:43:19Z bundle-complete: ADR-WIRE-01 ready for parent review

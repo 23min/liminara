@@ -1,0 +1,74 @@
+# side-effecting-failed.yaml
+#
+# Realistic fixture: a side_effecting op (Gmail attachment fetch) whose
+# entire run failed because the only node failed. Exercises
+# determinism.class "side_effecting" + replay_policy "skip" +
+# requires_execution_context true, an empty op_result (the op never
+# returned successfully), and a run_failed terminal event with the
+# failed_nodes list populated and zero warnings.
+#
+# Note on op_result: even when the run terminates as `:failed`, the
+# fixture carries an op_result shape because a fixture is a frozen
+# snapshot of "what the schema must accept." A run can fail before any
+# op produces an OpResult; the op_result map is empty in that case.
+
+execution_spec:
+  identity:
+    name: "gmail_fetch_attachment"
+    version: "1.2.0"
+  determinism:
+    class: "side_effecting"
+    cache_policy: "none"
+    replay_policy: "skip"
+  execution:
+    executor: "port"
+    entrypoint: "gmail_fetch_attachment"
+    timeout_ms: 60000
+    requires_execution_context: true
+  isolation:
+    env_vars:
+      - "GMAIL_OAUTH_TOKEN"
+    network: "tcp_outbound"
+    bootstrap_read_paths:
+      - "packs/bookkeeping/python"
+    runtime_read_paths: []
+    runtime_write_paths:
+      - ".liminara/intake/bookkeeping"
+  contracts:
+    inputs:
+      message_id: "string:1"
+    outputs:
+      attachment: "binary:1"
+    decisions:
+      may_emit: false
+    warnings:
+      may_emit: false
+
+op_result:
+  outputs: {}
+  decisions: []
+  warnings: []
+
+run_result:
+  run_id: "bookkeeping-20260418T140230-f7e8d9c0"
+  status: "failed"
+  outputs: {}
+  event_count: 3
+  node_states:
+    fetch_receipt: "failed"
+  failed_nodes:
+    - "fetch_receipt"
+  warning_count: 0
+  degraded_nodes: []
+  degraded: false
+
+terminal_event:
+  event_type: "run_failed"
+  run_id: "bookkeeping-20260418T140230-f7e8d9c0"
+  error_type: "run_failure"
+  error_message: "one or more nodes failed"
+  failed_nodes:
+    - "fetch_receipt"
+  warning_summary:
+    warning_count: 0
+    degraded_node_ids: []

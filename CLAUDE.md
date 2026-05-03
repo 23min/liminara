@@ -120,7 +120,7 @@ assertion. The substance of the citation is verified against
 materialized admin-pack content at E-22 by the same reviewer rule.
 
 ADRs whose secondary reference is *not* admin-pack (ADR-LA-01,
-ADR-WIRE-01, ADR-BOUNDARY-01, ADR-EXECUTOR-01, ADR-EVOLUTION-01) are
+ADR-WIRE-01, ADR-BOUNDARY-01, ADR-EYECUTOR-01, ADR-EVOLUTION-01) are
 not subject to this anchored-citation gate. Their secondary reference
 must still be substantive and not TBD; the reviewer applies a
 weaker variant of the same discipline.
@@ -168,7 +168,7 @@ forcing function against designing-for-Radar. The reviewer either
 requires the secondary reference to be added, or rejects the ADR.
 
 ADRs that are deliberately Radar-only (ADR-WIRE-01 covers Radar's
-existing port wire protocol; ADR-EXECUTOR-01 covers Radar's existing
+existing port wire protocol; ADR-EYECUTOR-01 covers Radar's existing
 `:inline` + `:port` taxonomy) are exceptions captured in the parent
 sub-epic spec's *ADRs produced* table. The reviewer accepts the
 exception when the table marks the ADR as primary-Radar-only with
@@ -236,7 +236,7 @@ authoring ADR is reopened.
 - Contract-matrix discipline (parent rule):
   `.ai-repo/rules/liminara.md` *Contract matrix discipline* section
 - Parent sub-epic spec:
-  `work/epics/E-21-pack-contribution-contract/E-24-contract-design.md`
+  `work/epics/E-24-contract-design/epic.md`
 - Layout-convergence decision: `work/decisions.md` D-2026-04-25-033
 
 # Liminara — Project Rules
@@ -265,6 +265,19 @@ Liminara is **a runtime for reproducible nondeterministic computation**. It reco
 ## Working rules
 
 - **Never make assumptions on ambiguous decisions.** If something is unclear, could go multiple ways, or has downstream consequences — stop and ask.
+
+## Q&A mode
+
+When the user says **"Q&A"** or **"let's do Q&A"**, switch to Q&A mode for the next pending question (or for whichever question they specify). In Q&A mode, for each question, respond in this shape:
+
+1. **A short content paragraph** — what the question is actually about, the constraint or trade-off it sits on, what's already been decided around it. Enough context that the user can answer without re-loading state from earlier in the conversation.
+2. **Pros and cons** — bulleted, per option. Honest about cost, risk, and reversibility. Not a sales pitch for the recommended option.
+3. **My lean** — one sentence stating which numbered option I'd pick and the load-bearing reason. If the lean is weak ("only marginally"), say so.
+4. **Numbered options list** — the choices, with my lean marked (e.g. `**[lean]**` after the option label). Three options is the usual shape; two or four is fine when the design space genuinely has that many.
+
+After the user picks, do exactly the picked option — no follow-up flourish, no "great choice" framing, no auto-continuing into the next question. One question at a time. The next question only opens when the user says "Q&A" again or asks for the next one.
+
+This mode is for design / sequencing / scope decisions where I have a view but the user is the one to pick. It's not for execution-blocking technical questions ("what command do you want me to run") — those are still direct asks. The distinguisher: if I could sensibly write a short ADR or decision-log entry about it, it's a Q&A question.
 
 ## Truth discipline
 
@@ -537,9 +550,9 @@ Subagents dispatched via `Agent` run silently from the parent session's perspect
 
 ## Current Work
 
-**Active focus:** M-CONTRACT-02 — Foundational contracts (5 ADRs: ADR-MANIFEST-01, ADR-PLAN-01, ADR-OPSPEC-01, ADR-REPLAY-01, ADR-WIRE-01). Lands first ADR content + CUE schemas + valid/invalid fixtures into the harness M-CONTRACT-01 built. Owning epic is **E-24 (Pack Contract Design)**, child of umbrella **E-21**.
-**Why now:** M-CONTRACT-01 wrapped 2026-04-25; the contract-TDD harness is live and the fixture library is empty by design. M-CONTRACT-02 unblocks M-CONTRACT-03 and M-CONTRACT-04, and the downstream peer epics (E-25 runtime, E-26 DX, E-27 Radar extraction).
-**Active branch:** `epic/E-24-contract-design` carries the M-CONTRACT-01 merge plus the framework-bump + dead-code-audit + milestone-rename commits; cut `milestone/M-CONTRACT-02` from this branch when starting that work (per D-2026-04-26-034 and D-2026-04-26-035).
+**Active focus:** M-CONTRACT-02 — Foundational contracts (5 ADRs: ADR-MANIFEST-01, ADR-PLAN-01, ADR-OPSPEC-01, ADR-REPLAY-01, ADR-WIRE-01). Each ADR ships with its CUE schema, valid + invalid fixtures, worked example, and named reference implementation, plus a schema-evolution-loop demonstration. Owning epic is **E-24 (Pack Contract Design)**, child of umbrella **E-21**.
+**Why now:** Started 2026-04-26 against the M-CONTRACT-01 harness (cue-vet runner, fixture-library layout, design-contract skill, contract-design reviewer rule). These five ADRs are the hot-path gate for every downstream sub-epic — E-25 PackLoader, E-26 SDK, E-27 Radar extraction all bind to their shape.
+**Active branch:** `milestone/M-CONTRACT-02`, cut from `epic/E-24-contract-design@949b049`. Tracking doc: `work/milestones/tracking/E-24-contract-design/M-CONTRACT-02-tracking.md`.
 
 For structural state see:
 - `wf-graph report --status` — open epics with phase, activity, blocked-by, blocks

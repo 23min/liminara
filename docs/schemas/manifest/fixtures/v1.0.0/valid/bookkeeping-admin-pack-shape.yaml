@@ -1,0 +1,188 @@
+# bookkeeping-admin-pack-shape.yaml
+#
+# Admin-pack-shaped manifest: a representative slice of the bookkeeping
+# pack as it would appear at admin-pack/v2/.../pack.yaml once
+# admin-pack is authored (E-22-pending). Shapes follow
+# admin-pack/v2/docs/architecture/bookkeeping-pack-on-liminara.md
+# §3 (Pack identity), §5 (Provider Op libraries), §7 (Pack-specific
+# Ops), and §8 (Decision recording).
+#
+# This fixture exercises the manifest schema against a second
+# pack-shape — anti-ceremony forcing function against a Radar-only
+# abstraction (per the contract-design reviewer rule's
+# Radar-primary / admin-pack-secondary discipline). Five ops
+# representing the four determinism classes plus a side_effecting
+# class with broader filesystem isolation:
+#
+#   - pdfplumber_extract (pure, from liminara-ops-pdf)
+#   - tesseract_ocr (pinned_env, from liminara-ops-pdf)
+#   - claude_complete (recordable, from liminara-ops-llm)
+#   - gmail_fetch_attachment (side_effecting, from liminara-ops-gmail)
+#   - intake_classify (pure pack-specific op)
+#
+# Also exercises the optional `init` block — bookkeeping declares
+# reference data per §3 (vendor canonical map, classification markers,
+# no-doc patterns, etc.).
+
+schema_version: 1
+pack_id: "bookkeeping"
+pack_version: "0.1.0"
+
+ops:
+  - execution_spec:
+      identity:
+        name: "pdfplumber_extract"
+        version: "1.0"
+      determinism:
+        class: "pure"
+        cache_policy: "content_addressed"
+        replay_policy: "reexecute"
+      execution:
+        executor: "port"
+        entrypoint: "pdfplumber_extract"
+        requires_execution_context: false
+      isolation:
+        env_vars: []
+        network: "none"
+        bootstrap_read_paths:
+          - "packs/bookkeeping/python"
+        runtime_read_paths: []
+        runtime_write_paths: []
+      contracts:
+        inputs:
+          document: "bookkeeping.raw_document@1"
+        outputs:
+          extracted_text: "bookkeeping.pdf_text@1"
+        decisions:
+          may_emit: false
+        warnings:
+          may_emit: true
+
+  - execution_spec:
+      identity:
+        name: "tesseract_ocr"
+        version: "1.0"
+      determinism:
+        class: "pinned_env"
+        cache_policy: "content_addressed_with_environment"
+        replay_policy: "reexecute"
+      execution:
+        executor: "port"
+        entrypoint: "tesseract_ocr"
+        timeout_ms: 60000
+        requires_execution_context: false
+      isolation:
+        env_vars: []
+        network: "none"
+        bootstrap_read_paths:
+          - "packs/bookkeeping/python"
+        runtime_read_paths: []
+        runtime_write_paths: []
+      contracts:
+        inputs:
+          document: "bookkeeping.raw_document@1"
+        outputs:
+          extracted_text: "bookkeeping.pdf_text@1"
+        decisions:
+          may_emit: false
+        warnings:
+          may_emit: true
+
+  - execution_spec:
+      identity:
+        name: "claude_complete"
+        version: "0.3.0"
+      determinism:
+        class: "recordable"
+        cache_policy: "none"
+        replay_policy: "replay_recorded"
+      execution:
+        executor: "port"
+        entrypoint: "claude_complete"
+        timeout_ms: 30000
+        requires_execution_context: true
+      isolation:
+        env_vars:
+          - "ANTHROPIC_API_KEY"
+        network: "tcp_outbound"
+        bootstrap_read_paths:
+          - "packs/bookkeeping/python"
+        runtime_read_paths: []
+        runtime_write_paths: []
+      contracts:
+        inputs:
+          prompt_template: "text:1"
+          payload: "bookkeeping.match_candidates@1"
+        outputs:
+          result: "bookkeeping.match_decision@1"
+        decisions:
+          may_emit: true
+        warnings:
+          may_emit: true
+
+  - execution_spec:
+      identity:
+        name: "gmail_fetch_attachment"
+        version: "1.0"
+      determinism:
+        class: "side_effecting"
+        cache_policy: "none"
+        replay_policy: "skip"
+      execution:
+        executor: "port"
+        entrypoint: "gmail_fetch_attachment"
+        requires_execution_context: true
+      isolation:
+        env_vars:
+          - "GMAIL_OAUTH_TOKEN"
+        network: "tcp_outbound"
+        bootstrap_read_paths: []
+        runtime_read_paths: []
+        runtime_write_paths:
+          - "intake/gmail"
+      contracts:
+        inputs: {}
+        outputs:
+          document: "bookkeeping.raw_document@1"
+        decisions:
+          may_emit: false
+        warnings:
+          may_emit: true
+
+  - execution_spec:
+      identity:
+        name: "intake_classify"
+        version: "1.0"
+      determinism:
+        class: "pure"
+        cache_policy: "content_addressed"
+        replay_policy: "reexecute"
+      execution:
+        executor: "inline"
+        entrypoint: "intake_classify"
+        requires_execution_context: false
+      isolation:
+        env_vars: []
+        network: "none"
+        bootstrap_read_paths: []
+        runtime_read_paths: []
+        runtime_write_paths: []
+      contracts:
+        inputs:
+          document: "bookkeeping.raw_document@1"
+        outputs:
+          classified: "bookkeeping.classified_document@1"
+        decisions:
+          may_emit: true
+        warnings:
+          may_emit: false
+
+init:
+  version: "2026-04-01"
+  reference_data_keys:
+    - "vendor_canonical_map"
+    - "classification_markers"
+    - "no_doc_patterns"
+    - "match_thresholds"
+    - "llm_prompts"
+    - "swedish_locale"

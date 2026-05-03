@@ -1,0 +1,21 @@
+# request-response-id-mismatch.yaml
+#
+# Violation class: response.id does not match request.id, breaking
+# the correlation invariant. port.ex:140–149 (receive_response/2)
+# silently discards responses whose id does not match the expected
+# id and keeps waiting; a fixture asserting that both ids are equal
+# enforces the invariant the runtime relies on. The schema's
+# #Exchange cross-field constraint (`response.id: request.id`)
+# unifies the two — divergent values fail unification.
+
+request:
+  id: "abc123"
+  op: "echo"
+  inputs:
+    message: "hello"
+
+response:
+  id: "xyz789"
+  status: "ok"
+  outputs:
+    message: "hello"
