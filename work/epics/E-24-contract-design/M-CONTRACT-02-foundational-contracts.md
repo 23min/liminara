@@ -2,7 +2,7 @@
 id: M-CONTRACT-02
 epic: E-24
 parent: E-24
-status: in-progress
+status: complete
 depends_on: M-CONTRACT-01
 ---
 
