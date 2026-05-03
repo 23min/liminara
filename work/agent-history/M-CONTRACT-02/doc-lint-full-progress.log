@@ -1,0 +1,18 @@
+2026-05-03T08:41:05Z start: doc-lint full run begun
+2026-05-03T08:41:19Z walk-docs: enumerating docs/ tree
+2026-05-03T08:41:48Z walk-docs: 102 markdown docs identified (delta +7 vs prior 96, removed docs/index.md self-reference)
+2026-05-03T08:42:26Z derive-metadata: invoking generator script
+2026-05-03T08:42:26Z derive-metadata: per-file extraction complete
+2026-05-03T08:42:39Z regenerate-index: docs/index.md regenerated (102 docs, 806 sections; prior 96 docs, 767 sections; delta +6 docs, +39 sections)
+2026-05-03T08:53:52Z compute-checks: code-reference-drift complete (no references field populated in prior index; new ADR citations spot-checked: all 31 cited paths present)
+2026-05-03T08:53:52Z compute-checks: superseded-decisions complete (1 historical-contextual mention of D-2026-04-22-028 across 5 ADRs; same dismissal pattern as bootstrap)
+2026-05-03T08:53:52Z compute-checks: contract-drift complete (5 spec-declared rows landed; 1 row updated; all 31 cited live-source paths exist; line numbers verified within +/-1)
+2026-05-03T08:53:52Z compute-checks: removed-feature-docs complete (N/A in full mode)
+2026-05-03T08:53:52Z compute-checks: orphan-files complete (6 orphans, down from 15 at bootstrap)
+2026-05-03T08:53:52Z compute-checks: documentation-todos complete (1 false-positive in research/14, dismissed per prior policy)
+2026-05-03T08:53:52Z compute-checks: template-drift complete (5 new ADRs match new 8-field template; pre-existing 3 ADRs still 3-field, considered historical not drift)
+2026-05-03T08:53:52Z compute-checks: index-conflicts complete (0 conflicts; no docs declare authoritative_for yet)
+2026-05-03T08:54:55Z update-metrics: metrics.json refreshed; doc_health=79 (delta 0 vs bootstrap; orphan_rate +0.11, decision_currency +0.25, coverage -0.20 on literal formula)
+2026-05-03T08:56:01Z update-log: docs/log.md appended (queued entry resolved with backref; new on-demand entry written)
+2026-05-03T08:56:01Z render-badges: render-doc-badges.sh exit code 0
+2026-05-03T08:56:21Z final-marker: doc-lint full pass complete (index 102 docs/806 sections; doc_health=79; 12 findings; metrics.json + index.md + log.md + 2 badges written)

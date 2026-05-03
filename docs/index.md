@@ -1,11 +1,11 @@
-generated_at: 2026-04-26T14:39:15Z
-source_sha: 13dd4512c60b7a8dc0e03efc89bc042ee39fb196
-docs_tree_hash: 728c0a92a319f91a446ee22b0b8439191a29702b7227b45d8ef3df805b898ed1
+generated_at: 2026-05-03T08:56:13Z
+source_sha: b1ffb248edc74a7cd0f1b067cc38355252cc7f95
+docs_tree_hash: 878bf04e573d7dca3909e383be43dc6c955342e7396ade62acb89ad5e8d5ee11
 generator: doc-lint full
 
 # Docs Index
 
-_Bootstrap entry — first ever doc-lint full pass on 2026-04-26. Each entry below carries minimal-but-correct metadata (path, sha, purpose extracted from H1, sections from ## headers); richer fields (`covers`, `references`, `authoritative_for`) populate over time via `doc-garden verify` passes. `tier` and `last_verified` default to `—` per the bootstrap rule._
+_Regenerated 2026-05-03 after `milestone/M-CONTRACT-02` merge to `epic/E-24-contract-design` (HEAD `b1ffb24`). Adds 5 ADRs (0004-0008), 1 architecture proposal (`dynamic-pipelining-via-contract-routing.md`), 1 architecture proposal (`pipeline-scoped-run-context.md`); removes the self-referential `docs/index.md` entry. Per the skill, `tier` and `last_verified` are preserved across regenerations only when the doc's blob SHA is unchanged. Other fields (`covers`, `references`, `authoritative_for`) are populated by `doc-garden verify` over time and carried forward where present._
 
 ## docs/analysis/01_First_Analysis.md
 sha: 524024ce877a984c4531ab3f51f52f4a4ed5e68c
@@ -192,7 +192,7 @@ sections:
   - 10. Open Questions — —
 
 ## docs/analysis/11_Data_Model_Spec.md
-sha: 7658ec815c99829f0c25bbe68878efad91c00f67
+sha: fdb8e4050753058051a0f2fbdf8bb435de8bde30
 purpose: Liminara: Phase 0 Data Model Specification
 covers: —
 references: —
@@ -307,7 +307,7 @@ sections:
   - 8. Positioning Statement — —
 
 ## docs/architecture/01_CORE.md
-sha: fe56402c5a82a30155e84a03e62a79b6e808a0c8
+sha: 4bf73e3b8929d6b55c70fdded6ff52407f5484eb
 purpose: The Liminara Core
 covers: —
 references: —
@@ -367,7 +367,7 @@ sections:
   - Recommendation — —
 
 ## docs/architecture/indexes/contract-matrix.md
-sha: afd8ff2a0441e675a128ecebe1c3420c6b5cf507
+sha: b11de6d959c43db5270cc7ad560ce0f1ef09a0f3
 purpose: Contract Matrix
 covers: —
 references: —
@@ -377,9 +377,31 @@ last_verified: —
 sections:
   - (no top-level sections)
 
+## docs/architecture/proposals/dynamic-pipelining-via-contract-routing.md
+sha: 64b22e300a4a8d2e7679464247c0975428683492
+purpose: RFC: Dynamic pipelining via content-routed contract dispatch
+covers: —
+references: —
+authoritative_for: —
+tier: —
+last_verified: —
+sections:
+  - Status — —
+  - Summary — —
+  - Background — the gap — —
+  - §3 — Predicate-flags vs. contract-routing — —
+  - §4 — The shape (worked examples for the four hard cases) — —
+  - §5 — Design forces — —
+  - §6 — Bill of materials (12 items, elaborated) — —
+  - §7 — Sequencing recommendation — —
+  - §8 — Decision points for M-CONTRACT-04 (numbered) — —
+  - §9 — Open questions / risks — —
+  - §10 — References — —
+  - §11 — Recommendation — —
+
 ## docs/architecture/proposals/lifecycle-fsm-engine.md
-sha: 4e33353245cb3eedb4d71ac84700659371fc76f9
-purpose: ## RFC: Per-entity FSMs + LLM/engine boundary — a lifecycle architecture for wf-graph-based workflow
+sha: 08249915b925b6e741145992439193450395c3df
+purpose: —
 covers: —
 references: —
 authoritative_for: —
@@ -387,6 +409,30 @@ tier: —
 last_verified: —
 sections:
   - RFC: Per-entity FSMs + LLM/engine boundary — a lifecycle architecture for wf-graph-based workflow — —
+
+## docs/architecture/proposals/pipeline-scoped-run-context.md
+sha: df49f5d425c11b9fc5e539fb5d53f16e3d1334ea
+purpose: RFC: Pipeline-scoped run contexts (workspace-bearing runs)
+covers: —
+references: —
+authoritative_for: —
+tier: —
+last_verified: —
+sections:
+  - Status — —
+  - Summary — —
+  - Background — the two shapes — —
+  - Path A — Lite (single runtime, run-context primitive) — —
+  - Path B — Full (recursive Liminara-on-Liminara) — —
+  - Comparison matrix — —
+  - Pack-by-pack analysis — —
+  - Current architecture — what's in place, what precludes — —
+  - Required amendments per path — —
+  - Sequencing — when to do what — —
+  - Decision points / triggers — —
+  - Open questions — —
+  - References — —
+  - Recommendation — —
 
 ## docs/brainstorm/00_README.md
 sha: 1d67356010cdccd3b2b98f0bb994a8b2885a2ed9
@@ -511,6 +557,88 @@ sections:
   - Alternatives considered — —
   - Consequences — —
   - Validation — —
+
+## docs/decisions/0004-op-execution-spec.md
+sha: 47699087deff581c65b4660b3b27c03e47a02310
+purpose: ADR-0004 — Codify the canonical op execution spec as a CUE contract
+covers: —
+references: —
+authoritative_for: —
+tier: —
+last_verified: —
+sections:
+  - Context — —
+  - Decision — —
+  - Consequences — —
+  - Schema-backed contract — —
+  - Validation — —
+  - References — —
+
+## docs/decisions/0005-port-wire-protocol.md
+sha: 8ab4af77f124e7347843e999db70178a8f79f312
+purpose: ADR-0005 — Codify the port wire protocol as a CUE contract
+covers: —
+references: —
+authoritative_for: —
+tier: —
+last_verified: —
+sections:
+  - Context — —
+  - Decision — —
+  - Consequences — —
+  - Schema-backed contract — —
+  - Validation — —
+  - References — —
+  - Reviewer notes — —
+
+## docs/decisions/0006-replay-protocol.md
+sha: 876b830136650f603e10c7e1fa7c236b0a18d3ce
+purpose: ADR-0006 — Codify the run-level replay protocol as a CUE contract
+covers: —
+references: —
+authoritative_for: —
+tier: —
+last_verified: —
+sections:
+  - Context — —
+  - Decision — —
+  - Consequences — —
+  - Out of Scope — —
+  - Schema-backed contract — —
+  - Validation — —
+  - References — —
+
+## docs/decisions/0007-pack-manifest.md
+sha: 0f8ab36886093f0abcc3d6757abf0b2b5e9deeea
+purpose: ADR-0007 — Pack manifest contract
+covers: —
+references: —
+authoritative_for: —
+tier: —
+last_verified: —
+sections:
+  - Context — —
+  - Decision — —
+  - Consequences — —
+  - Schema-backed contract — —
+  - Validation — —
+  - References — —
+
+## docs/decisions/0008-pack-plan.md
+sha: a9c4832a6b1894a24a00f9cc09ae9ba4c87353eb
+purpose: ADR-0008 — Pack plan contract
+covers: —
+references: —
+authoritative_for: —
+tier: —
+last_verified: —
+sections:
+  - Context — —
+  - Decision — —
+  - Consequences — —
+  - Schema-backed contract — —
+  - Validation — —
+  - References — —
 
 ## docs/domain_packs/01_Radar.md
 sha: 020f1c8aa83e9444cf862cad2f09918a067a62c9
@@ -790,7 +918,7 @@ sections:
   - Appendix: Related work and competitive tech — —
 
 ## docs/governance/README.md
-sha: 007fe65c713aaac357b8dda36f72622a28b1c005
+sha: cb87f36cf6073c4cbcf912bf6e2146a05dc26b3c
 purpose: Governance
 covers: —
 references: —
@@ -1074,38 +1202,8 @@ sections:
   - The cross-section view (not shown) — —
   - Interactive prototype — —
 
-## docs/index.md
-sha: (uncommitted)
-purpose: Docs Index
-covers: —
-references: —
-authoritative_for: —
-tier: —
-last_verified: —
-sections:
-  - docs/analysis/01_First_Analysis.md — —
-  - docs/analysis/02_Fresh_Analysis.md — —
-  - docs/analysis/03_EU_AI_Act_and_Funding.md — —
-  - docs/analysis/04_HashiCorp_Parallels.md — —
-  - docs/analysis/05_Why_Replay.md — —
-  - docs/analysis/06_FlowTime_and_Liminara.md — —
-  - docs/analysis/07_Compliance_Layer.md — —
-  - docs/analysis/08_Article_12_Summary.md — —
-  - docs/analysis/09_Compliance_Demo_Tool.md — —
-  - docs/analysis/10_Synthesis.md — —
-  - docs/analysis/11_Data_Model_Spec.md — —
-  - docs/analysis/12_Regulatory_Landscape.md — —
-  - docs/analysis/13_Compliance_Positioning.md — —
-  - docs/analysis/14_VSME_Pack_Plan.md — —
-  - docs/analysis/15_Radar_Pack_Plan.md — —
-  - docs/analysis/16_Orchestration_Positioning.md — —
-  - docs/architecture/01_CORE.md — —
-  - docs/architecture/02_PLAN.md — —
-  - docs/architecture/08_EXECUTION_TRUTH_PLAN.md — —
-  - docs/architecture/indexes/contract-matrix.md — —
-
 ## docs/liminara.md
-sha: 5c5464e03a9744320f62bdc25b6de6b53b75c78e
+sha: 5a548179df4b6759ad031791191427a8019f173a
 purpose: Liminara: Comprehensive Reference
 covers: —
 references: —
@@ -1133,6 +1231,8 @@ sections:
   - 16. Funding Paths — —
   - 17. What's Deferred — —
   - 18. Recognized Architectural Patterns — —
+  - 19. Open Questions — —
+  - Origins — —
 
 ## docs/public/compliance/battery-passport.md
 sha: 373b5bd6bf09fdb98a9aa03ed9ed1a6ae943e173
@@ -1549,7 +1649,7 @@ last_verified: —
 sections:
   - We have to change the world "back" so that it... — —
   - Transparent Input & Output — —
-  - Supply chain  — —
+  - Supply chain — —
   - Value Chain — —
   - Value — —
 
@@ -1720,7 +1820,7 @@ sections:
   - 7. Scale Strategy Summary — —
 
 ## docs/schemas/README.md
-sha: 9891e12da7ef716556ee93fe1fa30cd29e94c3f7
+sha: 2083615d30fdd3ee127c84d09dc843165e90d01e
 purpose: `docs/schemas/` — CUE schemas + co-located fixtures
 covers: —
 references: —
